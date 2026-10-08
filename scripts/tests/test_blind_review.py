@@ -50,6 +50,10 @@ def eligible_pool(packet, template, key, candidates):
 
 
 class BlindReviewTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        (blind_review.REPO_ROOT / "local").mkdir(parents=True, exist_ok=True)
+
     def test_export_is_seed_deterministic_and_excludes_private_and_contact_data(self):
         dataset = fixture_dataset()
         with tempfile.TemporaryDirectory(dir=blind_review.REPO_ROOT / "local") as a, \
