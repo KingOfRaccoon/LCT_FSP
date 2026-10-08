@@ -1,0 +1,3738 @@
+{
+  "bank_version": "backend-python-v1.0",
+  "specialization_id": "backend-python-v1",
+  "status": "draft_content_review",
+  "policy_reference": "assessment-policy.v1.json",
+  "families": [
+    {
+      "id": "pyj-collections",
+      "grade": "junior",
+      "competency_id": "python-basics",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "pyj-collections-A",
+          "prompt": "В Python 3.13 обработайте входной список цен, сохранив порядок первого появления каждого значения.",
+          "subquestions": [
+            {
+              "id": "pyj-collections-A-q1",
+              "prompt": "Для [4, 2, 4, 1] нужен результат без повторов и с исходным порядком. Какой подход подходит?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "dict.fromkeys(values) с преобразованием ключей обратно в список"
+                },
+                {
+                  "id": "option_b",
+                  "text": "list(set(values))"
+                },
+                {
+                  "id": "option_c",
+                  "text": "sorted(set(values))"
+                },
+                {
+                  "id": "option_d",
+                  "text": "values.reverse()"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "dict сохраняет порядок вставки; удаляются только повторные ключи."
+            },
+            {
+              "id": "pyj-collections-A-q2",
+              "prompt": "Какой тип значения у dict.fromkeys([4,2,4])?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Список [4, 2]"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Словарь с ключами 4 и 2"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Кортеж (4, 2)"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Множество {4,2}"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "dict.fromkeys создаёт словарь, ключи которого взяты из последовательности."
+            }
+          ]
+        },
+        {
+          "id": "pyj-collections-B",
+          "prompt": "В Python 3.13 обработайте входной список кодов, сохранив порядок первого появления каждого значения.",
+          "subquestions": [
+            {
+              "id": "pyj-collections-B-q1",
+              "prompt": "Для [\"x7\", \"x2\", \"x7\"] какой список вернёт list(dict.fromkeys(values))?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "[\"x2\", \"x7\"]"
+                },
+                {
+                  "id": "option_b",
+                  "text": "{\"x7\", \"x2\"} без порядка"
+                },
+                {
+                  "id": "option_c",
+                  "text": "[\"x7\", \"x2\"]"
+                },
+                {
+                  "id": "option_d",
+                  "text": "[\"x7\", \"x2\", \"x7\"]"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "dict.fromkeys создаёт ключи в порядке первого появления; list(...) превращает их в список [\"x7\", \"x2\"]."
+            },
+            {
+              "id": "pyj-collections-B-q2",
+              "prompt": "Для [\"b\", \"a\", \"b\"] сколько ключей будет в dict.fromkeys(values)?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "0"
+                },
+                {
+                  "id": "option_b",
+                  "text": "1"
+                },
+                {
+                  "id": "option_c",
+                  "text": "3"
+                },
+                {
+                  "id": "option_d",
+                  "text": "2"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Уникальны два ключа: b и a."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pyj-conditions",
+      "grade": "junior",
+      "competency_id": "python-basics",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "pyj-conditions-A",
+          "prompt": "Функция принимает возраст и возвращает право на регистрацию: возраст должен быть не меньше 18.",
+          "subquestions": [
+            {
+              "id": "pyj-conditions-A-q1",
+              "prompt": "Какое условие правильно разрешает age=18 и более?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "age >= 18"
+                },
+                {
+                  "id": "option_b",
+                  "text": "age > 18"
+                },
+                {
+                  "id": "option_c",
+                  "text": "age == 18"
+                },
+                {
+                  "id": "option_d",
+                  "text": "age <= 18"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Формулировка «не меньше 18» включает 18."
+            },
+            {
+              "id": "pyj-conditions-A-q2",
+              "prompt": "При age=17 какое значение должно вернуть условие age >= 18?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "True"
+                },
+                {
+                  "id": "option_b",
+                  "text": "False"
+                },
+                {
+                  "id": "option_c",
+                  "text": "18"
+                },
+                {
+                  "id": "option_d",
+                  "text": "None"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "17 меньше 18, поэтому условие ложно."
+            }
+          ]
+        },
+        {
+          "id": "pyj-conditions-B",
+          "prompt": "Функция принимает количество элементов и разрешает обработку только при значении больше нуля.",
+          "subquestions": [
+            {
+              "id": "pyj-conditions-B-q1",
+              "prompt": "Что вернёт выражение count > 0 при count=0?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "True"
+                },
+                {
+                  "id": "option_b",
+                  "text": "None"
+                },
+                {
+                  "id": "option_c",
+                  "text": "False"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Возникнет исключение"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Ноль не больше нуля."
+            },
+            {
+              "id": "pyj-conditions-B-q2",
+              "prompt": "Какое значение count удовлетворяет count > 0?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "-1"
+                },
+                {
+                  "id": "option_b",
+                  "text": "0"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Все перечисленные"
+                },
+                {
+                  "id": "option_d",
+                  "text": "1"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Только положительное значение удовлетворяет условию."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pyj-functions",
+      "grade": "junior",
+      "competency_id": "python-basics",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "pyj-functions-A",
+          "prompt": "Напишите функцию, которая возвращает сумму чисел из переданной последовательности; вход не должен меняться.",
+          "subquestions": [
+            {
+              "id": "pyj-functions-A-q1",
+              "prompt": "Как безопасно начать реализацию для обычного списка чисел?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Вернуть sum(values)"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Изменить список на месте и вернуть его"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Вызвать values.sort() и вернуть None"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Сохранить values в глобальную переменную"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "sum вычисляет сумму и не изменяет исходную последовательность."
+            },
+            {
+              "id": "pyj-functions-A-q2",
+              "prompt": "Какой контракт явно нужен для пустой последовательности в функции суммы?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Всегда выбрасывать IndexError"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Сумма равна 0"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Вернуть первый элемент"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Это невозможно определить: sum([]) даёт 0"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Для суммы пустого набора естественное и стандартное значение — 0."
+            }
+          ]
+        },
+        {
+          "id": "pyj-functions-B",
+          "prompt": "Напишите функцию, которая возвращает максимальное число из переданной последовательности; вход не должен меняться.",
+          "subquestions": [
+            {
+              "id": "pyj-functions-B-q1",
+              "prompt": "Что следует сделать, если функция должна вернуть максимум непустого списка?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Вызвать values.reverse()"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Вернуть len(values)"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Вернуть max(values)"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Вернуть values[0] без условия"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "max возвращает наибольший элемент непустой коллекции без её изменения."
+            },
+            {
+              "id": "pyj-functions-B-q2",
+              "prompt": "Что произойдёт при max([]) в Python?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Вернётся 0"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Вернётся None"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Будет IndexError"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Будет ValueError"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "max без default на пустой последовательности возбуждает ValueError."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pyj-errors",
+      "grade": "junior",
+      "competency_id": "python-basics",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "pyj-errors-A",
+          "prompt": "Прочитайте числовое значение из строки и верните понятную ошибку для некорректного ввода.",
+          "subquestions": [
+            {
+              "id": "pyj-errors-A-q1",
+              "prompt": "Какое исключение ожидаемо при int(\"abc\")?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "ValueError"
+                },
+                {
+                  "id": "option_b",
+                  "text": "TypeError"
+                },
+                {
+                  "id": "option_c",
+                  "text": "KeyError"
+                },
+                {
+                  "id": "option_d",
+                  "text": "StopIteration"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Строка имеет допустимый тип, но не содержит представление целого числа."
+            },
+            {
+              "id": "pyj-errors-A-q2",
+              "prompt": "Почему не стоит заменять любой ошибочный ввод на 0 без уведомления?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Потому что int не работает с нулём"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Потому что ошибка станет незаметной и изменит смысл данных"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Потому что ValueError нельзя обработать"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Потому что это меняет тип строки"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Подстановка маскирует некорректные данные и может дать неверный результат."
+            }
+          ]
+        },
+        {
+          "id": "pyj-errors-B",
+          "prompt": "Прочитайте целое число из строки и обработайте случай, когда строка не является числом.",
+          "subquestions": [
+            {
+              "id": "pyj-errors-B-q1",
+              "prompt": "Где следует перехватывать ValueError?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Глобально вокруг всего приложения"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Нигде; подавлять все исключения"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Вокруг преобразования, которое может его вызвать"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Только при закрытии файла"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Узкая область перехвата сохраняет ожидаемое поведение остальных операций."
+            },
+            {
+              "id": "pyj-errors-B-q2",
+              "prompt": "Какое поведение лучше для API-функции чтения при неверном значении?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Молча вернуть 0"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Завершить весь процесс"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Повторять преобразование бесконечно"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Вернуть явно документированную ошибку валидации"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Вызывающий код должен отличать неверный ввод от допустимого нуля."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pym-iterators",
+      "grade": "middle",
+      "competency_id": "python-basics",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "pym-iterators-A",
+          "prompt": "Обработайте поток записей однократно, не материализуя его целиком в памяти.",
+          "subquestions": [
+            {
+              "id": "pym-iterators-A-q1",
+              "prompt": "Какой подход сохраняет ленивую обработку?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Итерироваться по stream и обрабатывать каждый элемент"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Сначала list(stream), затем цикл"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Вызвать sorted(stream)"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Прочитать stream дважды"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Один проход обрабатывает поток без полной материализации."
+            },
+            {
+              "id": "pym-iterators-A-q2",
+              "prompt": "Для подсчёта элементов одним проходом какая память обычно нужна?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "O(n) для копии входа"
+                },
+                {
+                  "id": "option_b",
+                  "text": "O(1) дополнительная память"
+                },
+                {
+                  "id": "option_c",
+                  "text": "O(n²)"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Память обязательно равна размеру потока"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Счётчик и текущий элемент требуют постоянной дополнительной памяти."
+            }
+          ]
+        },
+        {
+          "id": "pym-iterators-B",
+          "prompt": "Подсчитайте число событий из однократно читаемого источника без списка всех событий.",
+          "subquestions": [
+            {
+              "id": "pym-iterators-B-q1",
+              "prompt": "Что гарантировано для обычного итератора после полного прохода?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Его можно снова начать с начала"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Он автоматически кэширует элементы"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Он исчерпан; повторный проход не выдаст прежние элементы"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Он превращается в список"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Итераторы обычно потребляются при обходе."
+            },
+            {
+              "id": "pym-iterators-B-q2",
+              "prompt": "Как не потерять возможность повторного чтения, если она нужна?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Вызвать next() после конца"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Переименовать итератор"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Использовать set(stream) всегда"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Явно материализовать данные, осознав стоимость памяти"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Повторное чтение требует сохранённой копии или нового источника."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pym-mutable-default",
+      "grade": "middle",
+      "competency_id": "python-basics",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "pym-mutable-default-A",
+          "prompt": "Функция добавляет элемент в переданный аккумулятор; вызовы без аргумента не должны делить состояние.",
+          "subquestions": [
+            {
+              "id": "pym-mutable-default-A-q1",
+              "prompt": "Почему def add(x, items=[]) опасна для изменяемого аккумулятора?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Список создаётся один раз при определении функции и может разделяться"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Список создаётся заново при каждом вызове"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Python запрещает списки как аргументы"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Список автоматически сортируется"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Значение по умолчанию вычисляется один раз при создании функции."
+            },
+            {
+              "id": "pym-mutable-default-A-q2",
+              "prompt": "Два вызова add(1), add(2) используют безопасный шаблон без переданного списка. Что верно?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Второй вызов получает [1,2]"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Каждый вызов начинает с собственного списка"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Оба вызова падают"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Оба изменяют tuple"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "При None функция создаёт новый список для каждого вызова."
+            }
+          ]
+        },
+        {
+          "id": "pym-mutable-default-B",
+          "prompt": "Функция собирает метки в список; отдельные вызовы без списка должны быть независимы.",
+          "subquestions": [
+            {
+              "id": "pym-mutable-default-B-q1",
+              "prompt": "Какой распространённый безопасный шаблон?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "items=[] и очищать глобальный список"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Использовать один глобальный tuple"
+                },
+                {
+                  "id": "option_c",
+                  "text": "items=None; внутри создать [] при items is None"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Перехватывать MemoryError"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "None служит маркером; изменяемый объект создаётся на каждый вызов."
+            },
+            {
+              "id": "pym-mutable-default-B-q2",
+              "prompt": "Что сделать, если вызывающий явно передал список?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Всегда игнорировать его"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Создать глобальный список"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Преобразовать его в строку"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Использовать именно переданный объект согласно контракту"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Явно переданный аккумулятор должен соблюдаться; mutability-контракт документируют."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pym-context",
+      "grade": "middle",
+      "competency_id": "python-basics",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "pym-context-A",
+          "prompt": "Откройте файл для чтения и гарантированно закройте его при любой ошибке обработки.",
+          "subquestions": [
+            {
+              "id": "pym-context-A-q1",
+              "prompt": "Какой способ идиоматичен для файла?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "with open(path) as f: ..."
+                },
+                {
+                  "id": "option_b",
+                  "text": "Открыть файл и надеяться на сборщик мусора"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Вызывать close только при успехе"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Сохранить дескриптор в глобальной переменной"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Контекстный менеджер закрывает файл при выходе из блока, в том числе по исключению."
+            },
+            {
+              "id": "pym-context-A-q2",
+              "prompt": "Что даёт finally при ручном try/finally вокруг ресурса?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Повторяет исключение до успеха"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Гарантирует попытку освобождения при выходе из try"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Скрывает все ошибки"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Делает ресурс потокобезопасным"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "finally выполняется при штатном выходе и при исключении."
+            }
+          ]
+        },
+        {
+          "id": "pym-context-B",
+          "prompt": "Откройте ресурс и освободите его даже если чтение завершится исключением.",
+          "subquestions": [
+            {
+              "id": "pym-context-B-q1",
+              "prompt": "Когда вызывается __exit__ у корректного контекстного менеджера?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Только при успешном завершении"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Только при удалении процесса"
+                },
+                {
+                  "id": "option_c",
+                  "text": "При выходе из блока и при исключении"
+                },
+                {
+                  "id": "option_d",
+                  "text": "До входа в блок"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Контекстный менеджер получает управление при любом выходе из with."
+            },
+            {
+              "id": "pym-context-B-q2",
+              "prompt": "Какое утверждение о with наиболее точное?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Он сам делает файловую операцию атомарной"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Он отключает исключения"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Он заменяет проверку прав доступа"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Он управляет жизненным циклом ресурса, но не гарантирует атомарность данных"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "With закрывает ресурс; другие свойства требуют отдельных механизмов."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pym-complexity",
+      "grade": "middle",
+      "competency_id": "python-basics",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "pym-complexity-A",
+          "prompt": "Найдите повторы среди n хешируемых элементов без квадратичного попарного сканирования.",
+          "subquestions": [
+            {
+              "id": "pym-complexity-A-q1",
+              "prompt": "Два вложенных прохода по всем парам элементов имеют какую оценку времени?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "O(n²)"
+                },
+                {
+                  "id": "option_b",
+                  "text": "O(1)"
+                },
+                {
+                  "id": "option_c",
+                  "text": "O(log n)"
+                },
+                {
+                  "id": "option_d",
+                  "text": "O(n)"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Число пар растёт примерно как n²."
+            },
+            {
+              "id": "pym-complexity-A-q2",
+              "prompt": "Какова ожидаемая сложность построения множества из n хешируемых значений?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "O(1)"
+                },
+                {
+                  "id": "option_b",
+                  "text": "O(n)"
+                },
+                {
+                  "id": "option_c",
+                  "text": "O(log n)"
+                },
+                {
+                  "id": "option_d",
+                  "text": "O(n²)"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Построение хеш-множества обычно линейно в среднем."
+            }
+          ]
+        },
+        {
+          "id": "pym-complexity-B",
+          "prompt": "Даны два списка хешируемых ID first и second. Верните ID из second, которые есть в first; каждый ID из second включайте не более одного раза и сохраняйте порядок его первого появления во втором списке.",
+          "subquestions": [
+            {
+              "id": "pym-complexity-B-q1",
+              "prompt": "Как построить результат ожидаемо за O(n + m) времени и O(n) вспомогательной памяти без учёта результирующего списка при среднем O(1) поиске в множестве, если n и m — длины списков?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Сравнить каждый элемент first с каждым элементом second и собрать совпадения"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Создать set(first) и отдельное множество уже добавленных ID, затем пройти second, проверяя членство в обоих множествах и добавляя каждое общее ID один раз"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Сравнивать только элементы с одинаковыми индексами"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Отсортировать только first и взять первый элемент second"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Построение множества требует ожидаемо O(n) времени и O(n) памяти; проход по second с проверкой членства и множеством уже добавленных ID требует ожидаемо O(m), всего O(n + m). Порядок результата задаёт проход по second. Здесь вспомогательная память указана без учёта списка результата; каждый общий ID добавляется один раз."
+            },
+            {
+              "id": "pym-complexity-B-q2",
+              "prompt": "При том же алгоритме, где n и m — длины списков, какую ожидаемую оценку времени и вспомогательной памяти без учёта результирующего списка дают хеш-множества при среднем O(1) поиске?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Время O(n × m), дополнительная память O(1)"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Время O(n + m), дополнительная память O(n)"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Время O(1), дополнительная память O(n + m)"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Время O(log(n + m)), дополнительная память O(1)"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Ожидаемое построение множества и проход по второму списку суммарно требуют O(n + m) времени; множество first и множество уже добавленных ID занимают O(n) дополнительной памяти. Здесь вспомогательная память указана без учёта списка результата; каждый общий ID добавляется один раз."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apij-status",
+      "grade": "junior",
+      "competency_id": "http-api",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "apij-status-A",
+          "prompt": "Ресурс создан успешно после POST-запроса, и клиенту известен URI новой записи.",
+          "subquestions": [
+            {
+              "id": "apij-status-A-q1",
+              "prompt": "Какой HTTP статус обычно уместен?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "201 Created"
+                },
+                {
+                  "id": "option_b",
+                  "text": "200 OK"
+                },
+                {
+                  "id": "option_c",
+                  "text": "204 No Content"
+                },
+                {
+                  "id": "option_d",
+                  "text": "404 Not Found"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "201 обозначает успешное создание ресурса."
+            },
+            {
+              "id": "apij-status-A-q2",
+              "prompt": "Что обычно означает 204?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Ресурс создан и Location обязателен"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Успех без тела ответа"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Ошибка авторизации"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Временная блокировка"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "204 означает успешный ответ без содержимого."
+            }
+          ]
+        },
+        {
+          "id": "apij-status-B",
+          "prompt": "Запрос успешно создал заказ; клиент может получить адрес созданного ресурса.",
+          "subquestions": [
+            {
+              "id": "apij-status-B-q1",
+              "prompt": "Где стандартно вернуть адрес созданного ресурса?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "В заголовке Retry-After"
+                },
+                {
+                  "id": "option_b",
+                  "text": "В заголовке If-Match"
+                },
+                {
+                  "id": "option_c",
+                  "text": "В заголовке Location"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Только в Set-Cookie"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Location указывает URI созданного ресурса."
+            },
+            {
+              "id": "apij-status-B-q2",
+              "prompt": "Если тело ответа содержит представление созданного объекта, какой статус также возможен?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "304 Not Modified"
+                },
+                {
+                  "id": "option_b",
+                  "text": "401 Unauthorized"
+                },
+                {
+                  "id": "option_c",
+                  "text": "418"
+                },
+                {
+                  "id": "option_d",
+                  "text": "201 Created"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "201 может сопровождаться представлением созданного объекта."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apij-validation",
+      "grade": "junior",
+      "competency_id": "http-api",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "apij-validation-A",
+          "prompt": "Запрос содержит обязательное поле email в неверном формате; сервер не выполняет операцию.",
+          "subquestions": [
+            {
+              "id": "apij-validation-A-q1",
+              "prompt": "Как лучше обработать нарушение формата поля?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Вернуть понятную ошибку валидации 4xx с указанием поля"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Принять и исправить молча"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Вернуть 500"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Успешно создать объект с пустым значением"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Некорректные данные клиента следует отклонить как ошибку запроса с полезной детализацией."
+            },
+            {
+              "id": "apij-validation-A-q2",
+              "prompt": "Почему неверный ввод не должен возвращать 500?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Клиенты не понимают JSON"
+                },
+                {
+                  "id": "option_b",
+                  "text": "500 предназначен для ошибки сервера, а не обычного нарушения контракта"
+                },
+                {
+                  "id": "option_c",
+                  "text": "4xx запрещены для API"
+                },
+                {
+                  "id": "option_d",
+                  "text": "500 всегда быстрее"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Ошибка ввода не означает внутренний сбой сервера."
+            }
+          ]
+        },
+        {
+          "id": "apij-validation-B",
+          "prompt": "Запрос содержит отрицательное количество товара, хотя контракт разрешает только положительные числа.",
+          "subquestions": [
+            {
+              "id": "apij-validation-B-q1",
+              "prompt": "Где проверять правило количества > 0?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Только в браузере"
+                },
+                {
+                  "id": "option_b",
+                  "text": "После списания оплаты"
+                },
+                {
+                  "id": "option_c",
+                  "text": "На сервере до побочного эффекта; клиентская проверка может дублировать его"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Только в логах"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Серверная проверка является границей доверия."
+            },
+            {
+              "id": "apij-validation-B-q2",
+              "prompt": "Что полезно включить в ответ validation error?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Секретный stack trace"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Пароль пользователя"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Случайную страницу HTML"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Путь поля и стабильный код ошибки"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Структурированный код и поле помогают исправить запрос без раскрытия внутренних деталей."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apij-authn",
+      "grade": "junior",
+      "competency_id": "http-api",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "apij-authn-A",
+          "prompt": "Защищённый endpoint требует вошедшего пользователя, но запрос не содержит действительных credentials.",
+          "subquestions": [
+            {
+              "id": "apij-authn-A-q1",
+              "prompt": "Какой статус обычно отвечает за отсутствие действительной аутентификации?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "401"
+                },
+                {
+                  "id": "option_b",
+                  "text": "400"
+                },
+                {
+                  "id": "option_c",
+                  "text": "403"
+                },
+                {
+                  "id": "option_d",
+                  "text": "409"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "401 означает, что запросу не хватает действительных данных аутентификации."
+            },
+            {
+              "id": "apij-authn-A-q2",
+              "prompt": "У пользователя есть действительная сессия, но ему запрещена операция. Какой статус точнее?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "401"
+                },
+                {
+                  "id": "option_b",
+                  "text": "403"
+                },
+                {
+                  "id": "option_c",
+                  "text": "404 всегда"
+                },
+                {
+                  "id": "option_d",
+                  "text": "201"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "403 означает, что сервер понял запрос, но отказывает в доступе."
+            }
+          ]
+        },
+        {
+          "id": "apij-authn-B",
+          "prompt": "Endpoint требует аутентификацию, а предъявленный токен отсутствует или недействителен.",
+          "subquestions": [
+            {
+              "id": "apij-authn-B-q1",
+              "prompt": "Какой ответ помогает клиенту понять схему HTTP-аутентификации?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Content-Length"
+                },
+                {
+                  "id": "option_b",
+                  "text": "ETag"
+                },
+                {
+                  "id": "option_c",
+                  "text": "WWW-Authenticate"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Allow"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Для 401 сервер использует WWW-Authenticate challenge."
+            },
+            {
+              "id": "apij-authn-B-q2",
+              "prompt": "Что следует сделать с секретом токена в логах?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Записать полностью для отладки"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Публиковать в URL"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Сохранять в тексте ошибки"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Не журналировать секрет; при необходимости журналировать безопасный идентификатор"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Секреты не следует раскрывать в логах или ответах."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apij-json",
+      "grade": "junior",
+      "competency_id": "http-api",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "apij-json-A",
+          "prompt": "Клиент отправляет JSON с полем quantity, которое контракт определяет как целое число.",
+          "subquestions": [
+            {
+              "id": "apij-json-A-q1",
+              "prompt": "Какое JSON значение соответствует quantity=3?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "3"
+                },
+                {
+                  "id": "option_b",
+                  "text": "\"3\""
+                },
+                {
+                  "id": "option_c",
+                  "text": "3.5"
+                },
+                {
+                  "id": "option_d",
+                  "text": "null"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "3 — JSON number без дробной части, соответствующий целому значению."
+            },
+            {
+              "id": "apij-json-A-q2",
+              "prompt": "Что делать с отсутствующим обязательным полем?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Считать его автоматически равным любому значению"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Вернуть ошибку валидации согласно контракту"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Интерпретировать как пароль"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Игнорировать всегда"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Отсутствие обязательного поля нарушает контракт запроса."
+            }
+          ]
+        },
+        {
+          "id": "apij-json-B",
+          "prompt": "Клиент отправляет JSON с обязательным полем active булева типа.",
+          "subquestions": [
+            {
+              "id": "apij-json-B-q1",
+              "prompt": "Какое JSON значение соответствует active=false?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "\"false\""
+                },
+                {
+                  "id": "option_b",
+                  "text": "0"
+                },
+                {
+                  "id": "option_c",
+                  "text": "false"
+                },
+                {
+                  "id": "option_d",
+                  "text": "null"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "false — JSON boolean; строка \"false\" имеет другой тип."
+            },
+            {
+              "id": "apij-json-B-q2",
+              "prompt": "Почему нельзя безоговорочно считать строку \"3\" числом 3?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Все строки запрещены JSON"
+                },
+                {
+                  "id": "option_b",
+                  "text": "У JSON нет чисел"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Это делает ответ 204"
+                },
+                {
+                  "id": "option_d",
+                  "text": "JSON различает string и number; контракт должен определить coercion"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Типы в JSON значимы и не должны молча подменяться."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apim-pagination",
+      "grade": "middle",
+      "competency_id": "http-api",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "apim-pagination-A",
+          "prompt": "API отдаёт изменяющийся набор записей постранично; offset-пагинация пропускает элементы при вставках.",
+          "subquestions": [
+            {
+              "id": "apim-pagination-A-q1",
+              "prompt": "Какой подход обычно устойчивее к вставкам перед текущей позицией?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Cursor по стабильному ключу сортировки"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Offset без ORDER BY"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Случайный порядок"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Отдельный запрос на каждый элемент"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Курсор на устойчивом ключе меньше смещается при добавлении более ранних записей."
+            },
+            {
+              "id": "apim-pagination-A-q2",
+              "prompt": "Можно ли обещать snapshot всей выдачи при обычной cursor-пагинации без снимка данных?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Да, всегда"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Нет; изменения между запросами могут быть видны согласно контракту"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Да, если курсор — UUID"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Нет, cursor API не работает"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Курсор сам по себе не фиксирует транзакционный снимок между HTTP-запросами."
+            }
+          ]
+        },
+        {
+          "id": "apim-pagination-B",
+          "prompt": "Клиент читает большой каталог при параллельных вставках; стабильный обход важнее перехода сразу на произвольную страницу.",
+          "subquestions": [
+            {
+              "id": "apim-pagination-B-q1",
+              "prompt": "Что необходимо для воспроизводимого cursor traversal?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Только LIMIT"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Случайный ORDER BY"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Стабильный порядок с уникальным tie-breaker"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Отсутствие фильтра"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Сортировка должна задавать полный порядок, включая разрешение одинаковых значений."
+            },
+            {
+              "id": "apim-pagination-B-q2",
+              "prompt": "Какой сигнал нужен, если курсор связан с фильтрами/сортировкой?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Игнорировать исходные фильтры"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Менять сортировку молча"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Принимать курсор от другого пользователя без проверки"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Валидировать, что продолжение использует тот же контекст запроса"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Курсор должен продолжать тот же логический запрос и не обходить ограничения доступа."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apim-authz",
+      "grade": "middle",
+      "competency_id": "http-api",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "apim-authz-A",
+          "prompt": "Пользователь вошёл в систему и запрашивает объект чужой организации по известному ID.",
+          "subquestions": [
+            {
+              "id": "apim-authz-A-q1",
+              "prompt": "Какое правило доступа нужно проверить?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Принадлежность объекта организации пользователя и право на действие"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Только валидность токена"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Длину URL"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Порядок заголовков"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Аутентификация отвечает кто это; авторизация проверяет доступ к конкретному объекту."
+            },
+            {
+              "id": "apim-authz-A-q2",
+              "prompt": "Как тестировать tenant isolation?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Проверить только успешный запрос владельца"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Проверить owner и cross-tenant чтение/изменение/удаление"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Проверить цвет кнопки"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Отключить авторизацию в тесте"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Нужны негативные тесты каждого чувствительного действия между арендаторами."
+            }
+          ]
+        },
+        {
+          "id": "apim-authz-B",
+          "prompt": "Аутентифицированный клиент отправляет DELETE для объекта другого tenant, зная его идентификатор.",
+          "subquestions": [
+            {
+              "id": "apim-authz-B-q1",
+              "prompt": "Почему скрытый ID не является контролем доступа?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "UUID невозможно угадать"
+                },
+                {
+                  "id": "option_b",
+                  "text": "ID автоматически шифруется"
+                },
+                {
+                  "id": "option_c",
+                  "text": "ID можно получить или перебрать; каждый запрос проверяет разрешение"
+                },
+                {
+                  "id": "option_d",
+                  "text": "HTTP запрещает чужие ID"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Непредсказуемость идентификатора не заменяет авторизацию."
+            },
+            {
+              "id": "apim-authz-B-q2",
+              "prompt": "Когда следует проверять право на скачивание вложения?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Только при создании ссылки"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Никогда, если есть UUID"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Только в браузере"
+                },
+                {
+                  "id": "option_d",
+                  "text": "При каждом чтении/скачивании по актуальным правам"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Старые ссылки не должны обходить изменившиеся разрешения."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apim-idempotency",
+      "grade": "middle",
+      "competency_id": "http-api",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "apim-idempotency-A",
+          "prompt": "POST создаёт платёж; клиент может повторить запрос после таймаута, не зная, был ли первый обработан.",
+          "subquestions": [
+            {
+              "id": "apim-idempotency-A-q1",
+              "prompt": "Какой контракт помогает безопасно повторить запрос?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Идемпотентный ключ, уникальный в области операции и пользователя"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Случайная задержка на клиенте"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Повторять без ограничений"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Отключить запись результата"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Ключ связывает повтор с исходным результатом, если его атомарно хранить с операцией."
+            },
+            {
+              "id": "apim-idempotency-A-q2",
+              "prompt": "Что делать, если тот же ключ пришёл с другим телом?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Молча выполнить второй вариант"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Отклонить конфликт согласно контракту"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Считать второй запрос первым"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Изменить исходную операцию"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Повторное использование ключа с другим содержимым неоднозначно и должно быть отвергнуто."
+            }
+          ]
+        },
+        {
+          "id": "apim-idempotency-B",
+          "prompt": "POST создаёт бронирование; сетевой разрыв может скрыть успешный первый ответ от клиента.",
+          "subquestions": [
+            {
+              "id": "apim-idempotency-B-q1",
+              "prompt": "Что вернуть при повторе того же ключа с тем же запросом после успеха?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Создать вторую операцию"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Всегда 500"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Вернуть сохранённый результат исходной операции"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Удалить исходную операцию"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Идемпотентный повтор должен не дублировать эффект и вернуть согласованный исход."
+            },
+            {
+              "id": "apim-idempotency-B-q2",
+              "prompt": "Как избежать гонки двух одновременных запросов с одним ключом?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Проверка ключа только в клиентском JS"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Сон на 1 секунду"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Разные серверные часы"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Уникальное ограничение/атомарное резервирование ключа в хранилище"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Конкурентную дедупликацию обеспечивает атомарное серверное ограничение."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apim-errors",
+      "grade": "middle",
+      "competency_id": "http-api",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "apim-errors-A",
+          "prompt": "Сервис возвращает машиночитаемые ошибки, не раскрывая внутренние трассировки и секреты.",
+          "subquestions": [
+            {
+              "id": "apim-errors-A-q1",
+              "prompt": "Что должно быть стабильным для клиента?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Код ошибки и поле/контекст, определённые API-контрактом"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Внутреннее имя класса исключения"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Абсолютный путь файла сервера"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Содержимое stack trace"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Публичный стабильный код отделяет API от внутренних деталей реализации."
+            },
+            {
+              "id": "apim-errors-A-q2",
+              "prompt": "Какую информацию безопасно включать в correlation ID?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Секрет сессии"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Непредсказуемый идентификатор запроса без персональных данных"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Пароль"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Полный SQL с данными клиента"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Correlation ID связывает события без включения чувствительных данных."
+            }
+          ]
+        },
+        {
+          "id": "apim-errors-B",
+          "prompt": "Несколько endpoint должны отдавать согласованный безопасный формат ошибок.",
+          "subquestions": [
+            {
+              "id": "apim-errors-B-q1",
+              "prompt": "Как поступить с неожиданным исключением?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Показать трассировку и переменные среды"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Преобразовать в успешный 200"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Вернуть безопасную 5xx ошибку и записать детали в защищённый серверный лог"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Повторно отправить пароль"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Диагностические детали нужны серверу, но клиентский ответ не должен раскрывать секреты."
+            },
+            {
+              "id": "apim-errors-B-q2",
+              "prompt": "Что должен делать клиент с неизвестным полем ответа об ошибке?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Падать всегда"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Показывать серверные секреты"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Повторять запрос бесконечно"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Игнорировать неизвестное поле и использовать известные стабильные поля"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Эволюционирующий JSON формат должен допускать неизвестные дополнительные поля."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sqlj-null",
+      "grade": "junior",
+      "competency_id": "sql-transactions",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "sqlj-null-A",
+          "prompt": "Найдите строки, у которых optional_note не задано (NULL).",
+          "subquestions": [
+            {
+              "id": "sqlj-null-A-q1",
+              "prompt": "Какое условие проверяет NULL в SQL?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "optional_note IS NULL"
+                },
+                {
+                  "id": "option_b",
+                  "text": "optional_note = NULL"
+                },
+                {
+                  "id": "option_c",
+                  "text": "optional_note == NULL"
+                },
+                {
+                  "id": "option_d",
+                  "text": "optional_note IN (NULL)"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "NULL проверяют через IS NULL; сравнение = NULL даёт UNKNOWN."
+            },
+            {
+              "id": "sqlj-null-A-q2",
+              "prompt": "Результат выражения NULL = NULL в SQL?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "TRUE"
+                },
+                {
+                  "id": "option_b",
+                  "text": "UNKNOWN"
+                },
+                {
+                  "id": "option_c",
+                  "text": "FALSE"
+                },
+                {
+                  "id": "option_d",
+                  "text": "0 всегда"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Операции сравнения с NULL обычно дают UNKNOWN по трёхзначной логике."
+            }
+          ]
+        },
+        {
+          "id": "sqlj-null-B",
+          "prompt": "Выберите записи, где shipped_at не заполнен (NULL).",
+          "subquestions": [
+            {
+              "id": "sqlj-null-B-q1",
+              "prompt": "Какой предикат выберет строки, где shipped_at не заполнен?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "shipped_at = NULL"
+                },
+                {
+                  "id": "option_b",
+                  "text": "shipped_at IS NOT NULL"
+                },
+                {
+                  "id": "option_c",
+                  "text": "shipped_at IS NULL"
+                },
+                {
+                  "id": "option_d",
+                  "text": "shipped_at == NULL"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "В SQL отсутствие значения проверяют через IS NULL; сравнение = NULL даёт UNKNOWN."
+            },
+            {
+              "id": "sqlj-null-B-q2",
+              "prompt": "Включит ли WHERE (NULL = NULL) строку?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Да, потому что NULL равен себе"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Нет: WHERE оставляет только TRUE, UNKNOWN исключается"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Да, условие UNKNOWN проходит WHERE"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Зависит от сортировки"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "NULL = NULL даёт UNKNOWN; WHERE сохраняет только строки, для которых предикат равен TRUE."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sqlj-join",
+      "grade": "junior",
+      "competency_id": "sql-transactions",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "sqlj-join-A",
+          "prompt": "Покажите всех клиентов и их заказы, включая клиентов без заказов.",
+          "subquestions": [
+            {
+              "id": "sqlj-join-A-q1",
+              "prompt": "Какой join сохраняет каждую строку левой таблицы?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "LEFT JOIN"
+                },
+                {
+                  "id": "option_b",
+                  "text": "INNER JOIN"
+                },
+                {
+                  "id": "option_c",
+                  "text": "CROSS JOIN"
+                },
+                {
+                  "id": "option_d",
+                  "text": "RIGHT JOIN всегда"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "LEFT JOIN сохраняет строки слева и дополняет отсутствующие совпадения NULL."
+            },
+            {
+              "id": "sqlj-join-A-q2",
+              "prompt": "Какой join вернёт только пары с совпавшим ключом?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "LEFT JOIN"
+                },
+                {
+                  "id": "option_b",
+                  "text": "INNER JOIN"
+                },
+                {
+                  "id": "option_c",
+                  "text": "FULL OUTER JOIN"
+                },
+                {
+                  "id": "option_d",
+                  "text": "CROSS JOIN"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "INNER JOIN исключает несопоставленные строки."
+            }
+          ]
+        },
+        {
+          "id": "sqlj-join-B",
+          "prompt": "Покажите все отделы и сотрудников, включая отделы без сотрудников.",
+          "subquestions": [
+            {
+              "id": "sqlj-join-B-q1",
+              "prompt": "Если совпадения нет, чему обычно равны столбцы правой таблицы?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "0"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Пустой текст"
+                },
+                {
+                  "id": "option_c",
+                  "text": "NULL"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Строке слева"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Отсутствующая правая запись представлена NULL для её столбцов."
+            },
+            {
+              "id": "sqlj-join-B-q2",
+              "prompt": "Какой риск возникает, если правая таблица содержит два совпадения на ключ?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Запрос автоматически выберет одно"
+                },
+                {
+                  "id": "option_b",
+                  "text": "База завершится"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Все значения станут NULL"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Строка слева появится дважды в результате join"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Каждая совпавшая пара формирует строку результата; связь 1:N размножает левую строку."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sqlj-group",
+      "grade": "junior",
+      "competency_id": "sql-transactions",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "sqlj-group-A",
+          "prompt": "Посчитайте число заказов для каждой пары customer_id и status.",
+          "subquestions": [
+            {
+              "id": "sqlj-group-A-q1",
+              "prompt": "Какой запрос задаёт группировку по обоим полям?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "GROUP BY customer_id, status"
+                },
+                {
+                  "id": "option_b",
+                  "text": "ORDER BY customer_id, status"
+                },
+                {
+                  "id": "option_c",
+                  "text": "DISTINCT customer_id"
+                },
+                {
+                  "id": "option_d",
+                  "text": "HAVING customer_id, status"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Оба измерения указываются в GROUP BY."
+            },
+            {
+              "id": "sqlj-group-A-q2",
+              "prompt": "Сколько строк вернёт группировка по customer_id и status?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Всегда ровно две"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Одна на каждую существующую пару значений"
+                },
+                {
+                  "id": "option_c",
+                  "text": "По одной на исходную строку"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Ни одной"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Результат содержит одну группу для каждой комбинации ключей."
+            }
+          ]
+        },
+        {
+          "id": "sqlj-group-B",
+          "prompt": "Посчитайте число платежей для каждой пары account_id и currency.",
+          "subquestions": [
+            {
+              "id": "sqlj-group-B-q1",
+              "prompt": "Где фильтровать группы с COUNT(*) >= 2?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "WHERE COUNT(*) >= 2"
+                },
+                {
+                  "id": "option_b",
+                  "text": "ON COUNT(*) >= 2"
+                },
+                {
+                  "id": "option_c",
+                  "text": "HAVING COUNT(*) >= 2"
+                },
+                {
+                  "id": "option_d",
+                  "text": "LIMIT COUNT(*) >= 2"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "HAVING фильтрует агрегированные группы."
+            },
+            {
+              "id": "sqlj-group-B-q2",
+              "prompt": "Можно ли выбрать неагрегированный столбец, отсутствующий в GROUP BY?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Всегда можно и он будет случайным"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Он станет COUNT"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Он автоматически сортируется"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Обычно нельзя в стандартной строгой семантике"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Выбранные неагрегированные выражения должны входить в ключ группировки."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sqlj-order-limit",
+      "grade": "junior",
+      "competency_id": "sql-transactions",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "sqlj-order-limit-A",
+          "prompt": "Получите 5 самых новых записей по created_at.",
+          "subquestions": [
+            {
+              "id": "sqlj-order-limit-A-q1",
+              "prompt": "Какой ORDER BY задаёт самые новые первыми?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "ORDER BY created_at DESC"
+                },
+                {
+                  "id": "option_b",
+                  "text": "ORDER BY created_at ASC"
+                },
+                {
+                  "id": "option_c",
+                  "text": "GROUP BY created_at"
+                },
+                {
+                  "id": "option_d",
+                  "text": "LIMIT created_at"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "DESC располагает большие/поздние значения первыми."
+            },
+            {
+              "id": "sqlj-order-limit-A-q2",
+              "prompt": "Какой порядок даст самые дешёвые товары первыми?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "price DESC"
+                },
+                {
+                  "id": "option_b",
+                  "text": "price ASC"
+                },
+                {
+                  "id": "option_c",
+                  "text": "price IS NULL"
+                },
+                {
+                  "id": "option_d",
+                  "text": "GROUP BY price"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "ASC сортирует цены по возрастанию."
+            }
+          ]
+        },
+        {
+          "id": "sqlj-order-limit-B",
+          "prompt": "Получите 3 наиболее дорогих товара по price.",
+          "subquestions": [
+            {
+              "id": "sqlj-order-limit-B-q1",
+              "prompt": "Как выбрать не более пяти строк?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "TOP=5 в WHERE"
+                },
+                {
+                  "id": "option_b",
+                  "text": "HAVING 5"
+                },
+                {
+                  "id": "option_c",
+                  "text": "LIMIT 5"
+                },
+                {
+                  "id": "option_d",
+                  "text": "OFFSET 5"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "LIMIT ограничивает число строк в диалектах, где он поддерживается."
+            },
+            {
+              "id": "sqlj-order-limit-B-q2",
+              "prompt": "Гарантирует ли LIMIT 5 порядок без ORDER BY?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Да, физический порядок всегда закреплён"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Да, по первичному ключу автоматически"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Нет, LIMIT запрещён"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Нет, порядок результата не гарантирован"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Реляционная таблица не имеет гарантированного порядка без ORDER BY."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sqlm-transactions",
+      "grade": "middle",
+      "competency_id": "sql-transactions",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "sqlm-transactions-A",
+          "prompt": "Переведите 20 единиц из одного счёта в другой; списание и зачисление должны быть атомарны.",
+          "subquestions": [
+            {
+              "id": "sqlm-transactions-A-q1",
+              "prompt": "Какая структура нужна для атомарности двух обновлений?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Одна транзакция с commit только после обоих успешных обновлений"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Два независимых autocommit запроса"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Сначала ответить клиенту, потом обновлять"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Только логирование"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Транзакция фиксирует все изменения вместе или откатывает их при ошибке."
+            },
+            {
+              "id": "sqlm-transactions-A-q2",
+              "prompt": "Что важно, чтобы два одновременных списания не потратили один остаток?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Проверка баланса только в браузере"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Атомарное условное обновление/блокировка и проверка достаточности в БД"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Большая задержка"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Сортировка результата"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Условие и изменение должны быть согласованы конкурентно на стороне БД."
+            }
+          ]
+        },
+        {
+          "id": "sqlm-transactions-B",
+          "prompt": "Обновите остаток двух складов в рамках одной логической операции без частичного успеха.",
+          "subquestions": [
+            {
+              "id": "sqlm-transactions-B-q1",
+              "prompt": "Что сделать при ошибке второго обновления до commit?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Commit первого и оставить частичный перевод"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Игнорировать ошибку"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Rollback транзакции"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Повторить только commit"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "До commit откат отменяет все изменения транзакции."
+            },
+            {
+              "id": "sqlm-transactions-B-q2",
+              "prompt": "При недостатке средств какое состояние транзакции безопасно?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Списать сколько доступно и зачислить полную сумму"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Зачислить без списания"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Оставить транзакцию открытой навсегда"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Завершить без частичного изменения обоих счетов"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Бизнес-операция либо выполняется целиком, либо не меняет баланс."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sqlm-isolation",
+      "grade": "middle",
+      "competency_id": "sql-transactions",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "sqlm-isolation-A",
+          "prompt": "Две транзакции читают остаток 10; обе хотят списать 7. Остаток не должен стать отрицательным.",
+          "subquestions": [
+            {
+              "id": "sqlm-isolation-A-q1",
+              "prompt": "Какое решение прямо защищает инвариант в БД?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Условный UPDATE ... WHERE balance >= 7 и проверка числа обновлённых строк"
+                },
+                {
+                  "id": "option_b",
+                  "text": "SELECT в приложении, затем безусловный UPDATE"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Кэшировать число в памяти одного процесса"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Увеличить таймаут"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Условное атомарное изменение позволяет только одному запросу успешно списать при заданном остатке."
+            },
+            {
+              "id": "sqlm-isolation-A-q2",
+              "prompt": "Какое утверждение о SELECT, затем UPDATE без блокировки/проверки верно?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Защищает инвариант при любых конкурентных запросах"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Может допустить оба решения на основе старого значения"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Всегда сериализуется"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Заменяет транзакцию"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Оба запроса могут прочитать старый баланс и затем оба списать."
+            }
+          ]
+        },
+        {
+          "id": "sqlm-isolation-B",
+          "prompt": "Два конкурентных запроса резервируют последний экземпляр товара; продать его дважды нельзя.",
+          "subquestions": [
+            {
+              "id": "sqlm-isolation-B-q1",
+              "prompt": "Если транзакция обнаружила конфликт сериализации, что обычно делает приложение?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Игнорирует ошибку и сообщает успех"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Повторяет только последний SQL без контекста"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Повторяет всю транзакцию ограниченно, если операция безопасна"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Отключает ограничения"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Сериализационные конфликты требуют повтора целой логической транзакции с ограничением попыток."
+            },
+            {
+              "id": "sqlm-isolation-B-q2",
+              "prompt": "Что необходимо после условного UPDATE?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Игнорировать row count"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Всегда считать успех"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Откатить всё при 1 строке"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Проверить число затронутых строк и трактовать 0 как отказ"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Число изменённых строк показывает, выполнилось ли условие для записи."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sqlm-index",
+      "grade": "middle",
+      "competency_id": "sql-transactions",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "sqlm-index-A",
+          "prompt": "Частый запрос фильтрует orders по customer_id и сортирует по created_at DESC.",
+          "subquestions": [
+            {
+              "id": "sqlm-index-A-q1",
+              "prompt": "Какой индекс стоит проверить первым для такого фильтра и порядка?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Индекс (customer_id, created_at)"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Индекс только на случайный комментарий"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Индекс на каждый столбец без измерений"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Индекс (created_at) всегда лучше"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Составной индекс с ведущим equality-ключом и затем сортировочным столбцом часто подходит; подтвердить планом."
+            },
+            {
+              "id": "sqlm-index-A-q2",
+              "prompt": "Какой компромисс добавляет индекс?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Бесплатно ускоряет все запросы"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Ускоряет некоторые чтения, но занимает место и замедляет изменения"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Удаляет дубликаты автоматически"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Гарантирует отсутствие блокировок"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Индексы требуют хранения и обслуживания при записи."
+            }
+          ]
+        },
+        {
+          "id": "sqlm-index-B",
+          "prompt": "Частый запрос выбирает события по tenant_id и event_time в диапазоне.",
+          "subquestions": [
+            {
+              "id": "sqlm-index-B-q1",
+              "prompt": "Как проверить, помогает ли индекс?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Судить только по названию индекса"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Посчитать строки в коде"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Сравнить EXPLAIN/план и измерения на репрезентативных данных"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Измерить один раз на пустой БД"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "План и реалистичные измерения показывают фактический путь выполнения."
+            },
+            {
+              "id": "sqlm-index-B-q2",
+              "prompt": "Почему нельзя заключить, что индекс выбран, только по его существованию?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Индекс игнорируется всегда"
+                },
+                {
+                  "id": "option_b",
+                  "text": "EXPLAIN недоступен"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Порядок колонок не важен"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Оптимизатор может предпочесть другой план по статистике и селективности"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Выбор зависит от предикатов, статистики, селективности и конкретного плана."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sqlm-upsert",
+      "grade": "middle",
+      "competency_id": "sql-transactions",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "sqlm-upsert-A",
+          "prompt": "В PostgreSQL 17 для каждого внешнего event_id запись должна создаваться один раз даже при повторной доставке.",
+          "subquestions": [
+            {
+              "id": "sqlm-upsert-A-q1",
+              "prompt": "Что является основой безопасного upsert?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Уникальное ограничение на ключ и атомарный INSERT ... ON CONFLICT/эквивалент"
+                },
+                {
+                  "id": "option_b",
+                  "text": "SELECT-then-INSERT без ограничения"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Сравнение в памяти приложения"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Случайный primary key без unique"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "База должна атомарно обеспечивать уникальность даже при гонке."
+            },
+            {
+              "id": "sqlm-upsert-A-q2",
+              "prompt": "Что произойдёт при двух параллельных INSERT одного уникального ключа без upsert?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Оба гарантированно создадут дубликаты"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Ограничение позволит только один; второй получит conflict/error"
+                },
+                {
+                  "id": "option_c",
+                  "text": "БД выберет случайный ключ"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Оба сольются автоматически без настройки"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Unique constraint предотвращает оба дубликата; обработчик должен трактовать конфликт."
+            }
+          ]
+        },
+        {
+          "id": "sqlm-upsert-B",
+          "prompt": "В PostgreSQL 17 импортируйте профиль по уникальному provider_id, обновляя поля при повторном импорте.",
+          "subquestions": [
+            {
+              "id": "sqlm-upsert-B-q1",
+              "prompt": "Какой выбор полей обновления важен при повторной доставке?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Всегда заменять всю строку NULL-значениями"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Менять primary key"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Обновлять только предусмотренные контрактом поля, не стирая более свежие данные вслепую"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Удалять любую запись"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Идемпотентность требует явно определить семантику повторного payload и свежести."
+            },
+            {
+              "id": "sqlm-upsert-B-q2",
+              "prompt": "Как безопасно хранить внешний event_id?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Только в комментарии"
+                },
+                {
+                  "id": "option_b",
+                  "text": "В логе приложения"
+                },
+                {
+                  "id": "option_c",
+                  "text": "В неиндексированном свободном тексте"
+                },
+                {
+                  "id": "option_d",
+                  "text": "С нормализацией и уникальным ограничением в нужной области tenant/provider"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Уникальность должна отражать фактическую область идентификатора и enforced DB constraint."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relj-timeout",
+      "grade": "junior",
+      "competency_id": "reliability",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "relj-timeout-A",
+          "prompt": "Клиент обращается к зависимому сервису; ответ нужен не позднее общего дедлайна 2 секунды.",
+          "subquestions": [
+            {
+              "id": "relj-timeout-A-q1",
+              "prompt": "Какой принцип настройки таймаута корректен?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Ограничить ожидание так, чтобы оно укладывалось в общий дедлайн"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Ждать бесконечно"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Задать таймаут больше общего дедлайна"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Отключить отмену"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Каждый вызов должен уважать сквозной дедлайн и не удерживать ресурсы бесконечно."
+            },
+            {
+              "id": "relj-timeout-A-q2",
+              "prompt": "Как обработать timeout от зависимости?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Считать успехом всегда"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Вернуть предусмотренную ошибку/резервный ответ и освободить ресурсы"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Повторять бесконечно"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Оставить соединение занятым"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Ограниченное и явное поведение сохраняет ресурс и честно сообщает исход."
+            }
+          ]
+        },
+        {
+          "id": "relj-timeout-B",
+          "prompt": "Запрос к внешнему сервису имеет общий дедлайн 800 мс.",
+          "subquestions": [
+            {
+              "id": "relj-timeout-B-q1",
+              "prompt": "Что нужно передать зависимому вызову, если до общего дедлайна осталось 300 мс?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Всегда 2 секунды"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Бесконечность"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Дедлайн/таймаут не более 300 мс"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Новый общий дедлайн без связи"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Бюджет времени downstream не должен превышать оставшееся время запроса."
+            },
+            {
+              "id": "relj-timeout-B-q2",
+              "prompt": "Почему таймаут важен для сервиса?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Он ускоряет сеть физически"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Он гарантирует доступность зависимости"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Он заменяет авторизацию"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Он ограничивает ожидание и накопление занятых ресурсов"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Таймауты ограничивают длительность незавершённых операций."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relj-retry",
+      "grade": "junior",
+      "competency_id": "reliability",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "relj-retry-A",
+          "prompt": "Чтение временно завершилось сетевой ошибкой; операция не изменяет данные.",
+          "subquestions": [
+            {
+              "id": "relj-retry-A-q1",
+              "prompt": "Какой retry-подход безопаснее?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Ограниченное число повторов с задержкой для временных ошибок"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Бесконечный tight loop"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Повторять любой 4xx"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Игнорировать дедлайн"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Ограниченные повторы подходят временным сбоям и не должны превышать дедлайн."
+            },
+            {
+              "id": "relj-retry-A-q2",
+              "prompt": "Почему повторы требуют лимита?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Чтобы убрать логи"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Чтобы не усилить отказ и не задержать исходный запрос бесконечно"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Потому что TCP запрещает таймауты"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Чтобы скрыть ошибку"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Неограниченные retries создают дополнительную нагрузку и ресурсное истощение."
+            }
+          ]
+        },
+        {
+          "id": "relj-retry-B",
+          "prompt": "Получение справочника иногда возвращает временную ошибку 503.",
+          "subquestions": [
+            {
+              "id": "relj-retry-B-q1",
+              "prompt": "Следует ли автоматически повторять запрос с ошибкой валидации 400?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Да, сразу бесконечно"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Только 100 раз"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Обычно нет: повтор того же некорректного запроса не исправляет его"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Только ночью"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Клиентская ошибка требует изменения запроса, а не повтора."
+            },
+            {
+              "id": "relj-retry-B-q2",
+              "prompt": "Когда безопаснее повторять операцию записи?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Всегда, если ответ задержался"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Никогда даже при подтверждённом отказе"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Когда поменяли payload"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Когда контракт операции идемпотентен или есть ключ дедупликации"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "После потери ответа неизвестно, применился ли эффект; нужна защита от дубля."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relj-logs",
+      "grade": "junior",
+      "competency_id": "reliability",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "relj-logs-A",
+          "prompt": "Нужно найти ошибочный запрос по ID и понять исход, не записывая токен доступа или пароль.",
+          "subquestions": [
+            {
+              "id": "relj-logs-A-q1",
+              "prompt": "Что безопасно записать для связи событий?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Request ID и код исхода"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Пароль пользователя"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Полный bearer token"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Секретный ключ"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Идентификатор запроса и результат помогают расследованию без секретов."
+            },
+            {
+              "id": "relj-logs-A-q2",
+              "prompt": "Что делать с токеном, случайно попавшим в лог?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Оставить его навсегда"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Ограничить доступ и применить процесс удаления/ротации секрета"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Опубликовать для команды"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Отправить в клиентский ответ"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Секретное раскрытие требует ограничить экспозицию и заменить compromised credential."
+            }
+          ]
+        },
+        {
+          "id": "relj-logs-B",
+          "prompt": "Поддержка расследует сбой по request_id, сохраняя персональные и секретные данные вне логов.",
+          "subquestions": [
+            {
+              "id": "relj-logs-B-q1",
+              "prompt": "Как логировать известную ожидаемую ошибку валидации?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Как критический сбой процесса всегда"
+                },
+                {
+                  "id": "option_b",
+                  "text": "С полным запросом включая пароль"
+                },
+                {
+                  "id": "option_c",
+                  "text": "С уровнем/событием, подходящим ожидаемой ошибке, без секретов"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Неизвестно"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Логи должны различать штатные ошибки клиента и сбои сервера, минимизируя данные."
+            },
+            {
+              "id": "relj-logs-B-q2",
+              "prompt": "Какой сигнал лучше для мониторинга доли неуспешных запросов?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Один лог с IP каждого пользователя"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Пароль в метрике"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Случайный текст"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Счётчик запросов по ограниченным статусам/route labels"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Агрегированные bounded labels подходят для метрик и не создают высокую кардинальность персональных данных."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relj-degradation",
+      "grade": "junior",
+      "competency_id": "reliability",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "relj-degradation-A",
+          "prompt": "Рекомендации необязательны для оформления заказа; сервис рекомендаций недоступен.",
+          "subquestions": [
+            {
+              "id": "relj-degradation-A-q1",
+              "prompt": "Какое поведение сохраняет критический пользовательский путь?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Продолжить оформление без рекомендаций и явно обработать их отсутствие"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Блокировать заказ навсегда"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Подставить секретные данные"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Повторять бесконечно"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Необязательная зависимость должна деградировать независимо от критической операции."
+            },
+            {
+              "id": "relj-degradation-A-q2",
+              "prompt": "Какой принцип соответствует graceful degradation?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Все функции падают вместе"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Критическая функция работает при отказе необязательной зависимости"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Всегда скрывать ошибку сервера"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Отключить транзакции"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Изоляция необязательной функции уменьшает область отказа."
+            }
+          ]
+        },
+        {
+          "id": "relj-degradation-B",
+          "prompt": "Витрина может показать каталог даже если необязательный сервис рейтингов временно не отвечает.",
+          "subquestions": [
+            {
+              "id": "relj-degradation-B-q1",
+              "prompt": "Что показать пользователю при отсутствии необязательного блока?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Ложные данные"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Внутренний stack trace"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Безопасное состояние без блока либо нейтральное сообщение"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Бесконечный loader"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Интерфейс должен завершить ожидание и честно обозначить неполную необязательную часть."
+            },
+            {
+              "id": "relj-degradation-B-q2",
+              "prompt": "Нужно ли скрывать факт устаревших данных, если показан cached fallback?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Да всегда"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Нужно объявить данные подтверждёнными"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Удалить timestamps"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Нет, если свежесть существенна — обозначить или ограничить использование"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Fallback должен сохранять честность о свежести и пригодности данных."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relm-idempotency",
+      "grade": "middle",
+      "competency_id": "reliability",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "relm-idempotency-A",
+          "prompt": "Внешний webhook повторно доставляет событие с одним event_id; побочный эффект должен произойти один раз.",
+          "subquestions": [
+            {
+              "id": "relm-idempotency-A-q1",
+              "prompt": "Какой механизм надёжно защищает эффект от дубля?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Хранилище processed_event с уникальным event_id и атомарной связью с эффектом"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Проверка в локальном кеше одного инстанса"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Пауза 1 секунда"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Сравнение времени получения"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Дедупликация должна быть общей для конкурирующих обработчиков и согласована с эффектом."
+            },
+            {
+              "id": "relm-idempotency-A-q2",
+              "prompt": "Как обработать параллельное получение одинакового event_id?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Оба выполняют эффект, затем сравнивают логи"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Атомарная уникальность; один обработчик владеет обработкой, остальные видят duplicate/in-progress"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Случайно выбрать победителя в браузере"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Удалить ключ"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Уникальное ограничение сериализует владение событием между инстансами."
+            }
+          ]
+        },
+        {
+          "id": "relm-idempotency-B",
+          "prompt": "Очередь доставляет одно сообщение повторно после потери ack; выдача купона не должна дублироваться.",
+          "subquestions": [
+            {
+              "id": "relm-idempotency-B-q1",
+              "prompt": "Какой риск у записи processed_event отдельно от бизнес-изменения?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Никакого риска"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Сортировка изменится"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Сбой между записями может пометить событие обработанным без эффекта или наоборот"
+                },
+                {
+                  "id": "option_d",
+                  "text": "JSON станет невалидным"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Запись маркера и эффект нужно атомарно фиксировать либо применять outbox/inbox-паттерн."
+            },
+            {
+              "id": "relm-idempotency-B-q2",
+              "prompt": "Как подтвердить сообщение очереди?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "До обработки всегда"
+                },
+                {
+                  "id": "option_b",
+                  "text": "При получении, даже если БД недоступна"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Только после ручного перезапуска"
+                },
+                {
+                  "id": "option_d",
+                  "text": "После надёжной фиксации эффекта/идемпотентного состояния"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Ранний ack может потерять работу при падении до фиксации результата."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relm-backoff",
+      "grade": "middle",
+      "competency_id": "reliability",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "relm-backoff-A",
+          "prompt": "Несколько инстансов получают 503 от зависимости и должны ограниченно повторять запросы.",
+          "subquestions": [
+            {
+              "id": "relm-backoff-A-q1",
+              "prompt": "Как снизить синхронный всплеск повторов?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Экспоненциальная задержка с jitter и общим лимитом"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Повтор всем через ровно 1 секунду"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Нулевой интервал"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Повтор в цикле без лимита"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Jitter распределяет повторные попытки во времени, лимит ограничивает нагрузку."
+            },
+            {
+              "id": "relm-backoff-A-q2",
+              "prompt": "Для чего нужен максимальный backoff/общий дедлайн?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Чтобы гарантировать серверный успех"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Чтобы попытки не превратились в бесконечное ожидание"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Чтобы отключить jitter"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Чтобы обойти лимит скорости"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Ограничения прекращают бесполезный retry после бюджета времени/попыток."
+            }
+          ]
+        },
+        {
+          "id": "relm-backoff-B",
+          "prompt": "Зависимость отвечает 429 с Retry-After; клиенты не должны создавать retry storm.",
+          "subquestions": [
+            {
+              "id": "relm-backoff-B-q1",
+              "prompt": "Как учитывать Retry-After от 429?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Игнорировать всегда"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Повторить раньше немедленно"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Соблюдать указанный минимум в рамках дедлайна/политики клиента"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Считать 429 успехом"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Retry-After задаёт серверу удобное время следующей попытки; ограничения дедлайна остаются."
+            },
+            {
+              "id": "relm-backoff-B-q2",
+              "prompt": "Какой класс ошибок обычно имеет смысл повторять?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Любой 4xx и 5xx"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Ошибку схемы запроса"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Ошибка доступа 403"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Ограниченный набор временных ошибок 5xx/сетевых с учётом идемпотентности"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Повторяют только потенциально временные ошибки и только безопасные операции."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relm-circuit-breaker",
+      "grade": "middle",
+      "competency_id": "reliability",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "relm-circuit-breaker-A",
+          "prompt": "Зависимость массово таймаутит; сервис должен прекратить бесполезные вызовы и периодически проверить восстановление.",
+          "subquestions": [
+            {
+              "id": "relm-circuit-breaker-A-q1",
+              "prompt": "Как работает circuit breaker в open состоянии?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Быстро отклоняет/переводит на fallback без вызова зависимости"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Увеличивает число повторов"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Всегда держит соединение открытым"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Удаляет очередь"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Open прекращает вызовы на период, чтобы ограничить каскадный отказ."
+            },
+            {
+              "id": "relm-circuit-breaker-A-q2",
+              "prompt": "Чем breaker отличается от retry?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Это одно и то же"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Breaker временно останавливает вызовы после порога отказов; retry повторяет отдельную операцию"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Retry хранит транзакцию в БД"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Breaker гарантирует успех"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Механизмы решают разные задачи и могут сочетаться с лимитами."
+            }
+          ]
+        },
+        {
+          "id": "relm-circuit-breaker-B",
+          "prompt": "Платёжный провайдер недоступен; постоянные вызовы не должны перегружать его или наш пул соединений.",
+          "subquestions": [
+            {
+              "id": "relm-circuit-breaker-B-q1",
+              "prompt": "Что обычно делает half-open?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Разрешает весь трафик без ограничений"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Навсегда закрывает сервис"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Разрешает ограниченное число пробных запросов для оценки восстановления"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Повторяет прошлые платежи"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Half-open проверяет восстановление ограниченными пробами."
+            },
+            {
+              "id": "relm-circuit-breaker-B-q2",
+              "prompt": "Как настроить fallback для критического платежа?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Считать timeout успешным"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Создать второй платёж без ключа"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Скрыть все ошибки"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Не сообщать об успешной оплате; вернуть контролируемое состояние и разрешить безопасную сверку"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Неизвестный исход платежа требует сверки/idempotency, а не ложного success."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relm-concurrency",
+      "grade": "middle",
+      "competency_id": "reliability",
+      "version": "1.0",
+      "variants": [
+        {
+          "id": "relm-concurrency-A",
+          "prompt": "Два воркера одновременно берут одну работу из БД; выполнить её должен один воркер.",
+          "subquestions": [
+            {
+              "id": "relm-concurrency-A-q1",
+              "prompt": "Как надёжно захватить задачу?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Атомарное условное изменение статуса/row lock с фиксацией владельца"
+                },
+                {
+                  "id": "option_b",
+                  "text": "SELECT без блокировки, затем позже UPDATE"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Локальный флаг процесса"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Задержка по случайному числу"
+                }
+              ],
+              "correct_option_id": "option_a",
+              "explanation": "Захват должен быть атомарным на общем хранилище."
+            },
+            {
+              "id": "relm-concurrency-A-q2",
+              "prompt": "Почему проверка статуса с последующим отдельным UPDATE подвержена гонке?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "SQL не поддерживает UPDATE"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Оба воркера могут прочитать pending до любого обновления"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Статус всегда NULL"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Сеть последовательна"
+                }
+              ],
+              "correct_option_id": "option_b",
+              "explanation": "Между read и write оба участника могут наблюдать прежнее состояние."
+            }
+          ]
+        },
+        {
+          "id": "relm-concurrency-B",
+          "prompt": "Параллельные обработчики выбирают задачи со статусом pending; задача не должна быть выдана дважды.",
+          "subquestions": [
+            {
+              "id": "relm-concurrency-B-q1",
+              "prompt": "Как безопасно завершать захват после падения воркера?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Никогда не освобождать задачу"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Считать незавершённую задачу успешной"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Lease/visibility timeout с ограниченной выдачей и идемпотентным эффектом"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Хранить только в памяти"
+                }
+              ],
+              "correct_option_id": "option_c",
+              "explanation": "Lease возвращает задание после сбоя; повторная доставка требует идемпотентности."
+            },
+            {
+              "id": "relm-concurrency-B-q2",
+              "prompt": "Какой показатель нужен для обнаружения застрявших задач?",
+              "options": [
+                {
+                  "id": "option_a",
+                  "text": "Только число пользователей"
+                },
+                {
+                  "id": "option_b",
+                  "text": "Размер CSS"
+                },
+                {
+                  "id": "option_c",
+                  "text": "Секретный токен"
+                },
+                {
+                  "id": "option_d",
+                  "text": "Возраст oldest pending/processing и длительность обработки"
+                }
+              ],
+              "correct_option_id": "option_d",
+              "explanation": "Возраст очереди и длительность показывают задержку и зависшие lease."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "technical_review": {
+    "date": "2026-10-07",
+    "review_type": "independent_ai_content_review_not_human_or_empirical_validation",
+    "questions_read": 128,
+    "corrected_questions": [
+      "pyj-collections-B-q1",
+      "sqlj-null-B-q1",
+      "sqlj-null-B-q2",
+      "pym-complexity-B-q1",
+      "pym-complexity-B-q2"
+    ],
+    "remaining_limits": [
+      "human_subject_matter_review_not_performed",
+      "grade_thresholds_not_empirically_calibrated",
+      "variant_difficulty_equivalence_not_measured",
+      "public_demo_bank_not_secret"
+    ]
+  }
+}

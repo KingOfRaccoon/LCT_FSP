@@ -1,0 +1,10 @@
+local
+.omo
+.omx
+.git
+frontend/node_modules
+frontend/dist
+backend/.gradle
+backend/build
+.env
+**/__pycache__

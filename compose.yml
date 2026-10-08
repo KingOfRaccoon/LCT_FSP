@@ -1,0 +1,61 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: fsp_dev
+      POSTGRES_USER: fsp
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-fsp_demo}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fsp -d fsp_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+  api:
+    build:
+      context: .
+      dockerfile: infra/backend.Dockerfile
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/fsp_dev
+      DATABASE_USERNAME: fsp
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-fsp_demo}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8080}
+      SESSION_SECRET: ${SESSION_SECRET:-local-demo-session-secret-change-before-deploy-2026}
+      FSP_DEMO_MODE: "true"
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+    command: ["java", "-jar", "/app/app.jar", "--fsp.seed-demo=true"]
+    depends_on:
+      db:
+        condition: service_healthy
+  worker:
+    build:
+      context: .
+      dockerfile: infra/backend.Dockerfile
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/fsp_dev
+      DATABASE_USERNAME: fsp
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-fsp_demo}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8080}
+      SESSION_SECRET: ${SESSION_SECRET:-local-demo-session-secret-change-before-deploy-2026}
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+    command: ["java", "-jar", "/app/app.jar", "--spring.main.web-application-type=none", "--fsp.outbox-enabled=true"]
+    depends_on:
+      db:
+        condition: service_healthy
+  web:
+    build:
+      context: .
+      dockerfile: infra/frontend.Dockerfile
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      - api
+  mailpit:
+    image: axllent/mailpit:v1.29
+    ports:
+      - "127.0.0.1:8025:8025"
+volumes:
+  postgres-data:

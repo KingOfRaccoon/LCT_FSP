@@ -1,0 +1,67 @@
+{
+  "release": "FSP-MVP-1.2",
+  "date": "2026-10-08",
+  "files": [
+    {
+      "name": "FSP_Pitch.pptx",
+      "bytes": 469047,
+      "sha256": "655c3e4478521b81cc23fdbcd93aaeddea838b432aae53a122f5bd1bed3382fb"
+    },
+    {
+      "name": "FSP_Companion_Documentation.pdf",
+      "bytes": 48070,
+      "sha256": "adee3b6a51ecc8ddf7144c764a0b8f315b980b3454aeaaedc5981876ef75f288"
+    },
+    {
+      "name": "FSP_Demo.mp4",
+      "bytes": 22476408,
+      "sha256": "3de5ee4c2c5dee06065e9c1400cf2d889f21a0e84ab8bf854ba9dfa23c13f918"
+    },
+    {
+      "name": "FSP_Companion_Documentation.md",
+      "bytes": 32003,
+      "sha256": "05477e093d1c43c70f08a1a229bc5c3dea662727aaad8b9daa8a9a4e52668b10"
+    },
+    {
+      "name": "dependency-versions.txt",
+      "bytes": 2054,
+      "sha256": "cc0503620b0475a61bf2f99e1003f3c9b2d105a4575607bc117e740124812e98"
+    },
+    {
+      "name": "README.md",
+      "bytes": 1236,
+      "sha256": "7633f8fc9303cdfb41b0c1d9c26a48193f07ed3d9da678295d067c4b4d57adf3"
+    }
+  ],
+  "verification": {
+    "backend": {
+      "tests": 107,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "runtime_groups_passed": 13,
+    "frontend_build": "passed",
+    "code_review": "APPROVE",
+    "architecture": "CLEAR",
+    "video": {
+      "seconds": 155.705,
+      "codec": "H264",
+      "width": 1600,
+      "height": 1000,
+      "seek_verified": true
+    }
+  },
+  "deferred_by_user": [],
+  "scope_limits": [
+    "Backend Python junior/middle only",
+    "synthetic validation, no human hiring-validity proof",
+    "draft consent text for operator review",
+    "no real FSP/ATS provider"
+  ],
+  "internal_materials": "Excluded from Git and stored in local/",
+  "repository": {
+    "url": "https://github.com/KingOfRaccoon/LCT_FSP",
+    "branch": "prototype"
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "policy_id": "backend-python-policy-v1",
+  "version": "1.0.0",
+  "decision_date": "2026-10-07",
+  "status": "frozen_for_mvp_implementation_not_empirically_calibrated",
+  "specialization_id": "backend-python-v1",
+  "grades": [
+    "junior",
+    "middle"
+  ],
+  "competency_ids": [
+    "python-basics",
+    "http-api",
+    "sql-transactions",
+    "reliability"
+  ],
+  "bank_path": "question-bank.v1.json",
+  "blueprint": {
+    "families_per_grade_per_competency_in_bank": 4,
+    "variants_per_family": 2,
+    "selected_families_per_competency": 3,
+    "subquestions_per_task": 2,
+    "points_per_correct_subquestion": 1,
+    "points_per_incorrect_or_missing_subquestion": 0,
+    "negative_marking": false,
+    "tasks_per_attempt": 12,
+    "maximum_score": 24,
+    "maximum_score_per_competency": 6,
+    "family_repetition_within_attempt": false
+  },
+  "pass_rule": {
+    "minimum_total": 18,
+    "minimum_each_competency": 3,
+    "operator": "AND"
+  },
+  "confident_rule": {
+    "minimum_total": 22,
+    "minimum_each_competency": 4,
+    "automatic_promotion": false
+  },
+  "duration_seconds": 1800,
+  "same_grade_retake_interval_seconds": 86400,
+  "same_grade_interval_anchor": "evaluated_at",
+  "grade_change_cooldown_seconds": 2592000,
+  "grade_change_interval_anchor": "last_successful_grade_change_at",
+  "first_confirmation_starts_change_cooldown": false,
+  "allow_direct_initial_middle": true,
+  "allow_immediate_lower_after_first_failed_middle": true,
+  "lower_exception_overrides_previous_target_grade_interval": false,
+  "allow_voluntary_downgrade_of_confirmed_grade": false,
+  "preserve_confirmed_grade_on_failure": true,
+  "same_grade_success_refreshes_evidence_not_change_timestamp": true,
+  "maximum_active_attempts_per_specialization": 1,
+  "deadline_clock": "server_utc",
+  "deadline_extends_on_reload_or_network_loss": false,
+  "expiry_action": "evaluate_last_server_saved_draft_missing_answers_zero",
+  "technical_failure_action": "invalidate_without_new_retake_penalty_or_grade_change",
+  "technical_failure_waives_preexisting_cooldowns": false,
+  "allowed_tools": "no_external_ai_or_reference_materials_during_graded_attempt",
+  "assistance_enforcement": "declared_policy_no_automatic_violation_from_browser_events",
+  "question_answer_keys_public": false,
+  "post_attempt_report": "total_and_competency_scores_pass_decision_method_version_no_answer_keys",
+  "selection": {
+    "algorithm_version": "exposure-lexicographic-v1",
+    "order": [
+      "candidate_family_exposures_ascending",
+      "global_family_exposures_ascending",
+      "seeded_tie_break"
+    ],
+    "variant_order": [
+      "candidate_variant_exposures_ascending",
+      "global_variant_exposures_ascending",
+      "seeded_tie_break"
+    ],
+    "seed_source": "server_crypto_random_128_bits",
+    "persist": [
+      "seed",
+      "bank_version",
+      "policy_version",
+      "family_ids",
+      "variant_ids",
+      "option_permutations",
+      "issued_prompts",
+      "server_answer_keys"
+    ],
+    "exposure_update": "transactionally_on_issuance_not_reload",
+    "insufficient_eligible_families": "reject_start_bank_unavailable_no_attempt_penalty",
+    "full_family_exposure": "reuse_least_exposed_family_and_variant_with_disclosed_limit_not_claimed_leakage_proof"
+  },
+  "demo_mode": {
+    "synthetic_accounts_only": true,
+    "display_demo_label": true,
+    "shortened_form_can_confirm_grade": false
+  },
+  "real_candidate_grade_release_gate": "content_review_and_validation_report_required",
+  "professional_seniority_validation": "not_performed",
+  "same_grade_retake_scope": [
+    "candidate_id",
+    "specialization_id",
+    "target_grade"
+  ],
+  "same_grade_retake_counted_statuses": [
+    "evaluated"
+  ],
+  "same_grade_retake_excluded_statuses": [
+    "invalidated"
+  ],
+  "grade_change_cooldown_scope": [
+    "candidate_id",
+    "specialization_id"
+  ],
+  "active_attempt_statuses": [
+    "in_progress",
+    "submitted"
+  ],
+  "bank_version": "backend-python-v1.0"
+}

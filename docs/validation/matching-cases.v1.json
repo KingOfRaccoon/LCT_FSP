@@ -1,0 +1,581 @@
+{
+  "version": "1.0.0",
+  "status": "synthetic_normative_examples_not_independent_relevance_validation",
+  "policy": "../contracts/matching-policy.v1.json",
+  "profile_schema": "internal_policy_snapshot_not_public_api_dto",
+  "candidate_ids": {
+    "plain": "00000000-0000-4000-8000-000000000001",
+    "prize": "00000000-0000-4000-8000-000000000002",
+    "participant": "00000000-0000-4000-8000-000000000003",
+    "no_framework": "00000000-0000-4000-8000-000000000004",
+    "middle": "00000000-0000-4000-8000-000000000005",
+    "unconfirmed": "00000000-0000-4000-8000-000000000006",
+    "hidden": "00000000-0000-4000-8000-000000000007",
+    "unlinked": "00000000-0000-4000-8000-000000000008",
+    "office_only": "00000000-0000-4000-8000-000000000009",
+    "unverified_email": "00000000-0000-4000-8000-000000000010",
+    "older_prize": "00000000-0000-4000-8000-000000000011",
+    "duplicate_participant": "00000000-0000-4000-8000-000000000012"
+  },
+  "profiles": [
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": "junior",
+      "declared_grade": "junior",
+      "visibility": "visible",
+      "email_confirmed": true,
+      "allowed_work_modes": [
+        "remote"
+      ],
+      "cities": [],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [
+        "python-basics",
+        "http-api",
+        "sql-transactions",
+        "reliability"
+      ],
+      "candidate_declared_skills": [
+        "fastapi"
+      ],
+      "fsp_results": [],
+      "id": "00000000-0000-4000-8000-000000000001",
+      "fixture_name": "plain",
+      "demo": true
+    },
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": "junior",
+      "declared_grade": "junior",
+      "visibility": "visible",
+      "email_confirmed": true,
+      "allowed_work_modes": [
+        "remote"
+      ],
+      "cities": [],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [
+        "python-basics",
+        "http-api",
+        "sql-transactions",
+        "reliability"
+      ],
+      "candidate_declared_skills": [
+        "fastapi"
+      ],
+      "fsp_results": [
+        {
+          "source_record_id": "event-prize",
+          "result": "prize",
+          "valid": true,
+          "participant_linked": true,
+          "team": true,
+          "membership_confirmed": true,
+          "date": "2026-09-01",
+          "event_title": "Hackathon"
+        }
+      ],
+      "id": "00000000-0000-4000-8000-000000000002",
+      "fixture_name": "prize",
+      "demo": true
+    },
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": "junior",
+      "declared_grade": "junior",
+      "visibility": "visible",
+      "email_confirmed": true,
+      "allowed_work_modes": [
+        "remote"
+      ],
+      "cities": [],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [
+        "python-basics",
+        "http-api",
+        "sql-transactions",
+        "reliability"
+      ],
+      "candidate_declared_skills": [
+        "fastapi"
+      ],
+      "fsp_results": [
+        {
+          "source_record_id": "event-participation",
+          "result": "participant",
+          "valid": true,
+          "participant_linked": true,
+          "team": false,
+          "membership_confirmed": null,
+          "date": "2026-09-01",
+          "event_title": "Open contest"
+        }
+      ],
+      "id": "00000000-0000-4000-8000-000000000003",
+      "fixture_name": "participant",
+      "demo": true
+    },
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": "junior",
+      "declared_grade": "junior",
+      "visibility": "visible",
+      "email_confirmed": true,
+      "allowed_work_modes": [
+        "remote"
+      ],
+      "cities": [],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [
+        "python-basics",
+        "http-api",
+        "sql-transactions",
+        "reliability"
+      ],
+      "candidate_declared_skills": [],
+      "fsp_results": [],
+      "id": "00000000-0000-4000-8000-000000000004",
+      "fixture_name": "no_framework",
+      "demo": true
+    },
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": "middle",
+      "declared_grade": "middle",
+      "visibility": "visible",
+      "email_confirmed": true,
+      "allowed_work_modes": [
+        "remote"
+      ],
+      "cities": [],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [
+        "python-basics",
+        "http-api",
+        "sql-transactions",
+        "reliability"
+      ],
+      "candidate_declared_skills": [
+        "fastapi"
+      ],
+      "fsp_results": [],
+      "id": "00000000-0000-4000-8000-000000000005",
+      "fixture_name": "middle",
+      "demo": true
+    },
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": null,
+      "declared_grade": "junior",
+      "visibility": "visible",
+      "email_confirmed": true,
+      "allowed_work_modes": [
+        "remote"
+      ],
+      "cities": [],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [],
+      "candidate_declared_skills": [
+        "fastapi"
+      ],
+      "fsp_results": [],
+      "id": "00000000-0000-4000-8000-000000000006",
+      "fixture_name": "unconfirmed",
+      "demo": true
+    },
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": "junior",
+      "declared_grade": "junior",
+      "visibility": "hidden",
+      "email_confirmed": true,
+      "allowed_work_modes": [
+        "remote"
+      ],
+      "cities": [],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [
+        "python-basics",
+        "http-api",
+        "sql-transactions",
+        "reliability"
+      ],
+      "candidate_declared_skills": [
+        "fastapi"
+      ],
+      "fsp_results": [],
+      "id": "00000000-0000-4000-8000-000000000007",
+      "fixture_name": "hidden",
+      "demo": true
+    },
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": "junior",
+      "declared_grade": "junior",
+      "visibility": "visible",
+      "email_confirmed": true,
+      "allowed_work_modes": [
+        "remote"
+      ],
+      "cities": [],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [
+        "python-basics",
+        "http-api",
+        "sql-transactions",
+        "reliability"
+      ],
+      "candidate_declared_skills": [
+        "fastapi"
+      ],
+      "fsp_results": [
+        {
+          "source_record_id": "unlinked-team",
+          "result": "prize",
+          "valid": true,
+          "participant_linked": false,
+          "team": true,
+          "membership_confirmed": false,
+          "date": "2026-09-01",
+          "event_title": "Cup"
+        }
+      ],
+      "id": "00000000-0000-4000-8000-000000000008",
+      "fixture_name": "unlinked",
+      "demo": true
+    },
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": "junior",
+      "declared_grade": "junior",
+      "visibility": "visible",
+      "email_confirmed": true,
+      "allowed_work_modes": [
+        "office"
+      ],
+      "cities": [
+        "Москва"
+      ],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [
+        "python-basics",
+        "http-api",
+        "sql-transactions",
+        "reliability"
+      ],
+      "candidate_declared_skills": [
+        "fastapi"
+      ],
+      "fsp_results": [],
+      "id": "00000000-0000-4000-8000-000000000009",
+      "fixture_name": "office_only",
+      "demo": true
+    },
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": "junior",
+      "declared_grade": "junior",
+      "visibility": "visible",
+      "email_confirmed": false,
+      "allowed_work_modes": [
+        "remote"
+      ],
+      "cities": [],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [
+        "python-basics",
+        "http-api",
+        "sql-transactions",
+        "reliability"
+      ],
+      "candidate_declared_skills": [
+        "fastapi"
+      ],
+      "fsp_results": [],
+      "id": "00000000-0000-4000-8000-000000000010",
+      "fixture_name": "unverified_email",
+      "demo": true
+    },
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": "junior",
+      "declared_grade": "junior",
+      "visibility": "visible",
+      "email_confirmed": true,
+      "allowed_work_modes": [
+        "remote"
+      ],
+      "cities": [],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [
+        "python-basics",
+        "http-api",
+        "sql-transactions",
+        "reliability"
+      ],
+      "candidate_declared_skills": [
+        "fastapi"
+      ],
+      "fsp_results": [
+        {
+          "source_record_id": "event-older_prize",
+          "result": "prize",
+          "valid": true,
+          "participant_linked": true,
+          "team": true,
+          "membership_confirmed": true,
+          "date": "2020-01-01",
+          "event_title": "Championship"
+        }
+      ],
+      "id": "00000000-0000-4000-8000-000000000011",
+      "fixture_name": "older_prize",
+      "demo": true
+    },
+    {
+      "specialization_id": "backend-python-v1",
+      "verified_grade": "junior",
+      "declared_grade": "junior",
+      "visibility": "visible",
+      "email_confirmed": true,
+      "allowed_work_modes": [
+        "remote"
+      ],
+      "cities": [],
+      "max_weekly_hours": 40,
+      "test_evidenced_skills": [
+        "python-basics",
+        "http-api",
+        "sql-transactions",
+        "reliability"
+      ],
+      "candidate_declared_skills": [
+        "fastapi"
+      ],
+      "fsp_results": [
+        {
+          "source_record_id": "event-participation",
+          "result": "participant",
+          "valid": true,
+          "participant_linked": true,
+          "team": false,
+          "membership_confirmed": null,
+          "date": "2026-09-01",
+          "event_title": "Open contest"
+        },
+        {
+          "source_record_id": "event-participation",
+          "result": "participant",
+          "valid": true,
+          "participant_linked": true,
+          "team": false,
+          "membership_confirmed": null,
+          "date": "2026-09-01",
+          "event_title": "Open contest"
+        }
+      ],
+      "id": "00000000-0000-4000-8000-000000000012",
+      "fixture_name": "duplicate_participant",
+      "demo": true
+    }
+  ],
+  "needs": [
+    {
+      "id": "need-junior-remote",
+      "specialization_id": "backend-python-v1",
+      "target_grade": "junior",
+      "work_mode": "remote",
+      "city": null,
+      "workload_hours_per_week": 40,
+      "requirements": [
+        {
+          "skill_id": "python-basics",
+          "importance": "required"
+        },
+        {
+          "skill_id": "http-api",
+          "importance": "required"
+        },
+        {
+          "skill_id": "sql-transactions",
+          "importance": "preferred"
+        },
+        {
+          "skill_id": "fastapi",
+          "importance": "preferred"
+        }
+      ]
+    },
+    {
+      "id": "need-middle-remote",
+      "specialization_id": "backend-python-v1",
+      "target_grade": "middle",
+      "work_mode": "remote",
+      "city": null,
+      "workload_hours_per_week": 40,
+      "requirements": [
+        {
+          "skill_id": "python-basics",
+          "importance": "required"
+        },
+        {
+          "skill_id": "http-api",
+          "importance": "required"
+        },
+        {
+          "skill_id": "sql-transactions",
+          "importance": "preferred"
+        },
+        {
+          "skill_id": "fastapi",
+          "importance": "preferred"
+        }
+      ]
+    },
+    {
+      "id": "need-junior-fastapi-required",
+      "specialization_id": "backend-python-v1",
+      "target_grade": "junior",
+      "work_mode": "remote",
+      "city": null,
+      "workload_hours_per_week": 40,
+      "requirements": [
+        {
+          "skill_id": "python-basics",
+          "importance": "required"
+        },
+        {
+          "skill_id": "fastapi",
+          "importance": "required"
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "match-main",
+      "need_id": "need-junior-remote",
+      "confirmed_only": false,
+      "expected_groups": {
+        "confirmed": [
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000011",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000012",
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "needs_clarification": [],
+        "needs_confirmation": [
+          "00000000-0000-4000-8000-000000000006"
+        ]
+      },
+      "excluded": [
+        "00000000-0000-4000-8000-000000000005",
+        "00000000-0000-4000-8000-000000000007",
+        "00000000-0000-4000-8000-000000000009",
+        "00000000-0000-4000-8000-000000000010"
+      ]
+    },
+    {
+      "id": "match-confirmed-only",
+      "need_id": "need-junior-remote",
+      "confirmed_only": true,
+      "expected_groups": {
+        "confirmed": [
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000011",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000012",
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "needs_clarification": [],
+        "needs_confirmation": []
+      }
+    },
+    {
+      "id": "match-exact-grade",
+      "need_id": "need-middle-remote",
+      "confirmed_only": false,
+      "expected_groups": {
+        "confirmed": [
+          "00000000-0000-4000-8000-000000000005"
+        ],
+        "needs_clarification": [],
+        "needs_confirmation": [
+          "00000000-0000-4000-8000-000000000006"
+        ]
+      }
+    },
+    {
+      "id": "match-declared-required-is-unknown",
+      "need_id": "need-junior-fastapi-required",
+      "confirmed_only": false,
+      "expected_groups": {
+        "confirmed": [],
+        "needs_clarification": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000011",
+          "00000000-0000-4000-8000-000000000012"
+        ],
+        "needs_confirmation": [
+          "00000000-0000-4000-8000-000000000006"
+        ]
+      }
+    }
+  ],
+  "metamorphic_cases": [
+    {
+      "id": "meta-prestige",
+      "change": "Change only event_title of a linked valid prize",
+      "expected": "identical_order"
+    },
+    {
+      "id": "meta-age",
+      "change": "Change only date of a linked valid prize",
+      "expected": "identical_order"
+    },
+    {
+      "id": "meta-duplicate",
+      "change": "Duplicate existing source_record_id 100 times",
+      "expected": "identical_order"
+    },
+    {
+      "id": "meta-fsp-cannot-compensate-fit",
+      "change": "Give no_framework a valid linked prize while preferred fastapi remains undeclared",
+      "expected": "no_framework_still_after_plain"
+    },
+    {
+      "id": "meta-unlinked-team",
+      "change": "Add team prize without confirmed membership",
+      "expected": "no_fsp_ordinal_increase"
+    },
+    {
+      "id": "meta-raw-scores",
+      "change": "Change only raw assessment scores while verified category and task-derived skill evidence stay identical",
+      "expected": "identical_order"
+    },
+    {
+      "id": "meta-withdraw-visibility",
+      "change": "Hide a pinned profile",
+      "expected": "no_profile_data_returned_in_search_or_saved_shortlist"
+    },
+    {
+      "id": "meta-unknown-hard",
+      "change": "Set candidate maximum weekly hours to unknown",
+      "expected": "verified_candidate_moves_to_needs_clarification"
+    },
+    {
+      "id": "meta-no-borrowed-skills",
+      "change": "Candidate adds declared postgres,docker,fastapi",
+      "expected": "never_become_platform_test_evidence"
+    }
+  ]
+}
