@@ -33,6 +33,14 @@ class AssessmentService(
     private val policy: JsonNode by lazy {
         ClassPathResource("assessment/assessment-policy.v1.json").inputStream.use(mapper::readTree)
     }
+    private val releaseVerification: AssessmentReleaseVerification by lazy {
+        AssessmentReleaseVerifier.verify(
+            classpathBytes("assessment/assessment-release.v1.json"),
+            classpathBytes("assessment/question-bank.v1.json"),
+            classpathBytes("assessment/assessment-policy.v1.json"),
+            mapper,
+        )
+    }
 
     fun getEligibility(userId: String): Map<String, Any?> {
         val qualification = store.one(
@@ -87,6 +95,7 @@ class AssessmentService(
                 "confident_minimum_total" to 22,
                 "confident_minimum_each_competency" to 4,
             ),
+            "assessment_release" to releaseVerification.metadata,
             "profile_completion" to mapOf(
                 "required_candidate_fields" to listOf(
                     "display_name", "specialization_id", "declared_grade", "allowed_work_modes", "max_weekly_hours",
@@ -454,6 +463,7 @@ class AssessmentService(
     }
 
     private fun finalizeAttempt(row: Map<String, Any?>, evaluatedAt: Instant, submitted: Boolean): Map<String, Any?> {
+        if (!demoMode) requireDemoGradeGate()
         val userId = row.getValue("user_id").toString()
         val attemptId = row.getValue("id").toString()
         val answerKeys = row.jsonMap("tasks")["answer_keys"] as? List<*> ?: bankUnavailable()
@@ -620,10 +630,16 @@ class AssessmentService(
         if (!demoMode && !realGradeEnabled) {
             throw ApiException(422, "POLICY_BLOCKED", "Real-candidate grade release is disabled pending content review and validation")
         }
+        if (!demoMode && !releaseVerification.realGradeReleaseReady) {
+            throw ApiException(503, "GRADE_RELEASE_BLOCKED", "Real-grade release is unavailable pending verified review and validation")
+        }
     }
 
     private fun bankUnavailable(): Nothing = throw ApiException(503, "BANK_UNAVAILABLE", "Assessment bank is unavailable", retryable = true)
     private fun notFound(): Nothing = throw ApiException(404, "NOT_FOUND", "Attempt was not found")
+
+    private fun classpathBytes(path: String): ByteArray =
+        runCatching { ClassPathResource(path).inputStream.use { it.readBytes() } }.getOrDefault(ByteArray(0))
 
     private fun seeded(seed: String, value: String): String = MessageDigest.getInstance("SHA-256")
         .digest("$seed:$value".toByteArray()).joinToString("") { "%02x".format(it) }

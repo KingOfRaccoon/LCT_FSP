@@ -24,6 +24,18 @@ class AssessmentControllerTest : DbTestBase() {
         assertEquals("backend-python-v1", data.path("specialization_id").asText())
         assertEquals(2, data.path("grades").size())
         assertEquals(24, data.path("assessment_policy").path("maximum_score").asInt())
+        val release = data.path("assessment_release")
+        assertEquals("assessment-release.v1", release.path("release_version").asText())
+        assertEquals("backend-python-v1.0", release.path("bank_version").asText())
+        assertEquals("backend-python-policy-v1", release.path("policy_id").asText())
+        assertEquals("1.0.0", release.path("policy_version").asText())
+        assertEquals("published_demo", release.path("status").asText())
+        assertEquals("not_performed", release.path("content_review").asText())
+        assertEquals("not_performed", release.path("human_validation").asText())
+        assertFalse(release.path("real_grade_release_ready").asBoolean())
+        assertTrue(release.path("bank_sha256").asText().matches(Regex("[a-f0-9]{64}")))
+        assertTrue(release.path("policy_sha256").asText().matches(Regex("[a-f0-9]{64}")))
+        assertFalse(release.has("answer_keys"))
         contracts.validate("Taxonomy", objectMapper.convertValue(data, Map::class.java).entries.associate { it.key.toString() to it.value })
     }
 

@@ -23,6 +23,8 @@ coverage.xml
 *.log
 *.class
 /local/
+__pycache__/
+*.py[cod]
 
 *.jar
 !backend/gradle/wrapper/gradle-wrapper.jar

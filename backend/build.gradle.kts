@@ -49,7 +49,7 @@ tasks.processResources {
         into("contracts")
     }
     from("../docs/assessment") {
-        include("assessment-policy.v1.json", "question-bank.v1.json")
+        include("assessment-policy.v1.json", "question-bank.v1.json", "assessment-release.v1.json")
         into("assessment")
     }
     from("../docs/contracts") {

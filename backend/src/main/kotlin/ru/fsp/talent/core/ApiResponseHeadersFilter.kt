@@ -17,6 +17,11 @@ class ApiResponseHeadersFilter : OncePerRequestFilter() {
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         response.setHeader("Cache-Control", "private, no-store")
+        response.setHeader("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'")
+        response.setHeader("X-Content-Type-Options", "nosniff")
+        response.setHeader("X-Frame-Options", "DENY")
+        response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin")
+        if (request.isSecure) response.setHeader("Strict-Transport-Security", "max-age=31536000")
         chain.doFilter(request, response)
     }
 }

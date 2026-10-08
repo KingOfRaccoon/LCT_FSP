@@ -8294,6 +8294,85 @@
           }
         ]
       }
+    },
+    "/health": {
+      "get": {
+        "operationId": "service_liveness",
+        "summary": "Process liveness; independent of the database",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "Ready/alive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ServiceHealth"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "operationId": "service_readiness",
+        "summary": "Database readiness; sanitized response and no connection details",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "Ready/alive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ServiceHealth"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ServiceHealth"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -9545,6 +9624,9 @@
               "email_outbox_max_delivery_attempts",
               "email_outbox_retry_delay_seconds"
             ]
+          },
+          "assessment_release": {
+            "$ref": "#/components/schemas/AssessmentRelease"
           }
         },
         "required": [
@@ -13106,6 +13188,79 @@
           "action"
         ],
         "additionalProperties": false
+      },
+      "AssessmentRelease": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "release_version": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "bank_version": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "policy_id": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "policy_version": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "content_review": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "human_validation": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "bank_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "policy_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "real_grade_release_ready": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "release_version",
+          "bank_version",
+          "policy_id",
+          "policy_version",
+          "status",
+          "content_review",
+          "human_validation",
+          "bank_sha256",
+          "policy_sha256",
+          "real_grade_release_ready"
+        ]
+      },
+      "ServiceHealth": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
       }
     }
   }

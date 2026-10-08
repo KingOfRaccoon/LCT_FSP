@@ -1,0 +1,15 @@
+{
+  "release_version": "assessment-release.v1",
+  "bank_version": "backend-python-v1.0",
+  "bank_sha256": "2849ead2f937827e4ca545a77b6054f3b37916778cf5c246b3c38825120b9c7d",
+  "policy_id": "backend-python-policy-v1",
+  "policy_version": "1.0.0",
+  "policy_sha256": "a15d3f3d79d38a17602a3414b9babe0cc30d50a8ed21fcc86d912f72cd8796e2",
+  "status": "published_demo",
+  "content_review": "not_performed",
+  "content_review_evidence": null,
+  "human_validation": "not_performed",
+  "human_validation_evidence": null,
+  "approval_evidence": null,
+  "real_grade_release_ready": false
+}

@@ -858,6 +858,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Process liveness; independent of the database */
+        get: operations["service_liveness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Database readiness; sanitized response and no connection details */
+        get: operations["service_readiness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1087,6 +1121,7 @@ export interface components {
                 email_outbox_max_delivery_attempts: 5;
                 email_outbox_retry_delay_seconds: (60 | 300 | 900 | 3600)[];
             };
+            assessment_release?: components["schemas"]["AssessmentRelease"];
         };
         FspAchievement: {
             event_name: string;
@@ -1742,6 +1777,22 @@ export interface components {
             version: string;
             /** @enum {string} */
             action: "accept" | "revoke";
+        };
+        AssessmentRelease: {
+            release_version: string;
+            bank_version: string;
+            policy_id: string;
+            policy_version: string;
+            status: string;
+            content_review: string;
+            human_validation: string;
+            bank_sha256: string;
+            policy_sha256: string;
+            real_grade_release_ready: boolean;
+        };
+        ServiceHealth: {
+            /** @enum {string} */
+            status: "ok" | "unavailable";
         };
     };
     responses: never;
@@ -7331,6 +7382,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    service_liveness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ready/alive */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceHealth"];
+                    };
+                };
+            };
+        };
+    };
+    service_readiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ready/alive */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceHealth"];
+                    };
+                };
+            };
+            /** @description Database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceHealth"];
+                    };
                 };
             };
         };

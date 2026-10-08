@@ -9,6 +9,7 @@ import { ContactAccessJournal, PracticePage, ProfileEvidenceEditor, PublicProfil
 import { CandidateComparisonPage, CandidateReviewPanel, RecruitingRecordEditor, RecruitingWorkspacePage, RoleTaskEditor, ShortlistManager } from './features/employer/EmployerWorkflow';
 import { NeedRoleTasksPanel } from './features/employer/NeedRoleTasksPanel';
 import { CaseBankPage, ConsentPanel, type ConsentState } from './features/case/CaseBank';
+import { isContactResponseCurrent, readContactIfAuthorized, reconcileAnswerDraft, runBoundedSave, selectedAnswerCount, snapshotMatches } from './features/recovery';
 import './features/case/case.css';
 
 type Group<T> = { items: T[]; page?: { next_cursor: string | null; limit: number } };
@@ -153,7 +154,7 @@ function Workspace({ user }: { user: User }) {
   ];
   const query = useQueryClient(); const navigate = useNavigate();
   const logout = async () => { try { await api.post('/auth/logout'); } finally { rotateCsrf(); await query.clear(); navigate('/login'); window.location.reload(); } };
-  return <div className={`${layoutStyles.shell} workspace`}><aside className="sidebar"><Brand /><div className="sidebar-role">{candidate ? 'КАБИНЕТ КАНДИДАТА' : 'КАБИНЕТ РАБОТОДАТЕЛЯ'}</div><nav aria-label="Основная навигация" className="side-nav">{links.map(([to, label, icon]) => <NavLink end={to === '/'} key={to} to={to} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}><span className="nav-icon">{icon}</span>{label}</NavLink>)}</nav><div className="sidebar-bottom"><div className="profile-mini"><span className="avatar">{(candidate ? user.candidate_profile?.display_name : user.company?.name)?.slice(0, 1) ?? 'Ф'}</span><span className="profile-mini-copy"><strong>{candidate ? user.candidate_profile?.display_name : user.company?.name ?? user.email}</strong><small>{user.email}</small></span></div><button className="logout-link" onClick={logout}>Выйти <span>↗</span></button></div></aside>
+  return <div className={`${layoutStyles.shell} workspace`}><aside className="sidebar"><Brand /><div className="sidebar-role">{candidate ? 'КАБИНЕТ КАНДИДАТА' : 'КАБИНЕТ РАБОТОДАТЕЛЯ'}</div><nav aria-label="Основная навигация" className="side-nav">{links.map(([to, label, icon]) => <NavLink end={to === '/'} key={to} to={to} aria-label={label} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}><span className="nav-icon" aria-hidden="true">{icon}</span>{label}</NavLink>)}</nav><div className="sidebar-bottom"><div className="profile-mini"><span className="avatar">{(candidate ? user.candidate_profile?.display_name : user.company?.name)?.slice(0, 1) ?? 'Ф'}</span><span className="profile-mini-copy"><strong>{candidate ? user.candidate_profile?.display_name : user.company?.name ?? user.email}</strong><small>{user.email}</small></span></div><button className="logout-link" onClick={logout}>Выйти <span>↗</span></button></div></aside>
     <main className="main-area"><header className="topbar"><div><span className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="topbar-title">{candidate ? 'Кандидат' : 'Работодатель'} <span className="topbar-separator">/</span> {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</div></div><div className="topbar-right"><span className="status-dot" />Аккаунт активен</div></header><div className="content"><Routes>
       {candidate ? <>
         <Route path="/" element={<CandidateHome user={user} />} />
@@ -305,7 +306,10 @@ function AssessmentHome({ user }: { user: User }) {
   if (profileQuery.isError || attemptsQuery.isError || taxonomyQuery.isError || consentsQuery.isError) return <ErrorBlock error={profileQuery.error ?? attemptsQuery.error ?? taxonomyQuery.error ?? consentsQuery.error} retry={() => { void profileQuery.refetch(); void attemptsQuery.refetch(); void taxonomyQuery.refetch(); void consentsQuery.refetch(); }} />;
   const processingAccepted = consentsQuery.data.states.some((consent) => consent.scope === 'processing' && consent.accepted);
   const history = attemptsQuery.data.pages.flatMap((page) => page.items);
+  const assessmentRelease = taxonomyQuery.data.assessment_release;
+  const demoReleaseNotice = assessmentRelease?.status === 'published_demo' || assessmentRelease?.real_grade_release_ready === false;
   return <><PageHeader eyebrow="ОЦЕНКА КОМПЕТЕНЦИЙ" title="Подтвердите уровень знаний" description="Обычная оценка состоит из 12 заданий по четырём блокам. Ответы сохраняются на сервере; срок — 30 минут." />
+    {demoReleaseNotice && <Notice>Текущий банк предназначен для демонстрации. Человеческая проверка квалификации ещё не проведена; результат демо-оценки не подтверждает профессиональный грейд.</Notice>}
     {error && <ErrorBlock error={error} />}
     <div className="assessment-layout"><Card title="Новая оценка" className="assessment-start">{!processingAccepted && <div className="notice notice-warm">Для новой оценки примите согласие на обработку данных. <Link to="/consents">Открыть условия →</Link></div>}<div className="assessment-callout"><span>30</span><div><strong>минут на прохождение</strong><small>12 заданий · 24 ответа · 4 блока</small></div></div><label className="field"><span>Уровень оценки</span><select value={grade} onChange={(e) => setGrade(e.target.value as Grade)}>{grades.map((g) => <option key={g} value={g}>{gradeName(g)}</option>)}</select></label><div className="eligibility"><div><span className="eligibility-indicator" /> {eligibility?.[grade].allowed ? 'Можно начать сейчас' : eligibility?.[grade].reason === 'attempt_active' ? 'Уже есть активная попытка' : 'Пока недоступно'}</div>{!eligibility?.[grade].allowed && eligibility?.[grade].eligible_at && <small>Повтор доступен {date(eligibility[grade].eligible_at)}.</small>}{processingAccepted && !eligibility?.[grade].allowed && eligibility?.[grade].reason === 'attempt_active' && profile?.active_attempt_id && <Link to={`/assessment/${profile.active_attempt_id}`}>Продолжить попытку →</Link>}</div><button className="button button-primary button-wide" onClick={() => void start()} disabled={busy || !processingAccepted || !profile?.profile_complete || !eligibility?.[grade].allowed}>{busy ? 'Подготавливаем…' : 'Начать оценку'} <span>→</span></button>{!profile?.profile_complete && <p className="field-hint">Сначала заполните обязательные поля профиля.</p>}<p className="field-hint">Если профиль синтетический, сервер отметит результат как demo. Порог v1: 18/24 и не менее 3/6 в каждом блоке.</p><p className="field-hint"><Link to="/practice">Сначала посмотреть формат на тренировочных вопросах →</Link></p></Card>
       <div className="assessment-side"><Card title="Состав оценки"><div className="block-list">{(taxonomyQuery.data.skills.filter((s) => ['python-basics', 'http-api', 'sql-transactions', 'reliability'].includes(s.id))).map((skill, i) => <div className="block-row" key={skill.id}><span className="block-number">0{i + 1}</span><div><strong>{skillLabels[skill.id as keyof typeof skillLabels] ?? skill.id}</strong><small>3 задания · 6 баллов</small></div><Badge tone="neutral">Блок</Badge></div>)}</div></Card><Card title="История оценок" meta={<span className="card-index">{history.length}</span>}>{history.length ? <><div className="history-list">{history.map((item) => <div className="history-row" key={item.id}><div><strong>{gradeName(item.requested_grade)}</strong><small>{date(item.evaluated_at ?? item.deadline_at)}</small></div><span>{item.total_score ?? '—'} / 24</span><Badge tone={item.status === 'evaluated' ? (item.passed ? 'good' : 'warm') : item.status === 'in_progress' ? 'neutral' : ''}>{item.status === 'in_progress' ? 'Идёт' : item.status === 'evaluated' ? item.passed ? 'Пройдена' : 'Завершена' : item.status === 'submitted' ? 'На проверке' : 'Аннулирована'}</Badge></div>)}</div>{attemptsQuery.hasNextPage && <button className="button button-secondary button-small load-more" onClick={() => void attemptsQuery.fetchNextPage()} disabled={attemptsQuery.isFetchingNextPage}>{attemptsQuery.isFetchingNextPage ? 'Загружаем…' : 'Показать ещё'}</button>}</> : <Empty title="История пока пуста" detail="Завершённые попытки появятся здесь." />}</Card></div>
@@ -315,14 +319,42 @@ function AssessmentHome({ user }: { user: User }) {
 
 function AssessmentRun() {
   const { attemptId = '' } = useParams(); const query = useQueryClient();
-  const attemptQuery = useQuery({ queryKey: ['attempt', attemptId], queryFn: () => api.get<Attempt>(`/attempts/${attemptId}`), staleTime: 0 });
+  const attemptQuery = useQuery({ queryKey: ['attempt', attemptId], queryFn: () => api.get<Attempt>(`/attempts/${attemptId}`), staleTime: 0, refetchOnWindowFocus: false, refetchOnReconnect: false });
   const consentsQuery = useQuery({ queryKey: ['consents'], queryFn: () => api.get<ConsentState>('/me/consents') });
   const processingAccepted = consentsQuery.data?.states.some((consent) => consent.scope === 'processing' && consent.accepted) ?? false;
   const [attempt, setAttempt] = useState<Attempt | undefined>(); const [answers, setAnswers] = useState<Record<string, string>>({});
   const resultProfileQuery = useQuery({ queryKey: ['profile'], queryFn: () => api.get<CandidateProfile>('/me/profile'), enabled: Boolean(attempt && attempt.status !== 'in_progress') });
   const [saveStatus, setSaveStatus] = useState<'saved' | 'dirty' | 'saving' | 'error'>('saved'); const [saveError, setSaveError] = useState(''); const [saveConflict, setSaveConflict] = useState(false); const [submitError, setSubmitError] = useState(''); const [submitting, setSubmitting] = useState(false);
-  const version = useRef(0); const savedSnapshot = useRef(''); const savePromise = useRef<Promise<Attempt | null> | null>(null); const submittingRef = useRef(false);
-  useEffect(() => { if (!attemptQuery.data) return; setAttempt(attemptQuery.data); version.current = attemptQuery.data.version; const initial: Record<string, string> = {}; attemptQuery.data.saved_answers.forEach((a) => { if (a.selected_option_id) initial[`${a.task_id}:${a.subquestion_id}`] = a.selected_option_id; }); setAnswers(initial); savedSnapshot.current = JSON.stringify(initial); }, [attemptQuery.dataUpdatedAt]);
+  const [savedAck, setSavedAck] = useState<{ count: number; savedAt: string | null }>({ count: 0, savedAt: null });
+  const version = useRef(0); const savedSnapshot = useRef(''); const failedSnapshot = useRef(''); const hydratedAttemptId = useRef(''); const savePromise = useRef<Promise<Attempt | null> | null>(null); const submittingRef = useRef(false); const attemptIdRef = useRef(attemptId); const mountedRef = useRef(true);
+  attemptIdRef.current = attemptId;
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
+  const answerMap = (source: Attempt) => Object.fromEntries(source.saved_answers.filter((answer) => answer.selected_option_id).map((answer) => [`${answer.task_id}:${answer.subquestion_id}`, answer.selected_option_id as string]));
+  const acknowledgement = (source: Attempt) => ({ count: selectedAnswerCount(source.saved_answers), savedAt: source.saved_answers.reduce<string | null>((latest, answer) => !latest || answer.saved_at > latest ? answer.saved_at : latest, null) });
+  useEffect(() => {
+    if (!attemptQuery.data) return;
+    const serverAnswers = answerMap(attemptQuery.data);
+    const serverSnapshot = JSON.stringify(serverAnswers);
+    const reconciled = reconcileAnswerDraft({
+      initialized: hydratedAttemptId.current === attemptId,
+      draft: answers,
+      acknowledged: JSON.parse(savedSnapshot.current || '{}') as Record<string, string>,
+      server: serverAnswers,
+    });
+    hydratedAttemptId.current = attemptId;
+    version.current = attemptQuery.data.version;
+    savedSnapshot.current = serverSnapshot;
+    setAttempt(attemptQuery.data);
+    setSavedAck(acknowledgement(attemptQuery.data));
+    if (reconciled.shouldAdoptServer) {
+      setAnswers(serverAnswers);
+      setSaveStatus('saved'); setSaveConflict(false); setSaveError('');
+    } else if (reconciled.conflict) {
+      setSaveStatus('error'); setSaveConflict(true); setSaveError('Серверный черновик изменился. Загрузите его перед продолжением.');
+    } else if (saveStatus !== 'saving') {
+      setSaveStatus('dirty');
+    }
+  }, [attemptQuery.dataUpdatedAt]);
   const fullAnswers = useMemo(() => (attempt?.tasks ?? []).flatMap((task) => task.subquestions.map((q) => ({ task_id: task.task_id, subquestion_id: q.subquestion_id, selected_option_id: answers[`${task.task_id}:${q.subquestion_id}`] ?? null }))), [attempt, answers]);
   const answerString = JSON.stringify(answers);
   const latestAnswerString = useRef(answerString); const latestFullAnswers = useRef(fullAnswers);
@@ -331,12 +363,27 @@ function AssessmentRun() {
     if (savePromise.current) return savePromise.current;
     if (!processingAccepted || !attempt || attempt.status !== 'in_progress' || latestAnswerString.current === savedSnapshot.current) return null;
     setSaveStatus('saving'); setSaveError('');
-    const snapshot = latestAnswerString.current; const payload = latestFullAnswers.current;
+    const snapshot = latestAnswerString.current; const payload = latestFullAnswers.current; const requestAttemptId = attempt.id;
     const operation = (async () => {
       try {
-        const updated = await api.put<Attempt>(`/attempts/${attempt.id}/answers`, { expected_version: version.current, answers: payload });
-        version.current = updated.version; savedSnapshot.current = snapshot; setAttempt(updated); setSaveStatus('saved'); return updated;
-      } catch (e) { setSaveStatus('error'); setSaveConflict(e instanceof RequestError && e.status === 409); setSaveError(e instanceof RequestError && e.status === 409 ? 'В другой вкладке черновик уже изменили. Вернитесь к вопросам и загрузите серверный черновик, чтобы продолжить.' : errorMessage(e)); return null; }
+        const updated = await runBoundedSave({
+          save: () => api.put<Attempt>(`/attempts/${requestAttemptId}/answers`, { expected_version: version.current, answers: payload }),
+          reconcile: () => api.get<Attempt>(`/attempts/${requestAttemptId}`),
+          matches: (current) => current.status !== 'in_progress' || snapshotMatches(answerMap(current), JSON.parse(snapshot) as Record<string, string>),
+          isTerminal: (current) => current.status !== 'in_progress',
+          wait: (delayMs) => new Promise((resolve) => window.setTimeout(resolve, delayMs)),
+        });
+        if (!mountedRef.current || attemptIdRef.current !== requestAttemptId) return null;
+        version.current = updated.version;
+        const acknowledgedAnswers = answerMap(updated);
+        savedSnapshot.current = JSON.stringify(acknowledgedAnswers);
+        failedSnapshot.current = ''; setSavedAck(acknowledgement(updated)); setAttempt(updated);
+        const isCurrentDraft = snapshotMatches(acknowledgedAnswers, JSON.parse(latestAnswerString.current) as Record<string, string>);
+        setSaveStatus(isCurrentDraft ? 'saved' : 'dirty'); setSaveError(''); setSaveConflict(false); return updated;
+      } catch (e) {
+        if (!mountedRef.current || attemptIdRef.current !== requestAttemptId) return null;
+        failedSnapshot.current = snapshot; setSaveStatus('error'); setSaveConflict(e instanceof RequestError && e.status === 409); setSaveError(e instanceof RequestError && e.status === 409 ? 'В другой вкладке черновик уже изменили. Вернитесь к вопросам и загрузите серверный черновик, чтобы продолжить.' : errorMessage(e)); return null;
+      }
       finally { savePromise.current = null; }
     })();
     savePromise.current = operation;
@@ -344,15 +391,22 @@ function AssessmentRun() {
   };
   const reloadServerDraft = async () => {
     if (!window.confirm('Заменить текущие ответы сохранённым серверным черновиком? Несохранённые изменения в этой вкладке будут потеряны.')) return;
-    try { const current = await api.get<Attempt>(`/attempts/${attemptId}`); const next: Record<string, string> = {}; current.saved_answers.forEach((a) => { if (a.selected_option_id) next[`${a.task_id}:${a.subquestion_id}`] = a.selected_option_id; }); version.current = current.version; savedSnapshot.current = JSON.stringify(next); setAnswers(next); setAttempt(current); setSaveStatus('saved'); setSaveConflict(false); setSaveError(''); }
+    try { const current = await api.get<Attempt>(`/attempts/${attemptId}`); if (attemptIdRef.current !== attemptId) return; const next = answerMap(current); version.current = current.version; savedSnapshot.current = JSON.stringify(next); setSavedAck(acknowledgement(current)); setAnswers(next); setAttempt(current); setSaveStatus('saved'); setSaveConflict(false); setSaveError(''); }
     catch (e) { setSaveError(errorMessage(e)); }
   };
   useEffect(() => {
-    if (!processingAccepted || !attempt || attempt.status !== 'in_progress' || saveStatus === 'saving' || saveStatus === 'error' || answerString === savedSnapshot.current) return;
+    if (!processingAccepted || !attempt || attempt.status !== 'in_progress' || saveStatus === 'saving' || (saveStatus === 'error' && (saveConflict || answerString === failedSnapshot.current)) || answerString === savedSnapshot.current) return;
     setSaveStatus('dirty');
     const timer = window.setTimeout(() => { void performSave(); }, 1000);
     return () => window.clearTimeout(timer);
-  }, [answerString, attempt?.id, attempt?.status, processingAccepted, saveStatus]);
+  }, [answerString, attempt?.id, attempt?.status, processingAccepted, saveStatus, saveConflict]);
+  useEffect(() => {
+    const recoverWhenOnline = () => {
+      if (saveStatus === 'error' && !saveConflict && latestAnswerString.current !== savedSnapshot.current) void performSave();
+    };
+    window.addEventListener('online', recoverWhenOnline);
+    return () => window.removeEventListener('online', recoverWhenOnline);
+  }, [saveStatus, saveConflict, attempt?.id, processingAccepted]);
   const [remaining, setRemaining] = useState<number | undefined>();
   useEffect(() => { if (!attempt) return; setRemaining(attempt.remaining_seconds); if (attempt.status !== 'in_progress') return; const end = Date.now() + attempt.remaining_seconds * 1000; const timer = window.setInterval(() => setRemaining(Math.max(0, Math.ceil((end - Date.now()) / 1000))), 1000); return () => window.clearInterval(timer); }, [attempt?.id, attempt?.version]);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -362,11 +416,25 @@ function AssessmentRun() {
     try {
       while (savedSnapshot.current !== latestAnswerString.current) {
         const saved = await performSave();
-        if (!saved || saveStatus === 'error') return;
+        if (!saved || savedSnapshot.current !== latestAnswerString.current) return;
       }
-      if (saveStatus === 'error' || savedSnapshot.current !== latestAnswerString.current) return;
-      const result = await api.post<Attempt>(`/attempts/${attempt.id}/submit`, { expected_version: version.current }); setAttempt(result); setReviewOpen(false); await query.invalidateQueries({ queryKey: ['attempts'] }); await query.invalidateQueries({ queryKey: ['profile'] });
-    } catch (e) { setSubmitError(errorMessage(e)); }
+      if (savedSnapshot.current !== latestAnswerString.current) return;
+      const current = await api.get<Attempt>(`/attempts/${attempt.id}`);
+      if (attemptIdRef.current !== attempt.id) return;
+      version.current = current.version; setSavedAck(acknowledgement(current)); setAttempt(current);
+      if (current.status !== 'in_progress') { setReviewOpen(false); await query.invalidateQueries({ queryKey: ['attempts'] }); await query.invalidateQueries({ queryKey: ['profile'] }); return; }
+      if (!snapshotMatches(answerMap(current), JSON.parse(latestAnswerString.current) as Record<string, string>)) {
+        setSaveStatus('error'); setSaveConflict(true); setSaveError('Серверный черновик изменился. Загрузите его перед отправкой оценки.'); return;
+      }
+      savedSnapshot.current = latestAnswerString.current;
+      const result = await api.post<Attempt>(`/attempts/${attempt.id}/submit`, { expected_version: version.current }); setAttempt(result); setSavedAck(acknowledgement(result)); setReviewOpen(false); await query.invalidateQueries({ queryKey: ['attempts'] }); await query.invalidateQueries({ queryKey: ['profile'] });
+    } catch (e) {
+      setSubmitError(errorMessage(e));
+      try {
+        const current = await api.get<Attempt>(`/attempts/${attempt.id}`);
+        if (attemptIdRef.current === attempt.id && current.status !== 'in_progress') { setAttempt(current); setSavedAck(acknowledgement(current)); setReviewOpen(false); setSubmitError(''); await query.invalidateQueries({ queryKey: ['attempts'] }); await query.invalidateQueries({ queryKey: ['profile'] }); }
+      } catch { /* Keep the submission error visible until the server can be reached. */ }
+    }
     finally { submittingRef.current = false; setSubmitting(false); }
   };
   if (attemptQuery.isPending || !attempt || consentsQuery.isPending) return attemptQuery.isError ? <div><Link className="back-link" to="/assessment">← К оценке</Link><ErrorBlock error={attemptQuery.error} retry={() => void attemptQuery.refetch()} /></div> : <Loading label="Открываем сохранённую попытку" />;
@@ -376,11 +444,11 @@ function AssessmentRun() {
   if (attempt.status !== 'in_progress') return <><PageHeader eyebrow="РЕЗУЛЬТАТ ОЦЕНКИ" title={attempt.result?.grade_awarded ? `Уровень ${gradeName(attempt.result.grade_awarded)}` : attempt.status === 'invalidated' ? 'Попытка аннулирована' : attempt.result ? 'Оценка завершена' : 'Оценка ожидает результата'} description={`Данные этой попытки · ${date(attempt.evaluated_at)}`} />{attempt.demo && <div className="demo-attempt-marker"><Badge tone="warm">DEMO · результат на тестовых данных</Badge></div>}<ResultCompetencyFeedback attempt={attempt} eligibility={resultProfileQuery.data?.assessment_eligibility} /><Link className="button button-primary" to="/assessment">История оценок →</Link></>;
   return <div className="assessment-run"><div className="run-top"><div><Link className="back-link" to="/assessment">← Выйти к оценкам</Link><h1>Оценка · {gradeName(attempt.requested_grade)}</h1><p>Выберите один ответ в каждом пункте. Ответы сохраняются автоматически.</p></div><div className={`timer ${minutes < 5 ? 'timer-warning' : ''}`} aria-label="Оставшееся время"><small>ОСТАЛОСЬ</small><strong>{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}</strong></div></div>
     {attempt.demo && <div className="demo-attempt-marker"><Badge tone="warm">DEMO · результат на тестовых данных</Badge></div>}
-    <div className="save-line" aria-live="polite">{saveStatus === 'saved' ? '✓ Все ответы сохранены' : saveStatus === 'saving' ? 'Сохраняем ответы…' : saveStatus === 'error' ? 'Не удалось сохранить ответы' : 'Есть несохранённые ответы'}{saveStatus === 'error' && (saveConflict ? <button className="text-button" onClick={() => void reloadServerDraft()}>Загрузить серверный черновик</button> : <button className="text-button" onClick={() => void performSave()}>Повторить</button>)}</div>
+    <div className="save-line" aria-live="polite">{saveStatus === 'saved' ? '✓ Ответы сохранены' : saveStatus === 'saving' ? 'Сохраняем ответы…' : saveStatus === 'error' ? 'Не удалось сохранить ответы' : 'Есть несохранённые ответы'}{` · сервер подтвердил ${savedAck.count} из 24 · ${savedAck.savedAt ? date(savedAck.savedAt) : 'время пока не указано'}`}{saveStatus === 'error' && (saveConflict ? <button className="text-button" onClick={() => void reloadServerDraft()}>Загрузить серверный черновик</button> : <button className="text-button" onClick={() => void performSave()}>Повторить</button>)}</div>
     {saveError && <Notice tone="danger">{saveError}</Notice>}{submitError && <ErrorBlock error={submitError} />}
     <div className="question-list">{attempt.tasks.map((task, i) => <Card key={task.task_id} title={`Задание ${String(i + 1).padStart(2, '0')}`} meta={<Badge tone="neutral">{skillLabels[task.competency_block as keyof typeof skillLabels] ?? task.competency_block}</Badge>} className="question-card"><p className="task-prompt">{task.prompt}</p>{task.subquestions.map((q) => <fieldset className="question-set" key={q.subquestion_id}><legend>{q.prompt}</legend><div className="option-list">{q.options.map((option, oi) => { const key = `${task.task_id}:${q.subquestion_id}`; return <label className={`option ${answers[key] === option.id ? 'option-selected' : ''}`} key={option.id}><input type="radio" name={key} checked={answers[key] === option.id} onChange={() => setAnswers((old) => ({ ...old, [key]: option.id }))} /><span className="option-key">{String.fromCharCode(65 + oi)}</span><span>{option.text}</span></label>; })}</div></fieldset>)}</Card>)}</div>
     <div className="submit-bar"><span>{Object.keys(answers).length} ответов выбрано из 24</span><button className="button button-primary" disabled={submitting} onClick={() => { setSubmitError(''); setReviewOpen(true); }}>{submitting ? 'Отправляем…' : 'Завершить оценку'} <span>→</span></button></div>
-    <AssessmentReviewDialog open={reviewOpen} answered={Object.keys(answers).length} savedCount={Object.keys(JSON.parse(savedSnapshot.current || '{}')).length} saving={saveStatus === 'saving' || submitting} error={saveError || submitError} hasUnsavedChanges={answerString !== savedSnapshot.current} deadline={attempt.deadline_at} onCancel={() => setReviewOpen(false)} onConfirm={() => void submit()} />
+    <AssessmentReviewDialog open={reviewOpen} answered={Object.keys(answers).length} savedCount={savedAck.count} saving={saveStatus === 'saving' || submitting} error={saveError || submitError} hasUnsavedChanges={answerString !== savedSnapshot.current} deadline={attempt.deadline_at} onCancel={() => setReviewOpen(false)} onConfirm={() => void submit()} />
   </div>;
 }
 
@@ -395,7 +463,7 @@ function CandidateInvitations() {
 function CandidateInvitationCard({ invitation, onDecision }: { invitation: Invitation; onDecision: (action: 'accept' | 'decline') => void }) {
   const [expanded, setExpanded] = useState(false);
   const hasCompanySnapshot = Boolean(invitation.company_industry || invitation.company_contact_email || invitation.company_contact_phone);
-  return <Card className="invite-card"><div className="invite-top"><div><div className="eyebrow">ПРЕДЛОЖЕНИЕ · {date(invitation.updated_at)}</div><h2>{invitation.company_name}</h2></div><Badge tone={invitation.state === 'pending' ? 'warm' : invitation.state === 'accepted' ? 'good' : 'neutral'}>{invitation.state === 'pending' ? 'Ожидает решения' : invitation.state === 'accepted' ? 'Принято' : titleCase(invitation.state)}</Badge></div><div className="salary-highlight">{money(invitation.salary.min_kopecks)}–{money(invitation.salary.max_kopecks)} ₽ <small>/ месяц · {invitation.salary.basis === 'gross' ? 'до вычета налогов' : 'на руки'}</small></div><p>{invitation.description}</p><div className="invite-meta"><span>Способ контакта: <strong>{invitation.contact_method === 'platform' ? 'Открытие выбранных контактов' : invitation.contact_method === 'email' ? 'По электронной почте' : 'По телефону'}</strong></span><span>Действует до {date(invitation.expires_at)}</span></div>{hasCompanySnapshot && <div className="invitation-company-snapshot"><strong>О компании на момент приглашения</strong><div className="invitation-company-fields">{invitation.company_industry && <div><small>Индустрия</small><span>{invitation.company_industry}</span></div>}{invitation.company_contact_email && <div><small>Контактный email</small><a href={`mailto:${invitation.company_contact_email}`}>{invitation.company_contact_email}</a></div>}{invitation.company_contact_phone && <div><small>Контактный телефон</small><a href={`tel:${invitation.company_contact_phone}`}>{invitation.company_contact_phone}</a></div>}</div><small className="field-hint">Эти сведения сохранены в предложении и не обновляются при изменении профиля компании.</small></div>}{invitation.company_comment && <div className="company-comment"><small>Комментарий компании</small><p>{invitation.company_comment}</p></div>}{invitation.discussion_topics.length > 0 && <div className="topic-row">{invitation.discussion_topics.map((topic) => <Badge key={topic} tone="neutral">{topic}</Badge>)}</div>}<button className="text-button reason-toggle" onClick={() => setExpanded(!expanded)}>{expanded ? 'Скрыть основания' : `Почему вас пригласили · ${invitation.system_reasons.length}`} {expanded ? '↑' : '↓'}</button>{expanded && <div className="reason-list">{invitation.system_reasons.length ? invitation.system_reasons.map((reason, i) => <div key={`${reason.kind}-${i}`}><span className="reason-check">•</span><span>{reason.text}{reason.demo && <Badge tone="warm">demo</Badge>}</span></div>) : <p className="field-hint">Системные основания не указаны.</p>}</div>}{invitation.state === 'pending' && <div className="invite-actions"><button className="button button-primary" onClick={() => onDecision('accept')}>Принять и открыть выбранные контакты</button><button className="button button-secondary" onClick={() => onDecision('decline')}>Отказаться</button></div>}{invitation.state === 'accepted' && <Notice tone="success">Вы согласились на контакт. Управляйте разрешениями в разделе «Доступ к контактам».</Notice>}</Card>;
+  return <Card className="invite-card"><div className="invite-top"><div><div className="eyebrow">ПРЕДЛОЖЕНИЕ · {date(invitation.updated_at)}</div><h2>{invitation.company_name}</h2></div><Badge tone={invitation.state === 'pending' ? 'warm' : invitation.state === 'accepted' ? 'good' : 'neutral'}>{invitation.state === 'pending' ? 'Ожидает решения' : invitation.state === 'accepted' ? 'Принято' : titleCase(invitation.state)}</Badge></div><div className="salary-highlight">{money(invitation.salary.min_kopecks)}–{money(invitation.salary.max_kopecks)} ₽ <small>/ месяц · {invitation.salary.basis === 'gross' ? 'до вычета налогов' : 'на руки'}</small></div><p>{invitation.description}</p><div className="invite-meta"><span>Способ контакта: <strong>{invitation.contact_method === 'platform' ? 'Открытие выбранных контактов' : invitation.contact_method === 'email' ? 'По электронной почте' : 'По телефону'}</strong></span><span>Действует до {date(invitation.expires_at)}</span></div>{hasCompanySnapshot && <div className="invitation-company-snapshot"><strong>О компании на момент приглашения</strong><div className="invitation-company-fields">{invitation.company_industry && <div><small>Индустрия</small><span>{invitation.company_industry}</span></div>}{invitation.company_contact_email && <div><small>Контактный email</small><a href={`mailto:${invitation.company_contact_email}`}>{invitation.company_contact_email}</a></div>}{invitation.company_contact_phone && <div><small>Контактный телефон</small><a href={`tel:${invitation.company_contact_phone}`}>{invitation.company_contact_phone}</a></div>}</div><small className="field-hint">Эти сведения сохранены в предложении и не обновляются при изменении профиля компании.</small></div>}{invitation.company_comment && <div className="company-comment"><small>Комментарий компании</small><p>{invitation.company_comment}</p></div>}{invitation.discussion_topics.length > 0 && <div className="topic-row">{invitation.discussion_topics.map((topic) => <Badge key={topic} tone="neutral">{topic}</Badge>)}</div>}<button className="text-button reason-toggle" onClick={() => setExpanded(!expanded)}>{expanded ? 'Скрыть основания' : `Почему вас пригласили · ${invitation.system_reasons.length}`} {expanded ? '↑' : '↓'}</button>{expanded && <div className="reason-list">{invitation.system_reasons.length ? invitation.system_reasons.map((reason, i) => <div key={`${reason.kind}-${i}`}><span className="reason-check">•</span><span>{reason.text}{reason.demo && <Badge tone="warm">demo</Badge>}</span></div>) : <p className="field-hint">Системные основания не указаны.</p>}</div>}{invitation.state === 'pending' && <div className="invite-actions"><button className="button button-primary" onClick={() => onDecision('accept')}>Согласиться обсудить вакансию и открыть выбранные контакты</button><button className="button button-secondary" onClick={() => onDecision('decline')}>Отказаться</button></div>}{invitation.state === 'accepted' && <Notice tone="success">Вы согласились обсудить вакансию. Это не принятие предложения о работе и не подтверждение трудоустройства. Управляйте разрешениями в разделе «Доступ к контактам».</Notice>}</Card>;
 }
 
 function CandidateContacts() {
@@ -582,12 +650,95 @@ function EmployerInvitations({ user }: { user: User }) {
   </>;
 }
 
+function useRevealedContacts(candidateId: string, enabled: boolean) {
+  const [revealed, setRevealed] = useState(false);
+  const [contact, setContact] = useState<ContactBundle>();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const requestId = useRef(0);
+  const revealedRef = useRef(false);
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
+
+  const refresh = React.useCallback(async () => {
+    if (!revealedRef.current || !enabledRef.current || document.visibilityState !== 'visible') return;
+    setError('');
+    setLoading(true);
+    const id = ++requestId.current;
+    try {
+      const result = await readContactIfAuthorized({
+        clear: () => setContact(undefined),
+        read: () => api.get<ContactBundle>(`/candidates/${candidateId}/contacts`),
+        revealed: revealedRef.current,
+        visible: document.visibilityState === 'visible',
+        authenticated: enabledRef.current,
+      });
+      if (!isContactResponseCurrent({ requestId: id, currentRequestId: requestId.current, revealed: revealedRef.current, visible: document.visibilityState === 'visible', authenticated: enabledRef.current })) return;
+      if (result.status === 'success') setContact(result.value);
+      if (result.status === 'error') setError(errorMessage(result.error));
+    } finally {
+      if (id === requestId.current) setLoading(false);
+    }
+  }, [candidateId]);
+
+  const reveal = () => {
+    if (!enabledRef.current) return;
+    revealedRef.current = true;
+    setRevealed(true);
+    void refresh();
+  };
+  const hide = () => {
+    revealedRef.current = false;
+    requestId.current += 1;
+    setRevealed(false);
+    setContact(undefined);
+    setError('');
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!enabled) hide();
+    const onFocus = () => { if (revealedRef.current) void refresh(); };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        requestId.current += 1;
+        setContact(undefined);
+        setLoading(false);
+      } else if (revealedRef.current) void refresh();
+    };
+    const interval = window.setInterval(() => { if (revealedRef.current) void refresh(); }, 30_000);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      requestId.current += 1;
+      window.clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [enabled, refresh]);
+
+  return { revealed, contact, error, loading, reveal, hide };
+}
+
 function EmployerInvitationCard({ invitation, onWithdraw }: { invitation: Invitation; onWithdraw: () => void }) {
-  const query = useQueryClient(); const candidate = useQuery({ queryKey: ['candidate', invitation.candidate_id], queryFn: () => api.get<Candidate>(`/candidates/${invitation.candidate_id}`) });
-  const [contact, setContact] = useState<ContactBundle>(); const [error, setError] = useState(''); const [showSupersede, setShowSupersede] = useState(false);
-  const openContacts = async () => { setError(''); try { const result = await api.get<ContactBundle>(`/candidates/${invitation.candidate_id}/contacts`); setContact(result); } catch (e) { setError(errorMessage(e)); } };
+  const query = useQueryClient();
+  const candidate = useQuery({ queryKey: ['candidate', invitation.candidate_id], queryFn: () => api.get<Candidate>(`/candidates/${invitation.candidate_id}`) });
+  const contacts = useRevealedContacts(invitation.candidate_id, invitation.state === 'accepted');
+  const [error, setError] = useState('');
+  const [showSupersede, setShowSupersede] = useState(false);
   const supersede = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const fd = new FormData(event.currentTarget); const hours = Number(fd.get('hours')); const min = Number(fd.get('min')); const max = Number(fd.get('max')); if (min <= 0 || max < min) { setError('Проверьте зарплатную вилку: верхняя граница должна быть не меньше нижней.'); return; } const payload: Schemas['InvitationSupersedeRequest'] = { expected_version: invitation.version, salary: { min_kopecks: min * 100, max_kopecks: max * 100, currency: 'RUB', period: 'month', basis: formValue(fd, 'basis') as Schemas['MoneyRange']['basis'], workload_type: hours === 40 ? 'full_time' : 'part_time', hours_per_week: hours }, description: formValue(fd, 'description'), contact_method: formValue(fd, 'contact_method') as Schemas['InvitationSupersedeRequest']['contact_method'], company_comment: formValue(fd, 'comment') || null, discussion_topics: invitation.discussion_topics }; try { await api.post(`/invitations/${invitation.id}/supersede`, payload); setShowSupersede(false); await query.invalidateQueries({ queryKey: ['sentInvitations'] }); } catch (e) { setError(errorMessage(e)); } };
-  return <Card className="invite-card"><div className="invite-top"><div><div className="eyebrow">ПРЕДЛОЖЕНИЕ · {date(invitation.updated_at)}</div><h2>{candidate.data?.display_name ?? 'Кандидат'}</h2><p>{candidate.data ? `${gradeName(candidate.data.verified_grade ?? candidate.data.declared_grade)} · ${candidate.data.headline ?? 'Backend Python'}` : invitation.candidate_id}</p></div><Badge tone={invitation.state === 'pending' ? 'warm' : invitation.state === 'accepted' ? 'good' : 'neutral'}>{invitation.state === 'pending' ? 'Ожидает ответа' : invitation.state === 'accepted' ? 'Принято' : titleCase(invitation.state)}</Badge></div><div className="salary-highlight">{money(invitation.salary.min_kopecks)}–{money(invitation.salary.max_kopecks)} ₽ <small>/ месяц · {invitation.salary.basis === 'gross' ? 'до вычета налогов' : 'на руки'}</small></div><p>{invitation.description}</p><div className="invite-meta"><span>Способ контакта: <strong>{invitation.contact_method === 'platform' ? 'Открытие выбранных контактов' : invitation.contact_method === 'email' ? 'По электронной почте' : 'По телефону'}</strong></span><span>Истекает {date(invitation.expires_at)}</span></div>{invitation.system_reasons.length > 0 && <div className="reason-list">{invitation.system_reasons.map((r, i) => <div key={i}><span className="reason-check">•</span><span>{r.text}{r.demo && <Badge tone="warm">demo</Badge>}</span></div>)}</div>}{error && <ErrorBlock error={error} />}{contact && <div className="contact-reveal"><Notice tone="success">Доступ подтверждён сервером. Компания может читать выбранные контакты.</Notice>{contact.channels.map((channel) => <div key={channel.type}><small>{titleCase(channel.type)}</small><strong>{channel.value}</strong></div>)}</div>}{invitation.state === 'accepted' && !contact && <button className="button button-primary button-small" onClick={() => void openContacts()}>Показать открытые контакты</button>}{invitation.state === 'pending' && <div className="invite-actions"><button className="button button-secondary button-small" onClick={onWithdraw}>Отозвать</button><button className="button button-primary button-small" onClick={() => setShowSupersede(!showSupersede)}>Изменить условия</button></div>}{showSupersede && invitation.state === 'pending' && <form className="invite-form" onSubmit={(e) => void supersede(e)}><div className="form-grid"><Field label="Зарплата от, ₽ / месяц" name="min" type="number" defaultValue={Math.round(invitation.salary.min_kopecks / 100)} required /><Field label="Зарплата до, ₽ / месяц" name="max" type="number" defaultValue={Math.round(invitation.salary.max_kopecks / 100)} required /><label className="field"><span>Условия</span><select name="basis" defaultValue={invitation.salary.basis}><option value="gross">До налогов</option><option value="net">На руки</option></select></label><Field label="Часов в неделю" name="hours" type="number" min="1" max="40" defaultValue={invitation.salary.hours_per_week} required /><label className="field span-all"><span>Как связаться</span><select name="contact_method" defaultValue={invitation.contact_method}><option value="platform">Открыть выбранные контакты</option><option value="email">Email</option><option value="phone">Телефон</option></select></label><TextArea className="span-all" label="Описание предложения" name="description" defaultValue={invitation.description} required rows={3} /><TextArea className="span-all" label="Комментарий" name="comment" defaultValue={invitation.company_comment ?? ''} rows={2} /></div><button className="button button-primary button-small">Отправить новую версию</button></form>}</Card>;
+  return <Card className="invite-card">
+    <div className="invite-top"><div><div className="eyebrow">ПРЕДЛОЖЕНИЕ · {date(invitation.updated_at)}</div><h2>{candidate.data?.display_name ?? 'Кандидат'}</h2><p>{candidate.data ? `${gradeName(candidate.data.verified_grade ?? candidate.data.declared_grade)} · ${candidate.data.headline ?? 'Backend Python'}` : invitation.candidate_id}</p></div><Badge tone={invitation.state === 'pending' ? 'warm' : invitation.state === 'accepted' ? 'good' : 'neutral'}>{invitation.state === 'pending' ? 'Ожидает ответа' : invitation.state === 'accepted' ? 'Принято' : titleCase(invitation.state)}</Badge></div>
+    <div className="salary-highlight">{money(invitation.salary.min_kopecks)}–{money(invitation.salary.max_kopecks)} ₽ <small>/ месяц · {invitation.salary.basis === 'gross' ? 'до вычета налогов' : 'на руки'}</small></div>
+    <p>{invitation.description}</p><div className="invite-meta"><span>Способ контакта: <strong>{invitation.contact_method === 'platform' ? 'Открытие выбранных контактов' : invitation.contact_method === 'email' ? 'По электронной почте' : 'По телефону'}</strong></span><span>Истекает {date(invitation.expires_at)}</span></div>
+    {invitation.system_reasons.length > 0 && <div className="reason-list">{invitation.system_reasons.map((reason, index) => <div key={`${reason.kind}-${index}`}><span className="reason-check">•</span><span>{reason.text}{reason.demo && <Badge tone="warm">demo</Badge>}</span></div>)}</div>}
+    {error && <ErrorBlock error={error} />}{contacts.error && <ErrorBlock error={contacts.error} retry={() => void contacts.reveal()} />}
+    {invitation.state === 'accepted' && contacts.contact && <div className="contact-reveal"><Notice tone="success">Контакты подтверждены сервером на {date(contacts.contact.granted_at)}. Компания может читать выбранные контакты.</Notice>{contacts.contact.channels.map((channel) => <div key={channel.type}><small>{titleCase(channel.type)}</small><strong>{channel.value}</strong></div>)}<button className="text-button" type="button" onClick={contacts.hide}>Скрыть контакты</button></div>}
+    {invitation.state === 'accepted' && !contacts.revealed && <button className="button button-primary button-small" onClick={contacts.reveal}>Показать открытые контакты</button>}
+    {contacts.loading && <p role="status" aria-live="polite">Проверяем актуальный доступ к контактам…</p>}
+    {invitation.state === 'pending' && <div className="invite-actions"><button className="button button-secondary button-small" onClick={onWithdraw}>Отозвать</button><button className="button button-primary button-small" onClick={() => setShowSupersede(!showSupersede)}>Изменить условия</button></div>}
+    {showSupersede && invitation.state === 'pending' && <form className="invite-form" onSubmit={(event) => void supersede(event)}><div className="form-grid"><Field label="Зарплата от, ₽ / месяц" name="min" type="number" defaultValue={Math.round(invitation.salary.min_kopecks / 100)} required /><Field label="Зарплата до, ₽ / месяц" name="max" type="number" defaultValue={Math.round(invitation.salary.max_kopecks / 100)} required /><label className="field"><span>Условия</span><select name="basis" defaultValue={invitation.salary.basis}><option value="gross">До налогов</option><option value="net">На руки</option></select></label><Field label="Часов в неделю" name="hours" type="number" min="1" max="40" defaultValue={invitation.salary.hours_per_week} required /><label className="field span-all"><span>Как связаться</span><select name="contact_method" defaultValue={invitation.contact_method}><option value="platform">Открыть выбранные контакты</option><option value="email">Email</option><option value="phone">Телефон</option></select></label><TextArea className="span-all" label="Описание предложения" name="description" defaultValue={invitation.description} required rows={3} /><TextArea className="span-all" label="Комментарий" name="comment" defaultValue={invitation.company_comment ?? ''} rows={2} /></div><button className="button button-primary button-small">Отправить новую версию</button></form>}
+  </Card>;
 }
 
 function useSearchParams(): [URLSearchParams, (update: (old: URLSearchParams) => URLSearchParams) => void] {
