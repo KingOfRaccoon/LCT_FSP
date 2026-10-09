@@ -1,6 +1,7 @@
 type CandidateJourney = {
   activeAttemptId: string | null;
   pendingInvitations: number | null;
+  sharedActionInvitationId?: string | null;
   processingAccepted: boolean;
   profileComplete: boolean;
   verifiedGrade: string | null;
@@ -30,6 +31,10 @@ export function candidateNextStep(state: CandidateJourney): NextStep {
   if (state.pendingInvitations !== null && state.pendingInvitations > 0) return {
     title: 'Компании ждут вашего решения', description: 'Посмотрите условия и причины приглашения. Открытие страницы не передаёт контакты.',
     label: 'Посмотреть приглашения', href: '/invitations',
+  };
+  if (state.sharedActionInvitationId) return {
+    title: 'Есть следующий шаг по обсуждению', description: 'Откройте обсуждение и проверьте предложенный компанией план.',
+    label: 'Открыть обсуждение', href: `/messages/${encodeURIComponent(state.sharedActionInvitationId)}`,
   };
   if (!state.processingAccepted) return {
     title: 'Просмотрите согласие на обработку', description: 'Оно требуется для сохранения профиля и новой оценки. Решение остаётся за вами.',

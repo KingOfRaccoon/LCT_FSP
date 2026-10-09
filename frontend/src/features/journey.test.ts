@@ -60,3 +60,10 @@ test('only an exhausted list proves zero pending; a partial positive count is a 
   assert.equal(pendingInvitationCount([{ items: [{ state: 'declined' }], page: { next_cursor: null } }]), 0);
   assert.equal(pendingInvitationCount([{ items: [{ state: 'pending' }], page: { next_cursor: 'more' } }]), 1);
 });
+
+test('a known shared action follows active assessment and pending invitations but precedes setup actions', () => {
+  const action = { ...ready, sharedActionInvitationId: 'inv / 7', processingAccepted: false, profileComplete: false };
+  assert.equal(candidateNextStep(action).href, '/messages/inv%20%2F%207');
+  assert.equal(candidateNextStep({ ...action, pendingInvitations: 1 }).href, '/invitations');
+  assert.equal(candidateNextStep({ ...action, activeAttemptId: 'attempt-2', pendingInvitations: 1 }).href, '/assessment/attempt-2');
+});

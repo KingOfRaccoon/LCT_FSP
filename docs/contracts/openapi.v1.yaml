@@ -9066,6 +9066,71 @@
           }
         }
       }
+    },
+    "/me/next-steps": {
+      "get": {
+        "operationId": "listOwnNextSteps",
+        "responses": {
+          "200": {
+            "description": "Live actor-scoped unfinished shared-step queue; original active grants only. Own actions first, then due_at ASC NULLS LAST, updated_at ASC and invitation ID ASC.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextStepQueuePageEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid limit, malformed cursor or cursor for a different viewer."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Active owner membership in the current company is required."
+          },
+          "422": {
+            "description": "EMAIL_UNCONFIRMED: employer must confirm email before reading the queue."
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 5
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -14904,6 +14969,104 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/InvitationNextStep"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "NextStepQueueItem": {
+        "type": "object",
+        "properties": {
+          "invitation_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "invitation_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "company_name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "candidate_display_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "candidate_visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "hidden"
+            ]
+          },
+          "is_my_action": {
+            "type": "boolean"
+          },
+          "step": {
+            "$ref": "#/components/schemas/HiringNextStep"
+          }
+        },
+        "required": [
+          "invitation_id",
+          "invitation_version",
+          "company_name",
+          "candidate_display_name",
+          "candidate_visibility",
+          "is_my_action",
+          "step"
+        ],
+        "additionalProperties": false
+      },
+      "NextStepQueuePage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NextStepQueueItem"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "limit"
+        ],
+        "additionalProperties": false
+      },
+      "NextStepQueuePageEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/NextStepQueuePage"
           }
         },
         "required": [

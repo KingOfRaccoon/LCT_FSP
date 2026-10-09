@@ -1090,6 +1090,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/next-steps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listOwnNextSteps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2197,6 +2213,24 @@ export interface components {
         };
         InvitationNextStepEnvelope: {
             data: components["schemas"]["InvitationNextStep"];
+        };
+        NextStepQueueItem: {
+            invitation_id: components["schemas"]["UUID"];
+            invitation_version: number;
+            company_name: string;
+            candidate_display_name: string | null;
+            /** @enum {string} */
+            candidate_visibility: "public" | "hidden";
+            is_my_action: boolean;
+            step: components["schemas"]["HiringNextStep"];
+        };
+        NextStepQueuePage: {
+            items: components["schemas"]["NextStepQueueItem"][];
+            next_cursor: string | null;
+            limit: number;
+        };
+        NextStepQueuePageEnvelope: {
+            data: components["schemas"]["NextStepQueuePage"];
         };
     };
     responses: never;
@@ -8487,6 +8521,58 @@ export interface operations {
             };
             /** @description Version conflict or idempotency key reused with a different payload. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listOwnNextSteps: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Live actor-scoped unfinished shared-step queue; original active grants only. Own actions first, then due_at ASC NULLS LAST, updated_at ASC and invitation ID ASC. */
+            200: {
+                headers: {
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NextStepQueuePageEnvelope"];
+                };
+            };
+            /** @description Invalid limit, malformed cursor or cursor for a different viewer. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Active owner membership in the current company is required. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description EMAIL_UNCONFIRMED: employer must confirm email before reading the queue. */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
