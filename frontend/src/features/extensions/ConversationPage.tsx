@@ -3,6 +3,7 @@ import { useParams } from 'react-router';
 import { api, errorMessage, RequestError, type Schemas, type User } from '../../api';
 import { clearConversationAfterAccessDenied, createPendingMessage, isConversationResponseCurrent } from './task-helpers';
 import './extensions.css';
+import { NextStepPanel } from '../hiring/NextStepPanel';
 
 type Message = Schemas['InvitationMessage'];
 type MessagePage = Schemas['InvitationMessagePage'];
@@ -126,6 +127,7 @@ export function ConversationPage({ role: roleProp }: { role?: 'candidate' | 'emp
   return <section className="extension-page conversation-page" aria-labelledby="conversation-title">
     <div className="extension-header"><div className="eyebrow">ПЕРЕПИСКА ПО ПРИГЛАШЕНИЮ</div><h1 id="conversation-title">{page?.company_name || (closed ? 'Переписка недоступна' : 'Загрузка переписки')}</h1><p>Сообщения обсуждают предложение и не меняют его условия или статус приглашения.</p></div>
     {page && <section className="extension-context" aria-label="Условия приглашения"><strong>Условия приглашения</strong><p>{page.description}</p><dl><div><dt>Зарплатная вилка</dt><dd>{salaryText}</dd></div></dl></section>}
+    {page && !closed && <NextStepPanel key={invitationId} invitationId={invitationId} />}
     {error && <div className="extension-alert" role="alert">{error}<button type="button" className="text-button" onClick={() => void refresh(true)}>Обновить</button></div>}
     {notice && <p className="extension-status" role="status">{notice}</p>}
     {loading && <p className="field-hint" role="status">Загружаем сообщения…</p>}

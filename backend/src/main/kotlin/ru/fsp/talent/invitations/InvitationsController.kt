@@ -82,6 +82,7 @@ class InvitationsController(
                 topics = stringList(body["discussion_topics"]),
                 companyName = store.objectValue(company["data"])["name"]?.toString().orEmpty(),
                 companyDetails = store.objectValue(company["data"]),
+                hiringPlan = validatedHiringPlan(body["hiring_plan"]),
             )
             val id = store.id()
             val expires = store.now().plusSeconds(7 * 24 * 60 * 60)
@@ -254,6 +255,11 @@ class InvitationsController(
                     "contact_email" to oldSnapshot["company_contact_email"],
                     "contact_phone" to oldSnapshot["company_contact_phone"],
                 ),
+                hiringPlan = if (body.containsKey("hiring_plan")) {
+                    validatedHiringPlan(body["hiring_plan"])
+                } else {
+                    oldSnapshot["hiring_plan"]
+                },
             )
             val expires = store.now().plusSeconds(7 * 24 * 60 * 60)
             store.exec(
@@ -421,6 +427,7 @@ class InvitationsController(
         topics: List<String>,
         companyName: String,
         companyDetails: Map<String, Any?>,
+        hiringPlan: Any?,
     ): Map<String, Any?> = mapOf(
         "salary" to salary,
         "description" to description,
@@ -432,7 +439,30 @@ class InvitationsController(
         "company_industry" to companyDetails["industry"],
         "company_contact_email" to companyDetails["contact_email"],
         "company_contact_phone" to companyDetails["contact_phone"],
+        "hiring_plan" to hiringPlan,
     )
+
+    private fun validatedHiringPlan(value: Any?): Map<String, Any?>? {
+        if (value == null) return null
+        val plan = value as? Map<*, *> ?: throw ApiException(400, "VALIDATION_ERROR", "Invalid hiring plan", "hiring_plan")
+        val stages = plan["stages"] as? List<*> ?: throw ApiException(400, "VALIDATION_ERROR", "Hiring plan stages are required", "hiring_plan.stages")
+        val normalizedStages = stages.mapIndexed { index, item ->
+            val stage = item as? Map<*, *> ?: throw ApiException(400, "VALIDATION_ERROR", "Invalid hiring plan stage", "hiring_plan.stages[$index]")
+            val title = stage["title"]?.toString()?.trim().orEmpty()
+            val criteria = stage["criteria"]?.toString()?.trim().orEmpty()
+            if (title.isEmpty()) throw ApiException(400, "VALIDATION_ERROR", "Stage title cannot be blank", "hiring_plan.stages[$index].title")
+            if (criteria.isEmpty()) throw ApiException(400, "VALIDATION_ERROR", "Stage criteria cannot be blank", "hiring_plan.stages[$index].criteria")
+            mapOf(
+                "title" to title,
+                "effort_minutes" to stage["effort_minutes"],
+                "criteria" to criteria,
+            )
+        }
+        return mapOf(
+            "stages" to normalizedStages,
+            "response_time_days" to plan["response_time_days"],
+        )
+    }
 
     private fun stringList(value: Any?): List<String> = (value as? List<*>)?.map { it.toString() }.orEmpty()
 
@@ -514,6 +544,7 @@ class InvitationsController(
             "company_industry" to snapshot["company_industry"],
             "company_contact_email" to snapshot["company_contact_email"],
             "company_contact_phone" to snapshot["company_contact_phone"],
+            "hiring_plan" to snapshot["hiring_plan"],
         )
     }
 }

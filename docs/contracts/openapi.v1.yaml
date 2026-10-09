@@ -8977,6 +8977,95 @@
           }
         }
       }
+    },
+    "/invitations/{invitation_id}/next-step": {
+      "parameters": [
+        {
+          "name": "invitation_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getInvitationNextStep",
+        "responses": {
+          "200": {
+            "description": "Shared employer-proposed next step; candidate archive survives original grant revocation.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationNextStepEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid invitation ID."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Invitation is unavailable to this actor."
+          }
+        }
+      },
+      "put": {
+        "operationId": "putInvitationNextStep",
+        "security": [
+          {
+            "cookieSession": [],
+            "csrfToken": [],
+            "idempotencyKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvitationNextStepPutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid fields, blank action or malformed offset-bearing timestamp."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Invitation is unavailable to this actor or its original grant is inactive."
+          },
+          "409": {
+            "description": "Version conflict or idempotency key reused with a different payload."
+          },
+          "200": {
+            "description": "Next step saved or idempotently replayed after checking current authorization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationNextStepEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -11148,6 +11237,16 @@
                 "type": "null"
               }
             ]
+          },
+          "hiring_plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HiringPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -11167,7 +11266,8 @@
           "contact_grant_id",
           "expires_at",
           "updated_at",
-          "company_name"
+          "company_name",
+          "hiring_plan"
         ],
         "additionalProperties": false
       },
@@ -12122,6 +12222,16 @@
             },
             "minItems": 0,
             "maxItems": 3
+          },
+          "hiring_plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HiringPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -12196,6 +12306,16 @@
             },
             "minItems": 0,
             "maxItems": 3
+          },
+          "hiring_plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HiringPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -14592,6 +14712,204 @@
             "$ref": "#/components/schemas/ShortTaskPage"
           }
         }
+      },
+      "HiringPlanStage": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "effort_minutes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 480
+          },
+          "criteria": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "title",
+          "effort_minutes",
+          "criteria"
+        ],
+        "additionalProperties": false
+      },
+      "HiringPlan": {
+        "type": "object",
+        "properties": {
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HiringPlanStage"
+            },
+            "minItems": 1,
+            "maxItems": 5
+          },
+          "response_time_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          }
+        },
+        "required": [
+          "stages",
+          "response_time_days"
+        ],
+        "additionalProperties": false
+      },
+      "HiringNextStep": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "action": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "responsible_party": {
+            "type": "string",
+            "enum": [
+              "company",
+              "candidate"
+            ]
+          },
+          "due_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "completed": {
+            "type": "boolean"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "version",
+          "action",
+          "responsible_party",
+          "due_at",
+          "completed",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "InvitationNextStep": {
+        "type": "object",
+        "properties": {
+          "invitation_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "invitation_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "hiring_plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HiringPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "can_update": {
+            "type": "boolean"
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "step": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HiringNextStep"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "invitation_id",
+          "invitation_version",
+          "hiring_plan",
+          "can_update",
+          "archived",
+          "step"
+        ],
+        "additionalProperties": false
+      },
+      "InvitationNextStepPutRequest": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "action": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "responsible_party": {
+            "type": "string",
+            "enum": [
+              "company",
+              "candidate"
+            ]
+          },
+          "due_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "completed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "expected_version",
+          "action",
+          "responsible_party",
+          "due_at",
+          "completed"
+        ],
+        "additionalProperties": false
+      },
+      "InvitationNextStepEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/InvitationNextStep"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
       }
     }
   }

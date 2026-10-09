@@ -1072,6 +1072,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/invitations/{invitation_id}/next-step": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitation_id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getInvitationNextStep"];
+        put: operations["putInvitationNextStep"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1481,6 +1499,7 @@ export interface components {
             company_industry?: string | null;
             company_contact_email?: string | null;
             company_contact_phone?: string | null;
+            hiring_plan: components["schemas"]["HiringPlan"] | null;
         };
         /** @description Contact channels granted for the company-candidate pair. At most one active grant exists per pair; acceptance reuses it and revocation closes all pair reads. */
         ContactBundle: {
@@ -1657,6 +1676,7 @@ export interface components {
             contact_method: "platform" | "email" | "phone";
             company_comment: string | null;
             discussion_topics: string[];
+            hiring_plan?: components["schemas"]["HiringPlan"] | null;
         };
         InvitationDecisionRequest: {
             expected_version: number;
@@ -1671,6 +1691,7 @@ export interface components {
             contact_method: "platform" | "email" | "phone";
             company_comment: string | null;
             discussion_topics: string[];
+            hiring_plan?: components["schemas"]["HiringPlan"] | null;
         };
         PublicQualification: {
             /** @enum {string} */
@@ -2139,6 +2160,43 @@ export interface components {
         };
         ShortTaskPageEnvelope: {
             data: components["schemas"]["ShortTaskPage"];
+        };
+        HiringPlanStage: {
+            title: string;
+            effort_minutes: number;
+            criteria: string;
+        };
+        HiringPlan: {
+            stages: components["schemas"]["HiringPlanStage"][];
+            response_time_days: number;
+        };
+        HiringNextStep: {
+            version: number;
+            action: string;
+            /** @enum {string} */
+            responsible_party: "company" | "candidate";
+            due_at: components["schemas"]["Timestamp"] | null;
+            completed: boolean;
+            updated_at: components["schemas"]["Timestamp"];
+        };
+        InvitationNextStep: {
+            invitation_id: components["schemas"]["UUID"];
+            invitation_version: number;
+            hiring_plan: components["schemas"]["HiringPlan"] | null;
+            can_update: boolean;
+            archived: boolean;
+            step: components["schemas"]["HiringNextStep"] | null;
+        };
+        InvitationNextStepPutRequest: {
+            expected_version: number;
+            action: string;
+            /** @enum {string} */
+            responsible_party: "company" | "candidate";
+            due_at: components["schemas"]["Timestamp"] | null;
+            completed: boolean;
+        };
+        InvitationNextStepEnvelope: {
+            data: components["schemas"]["InvitationNextStep"];
         };
     };
     responses: never;
@@ -8330,6 +8388,104 @@ export interface operations {
                 content?: never;
             };
             /** @description Stale version or invalid state transition. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getInvitationNextStep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Shared employer-proposed next step; candidate archive survives original grant revocation. */
+            200: {
+                headers: {
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationNextStepEnvelope"];
+                };
+            };
+            /** @description Invalid invitation ID. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invitation is unavailable to this actor. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    putInvitationNextStep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvitationNextStepPutRequest"];
+            };
+        };
+        responses: {
+            /** @description Next step saved or idempotently replayed after checking current authorization. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationNextStepEnvelope"];
+                };
+            };
+            /** @description Invalid fields, blank action or malformed offset-bearing timestamp. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invitation is unavailable to this actor or its original grant is inactive. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Version conflict or idempotency key reused with a different payload. */
             409: {
                 headers: {
                     [name: string]: unknown;
