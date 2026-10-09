@@ -1,0 +1,15 @@
+{
+  "backend": {
+    "tests": 140,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "frontend": {
+    "tests": 38,
+    "failures": 0
+  },
+  "frontend_build": "passed",
+  "backend_bootJar": "passed",
+  "target": "KingOfRaccoon/LCT_FSP:prototype"
+}

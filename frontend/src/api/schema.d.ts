@@ -892,6 +892,186 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/qualifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read own qualification portfolio
+         * @description Candidate only. Returns the authenticated candidate's qualification records, explicit method availability, and the currently released specialization catalog. Unavailable methods do not publish a grade or evidence attempt identifier.
+         */
+        get: operations["get_my_qualification_portfolio"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/invitations/{invitation_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitation_id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["listInvitationMessages"];
+        put?: never;
+        post: operations["sendInvitationMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/short-tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listShortTasks"];
+        put?: never;
+        post: operations["createShortTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/short-tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getShortTask"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/short-tasks/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["acceptShortTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/short-tasks/{id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["declineShortTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/short-tasks/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitShortTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/short-tasks/{id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reviewShortTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/short-tasks/{id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["withdrawShortTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/short-tasks/{id}/revoke-sharing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["revokeShortTaskSharing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1793,6 +1973,172 @@ export interface components {
         ServiceHealth: {
             /** @enum {string} */
             status: "ok" | "unavailable";
+        };
+        QualificationPortfolioEnvelope: {
+            data: components["schemas"]["QualificationPortfolio"];
+        };
+        QualificationPortfolio: {
+            items: components["schemas"]["QualificationPortfolioItem"][];
+            available_specializations: components["schemas"]["AvailableSpecialization"][];
+            catalog_note: string;
+        };
+        QualificationPortfolioItem: {
+            specialization_id: string;
+            label: string;
+            /** @enum {string|null} */
+            grade: "junior" | "middle" | null;
+            /** Format: date-time */
+            assessed_at: string;
+            policy_version: string | null;
+            bank_version: string | null;
+            demo: boolean;
+            /** @enum {string} */
+            source: "platform_assessment";
+            /** @enum {string} */
+            method_status: "published_demo" | "unavailable";
+        };
+        AvailableSpecialization: {
+            id: string;
+            label: string;
+            grades: ("junior" | "middle")[];
+        };
+        InvitationMessageCreateRequest: {
+            text: string;
+        };
+        InvitationMessage: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            sender_role: "candidate" | "employer";
+            text: string;
+            /** Format: date-time */
+            created_at: string;
+        };
+        InvitationMessagePage: {
+            /** Format: uuid */
+            invitation_id: string;
+            company_name: string;
+            description: string;
+            salary: components["schemas"]["MoneyRange"];
+            can_send: boolean;
+            items: components["schemas"]["InvitationMessage"][];
+            next_cursor: string | null;
+        };
+        InvitationMessageEnvelope: {
+            data: components["schemas"]["InvitationMessage"];
+        };
+        InvitationMessagePageEnvelope: {
+            data: components["schemas"]["InvitationMessagePage"];
+        };
+        ShortTaskCreateRequest: {
+            /** Format: uuid */
+            need_id: string;
+            /** Format: uuid */
+            candidate_id: string;
+            expected_need_version: number;
+            title: string;
+            purpose: string;
+            instructions: string;
+            estimated_minutes: number;
+            /** Format: date-time */
+            due_at: string;
+            /** @enum {string} */
+            evaluation_mode: "rubric" | "exact";
+            /** @description Private server-side key; never included in any response DTO. */
+            expected_answer?: string | null;
+            rubric: components["schemas"]["ShortTaskRubricCriterion"][];
+        };
+        ShortTaskRubricCriterion: {
+            id: string;
+            label: string;
+            max_points: number;
+        };
+        ShortTaskTransitionRequest: {
+            expected_version: number;
+            sharing_notice_version?: string;
+        };
+        ShortTaskAcceptRequest: {
+            expected_version: number;
+            sharing_notice_version: string;
+        };
+        ShortTaskSubmissionRequest: {
+            expected_version: number;
+            solution: string;
+        };
+        ShortTaskReviewCriterion: {
+            id: string;
+            score: number;
+        };
+        ShortTaskReviewRequest: {
+            expected_version: number;
+            criteria: components["schemas"]["ShortTaskReviewCriterion"][];
+            feedback: string;
+            /** @enum {string} */
+            source: "employer";
+        };
+        ShortTaskAutomaticResult: {
+            /** @enum {string} */
+            mode: "exact";
+            matched: boolean;
+            /** @enum {string} */
+            source: "server_exact_match";
+        };
+        ShortTaskEmployerReview: {
+            criteria: components["schemas"]["ShortTaskReviewCriterion"][];
+            feedback: string;
+            /** @enum {string} */
+            source: "employer";
+            /** Format: date-time */
+            reviewed_at: string;
+        };
+        ShortTask: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            need_id: string;
+            /** Format: uuid */
+            candidate_id: string;
+            need_version: number;
+            need_title: string;
+            title: string;
+            purpose: string;
+            instructions: string;
+            estimated_minutes: number;
+            /** Format: date-time */
+            due_at: string;
+            /** @enum {string} */
+            evaluation_mode: "rubric" | "exact";
+            rubric: components["schemas"]["ShortTaskRubricCriterion"][];
+            /** @enum {string} */
+            status: "offered" | "accepted" | "declined" | "submitted" | "reviewed" | "withdrawn" | "expired";
+            version: number;
+            sharing_notice: components["schemas"]["ShortTaskSharingNotice"];
+            /** Format: date-time */
+            accepted_at: string | null;
+            /** Format: date-time */
+            sharing_revoked_at: string | null;
+            /** @description Candidate sees the original. Employer sees only a PublicTextRedactor projection while sharing is active; null after revocation. */
+            solution: string | null;
+            automatic_result: components["schemas"]["ShortTaskAutomaticResult"] | null;
+            employer_review: components["schemas"]["ShortTaskEmployerReview"] | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ShortTaskSharingNotice: {
+            version: string;
+            text: string;
+        };
+        ShortTaskPage: {
+            items: components["schemas"]["ShortTask"][];
+            next_cursor: string | null;
+        };
+        ShortTaskEnvelope: {
+            data: components["schemas"]["ShortTask"];
+        };
+        ShortTaskPageEnvelope: {
+            data: components["schemas"]["ShortTaskPage"];
         };
     };
     responses: never;
@@ -7438,6 +7784,557 @@ export interface operations {
                         data: components["schemas"]["ServiceHealth"];
                     };
                 };
+            };
+        };
+    };
+    get_my_qualification_portfolio: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Own portfolio and released specialization catalog */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QualificationPortfolioEnvelope"];
+                };
+            };
+        };
+    };
+    listInvitationMessages: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                invitation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invitation message page for an authorized participant. */
+            200: {
+                headers: {
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationMessagePageEnvelope"];
+                };
+            };
+            /** @description Invalid invitation ID, limit, or cursor. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invitation is unavailable to this actor. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    sendInvitationMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvitationMessageCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Message created or idempotently replayed. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationMessageEnvelope"];
+                };
+            };
+            /** @description Text is invalid or empty after trimming. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invitation is unavailable to this actor or its original grant is inactive. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Idempotency key was reused with a different body. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listShortTasks: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tasks visible to the authenticated candidate or active company; current access is checked on every read. */
+            200: {
+                headers: {
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortTaskPageEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Actor role is not supported for this endpoint. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    createShortTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShortTaskCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Task offered to a currently public, publication-consented candidate; the company and need are snapshotted. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortTaskEnvelope"];
+                };
+            };
+            /** @description Invalid task, rubric, duration, deadline, or exact-answer configuration. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Verified employer role required. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Need or currently public and consented candidate is unavailable to this company. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Need version or idempotency conflict. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getShortTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Task projection for its candidate or originating company, with company solution access rechecked against sharing consent. */
+            200: {
+                headers: {
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortTaskEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task is unavailable to this actor. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    acceptShortTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShortTaskAcceptRequest"];
+            };
+        };
+        responses: {
+            /** @description Candidate explicitly accepts the displayed sharing notice; this does not grant contact access. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortTaskEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task is unavailable to this candidate. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Stale version, changed notice, or invalid state transition. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    declineShortTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShortTaskTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Task declined or accepted by idempotent replay. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortTaskEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task is unavailable to this candidate. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Stale version or invalid state transition. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    submitShortTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShortTaskSubmissionRequest"];
+            };
+        };
+        responses: {
+            /** @description Candidate solution submitted after explicit sharing acceptance; submission and automatic result do not affect qualification, rank, or contact grants. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortTaskEnvelope"];
+                };
+            };
+            /** @description Solution is empty or exceeds the limit. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task is unavailable or solution sharing was revoked. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Stale version or invalid state transition. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reviewShortTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShortTaskReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Employer review is bounded by the snapshotted rubric and remains separate from the automatic result and qualification. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortTaskEnvelope"];
+                };
+            };
+            /** @description Review criteria, scores, or feedback are invalid. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task or shared solution is unavailable. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Stale version or invalid state transition. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    withdrawShortTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShortTaskTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Candidate withdraws an accepted or submitted task, or the originating company withdraws its own offered or accepted task; sharing revocation remains a separate candidate action. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortTaskEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task is unavailable to this actor. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Stale version or invalid state transition. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    revokeShortTaskSharing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShortTaskTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Candidate revokes employer solution access; replayed and subsequent employer projections omit the solution. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortTaskEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task is unavailable to this candidate. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Stale version or invalid state transition. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

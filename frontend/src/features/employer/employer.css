@@ -25,22 +25,54 @@
 .employer-candidate-review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 14px; margin-top: 18px; }
 .employer-review-panel { margin: 0; }
 .employer-review-panel .card-head { align-items: flex-start; }
-.employer-review-panel .card-head h2 { margin: 5px 0 0; font-size: 15px; }
-.employer-review-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; padding: 12px; background: #f8f7ff; border-left: 2px solid var(--brand); }
-.employer-review-summary p { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.employer-review-panel .card-head h2 { margin: 5px 0 0; font-size: 17px; }
+.employer-review-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 18px; background: #f7f6ff; border: 0; border-left: 3px solid var(--brand); border-radius: 0 8px 8px 0; }
+.employer-person-avatar { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 50%; background: #e8e5ff; color: var(--brand); font-size: 19px; font-weight: 500; }
+.employer-review-summary > strong { font-size: 17px; line-height: 1.35; margin-right: auto; }
+.employer-review-flags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.employer-review-summary p { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.employer-decision-brief { display: grid; gap: 13px; margin: 24px 0 20px; padding: 0; border: 0; background: transparent; }
+.employer-decision-brief > h3 { margin: 0; font: 700 16px/1.4 'JetBrains Mono', monospace; }
+.employer-brief-line { margin: 0; color: var(--text); font-size: 14px; line-height: 1.65; }
+.employer-brief-line small { color: var(--muted); font-size: 12px; }
+.employer-brief-group { padding-top: 7px; border-top: 1px solid var(--line); }
+.employer-brief-group h4 { margin: 0 0 9px; font-size: 13px; }
+.employer-brief-group ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.employer-brief-group li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 5px 8px; align-items: center; font-size: 13px; }
+.employer-brief-group li small { grid-column: 1/-1; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.employer-brief-group > .employer-muted { margin: 7px 0 0; }
+.employer-brief-group-danger h4 { color: #981a2a; }
+.employer-preferred-topics { padding-top: 7px; border-top: 1px solid var(--line); }
+.employer-preferred-topics > summary { color: #3021d6; cursor: pointer; font-size: 13px; font-weight: 600; }
+.employer-preferred-topics ul { display: grid; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
+.employer-preferred-topics li { display: grid; gap: 3px; font-size: 12px; }
+.employer-preferred-topics li small { color: var(--muted); font-size: 11px; }
+.employer-review-details { margin-top: 12px; border-top: 1px solid var(--line); }
+.employer-review-details > summary { padding: 14px 0; color: #3021d6; cursor: pointer; font-size: 13px; font-weight: 600; }
+.employer-review-details[open] > summary { margin-bottom: 8px; }
+.employer-invitation-blocked { margin: 14px 0 0; padding: 10px 12px; border-left: 2px solid #a1a1ad; background: #f7f7fa; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.employer-prepare-invitation { margin-top: 20px; }
+.employer-decision-brief > .employer-muted { margin: 3px 0 0; font-size: 12px; line-height: 1.6; }
+@media (max-width: 650px) {
+  .employer-review-summary { display: grid; grid-template-columns: 38px minmax(0, 1fr); padding: 16px; gap: 10px; }
+  .employer-review-summary > strong { min-width: 0; overflow-wrap: break-word; word-break: normal; margin-right: 0; }
+  .employer-review-flags, .employer-review-summary > p { grid-column: 1/-1; }
+  .employer-person-avatar { width: 38px; height: 38px; }
+  .employer-prepare-invitation { width: 100%; }
+}
 .employer-fit-list { display: grid; margin: 12px 0 16px; }
-.employer-fit-list > div { display: grid; grid-template-columns: minmax(110px, 1fr) auto; gap: 5px 9px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 10px; }
+.employer-fit-list > div { display: grid; grid-template-columns: minmax(110px, 1fr) auto; gap: 5px 9px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
 .employer-fit-list > div small { grid-column: 1/-1; color: var(--muted); line-height: 1.5; }
 .employer-interview-kit { margin-top: 14px; padding: 14px; border: 1px solid var(--line); background: #fcfcff; }
 .employer-kit-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .employer-kit-heading h3 { margin: 0; font: 400 16px/1.35 'TDA Text', 'JetBrains Mono', monospace; }
 .employer-kit-heading p { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
-.employer-kit-disclaimer { margin: 10px 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.employer-kit-disclaimer { margin: 10px 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .employer-interview-kit h4 { margin: 15px 0 7px; font-size: 11px; }
 .employer-question-list, .employer-followup-list { margin: 0; padding-left: 22px; }
-.employer-question-list > li, .employer-followup-list > li { padding: 8px 0 8px 3px; border-top: 1px solid var(--line); font-size: 10px; line-height: 1.5; }
+.employer-question-list > li, .employer-followup-list > li { padding: 8px 0 8px 3px; border-top: 1px solid var(--line); font-size: 13px; line-height: 1.6; }
 .employer-question-list > li > div:first-child, .employer-followup-list > li { display: grid; gap: 5px; }
-.employer-question-list small, .employer-followup-list small { color: var(--muted); font-size: 9px; }
+.employer-question-list small, .employer-followup-list small { color: var(--muted); font-size: 12px; }
 .employer-question-list details { margin-top: 7px; }
 .employer-task-context { margin: 6px 0 0; padding: 7px; border-left: 2px solid #dad6ff; background: #f7f6ff; color: var(--muted); font-size: 9px; line-height: 1.5; }
 .employer-question-list summary { color: #3021d6; cursor: pointer; font-size: 10px; }
@@ -101,6 +133,8 @@
   .employer-rename-form { align-items: stretch; flex-direction: column; }
   .employer-editor-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .employer-kit-heading { flex-direction: column; }
+  .employer-brief-group li { grid-template-columns: minmax(0, 1fr) auto; }
+  .employer-brief-group li .badge:nth-of-type(2) { grid-column: 2; }
 }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
   .employer-modal-backdrop { background: rgb(0 0 0 / 70%); backdrop-filter: none; }

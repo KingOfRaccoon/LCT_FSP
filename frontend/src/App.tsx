@@ -1,4 +1,5 @@
 import Brand from './Brand';
+import NavIcon from './NavIcon';
 import * as React from 'react';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router';
@@ -9,8 +10,12 @@ import { ContactAccessJournal, PracticePage, ProfileEvidenceEditor, PublicProfil
 import { CandidateComparisonPage, CandidateReviewPanel, RecruitingRecordEditor, RecruitingWorkspacePage, RoleTaskEditor, ShortlistManager } from './features/employer/EmployerWorkflow';
 import { NeedRoleTasksPanel } from './features/employer/NeedRoleTasksPanel';
 import { CaseBankPage, ConsentPanel, type ConsentState } from './features/case/CaseBank';
+import { QualificationPortfolio } from './features/candidate/QualificationPortfolio';
+import { AddressTasksPage } from './features/extensions/AddressTasksPage';
+import { ConversationPage } from './features/extensions/ConversationPage';
 import { isContactResponseCurrent, readContactIfAuthorized, reconcileAnswerDraft, runBoundedSave, selectedAnswerCount, snapshotMatches } from './features/recovery';
 import './features/case/case.css';
+import { candidateNextStep, isProfileDiscoverable, pendingInvitationCount } from './features/journey';
 
 type Group<T> = { items: T[]; page?: { next_cursor: string | null; limit: number } };
 type MatchResult = Schemas['MatchResults'];
@@ -33,6 +38,15 @@ function useAttemptHistory() {
     queryFn: ({ pageParam }) => api.get<Schemas['AttemptHistory']>(`/me/attempts?limit=20${pageParam ? `&cursor=${encodeURIComponent(pageParam)}` : ''}`),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
+  });
+}
+
+function useCandidateInvitations() {
+  return useInfiniteQuery({
+    queryKey: ['candidateInvitations', 'pages'],
+    queryFn: ({ pageParam }) => api.get<Group<Invitation>>(`/me/invitations?limit=20${pageParam ? `&cursor=${encodeURIComponent(pageParam)}` : ''}`),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.page?.next_cursor ?? undefined,
   });
 }
 
@@ -145,17 +159,26 @@ function TextArea({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextArea
   return <label className="field" htmlFor={id}><span>{label}</span><textarea {...props} id={id} /></label>;
 }
 
+type WorkspaceIconName = 'overview' | 'profile' | 'visibility' | 'assessment' | 'credentials' | 'tasks' | 'invitations' | 'contacts' | 'company' | 'needs' | 'matches' | 'bank' | 'shortlists' | 'recruiting';
+type WorkspaceLink = { to: string; label: string; icon: WorkspaceIconName };
+
+function WorkspaceLinks({ links, onNavigate }: { links: WorkspaceLink[]; onNavigate?: () => void }) {
+  return <nav aria-label="Основная навигация" className="side-nav">{links.map(({ to, label, icon }) => <NavLink end={to === '/'} key={to} to={to} aria-label={label} title={label} onClick={onNavigate} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}><span className="nav-icon" aria-hidden="true"><NavIcon name={icon} /></span><span className="nav-label">{label}</span></NavLink>)}</nav>;
+}
+
 function Workspace({ user }: { user: User }) {
   const candidate = user.account_type === 'candidate';
-  const links = candidate ? [
-    ['/', 'Обзор', '◈'], ['/profile', 'Профиль', '◌'], ['/consents', 'Согласия и видимость', '◇'], ['/assessment', 'Оценка', '▤'], ['/invitations', 'Приглашения', '↗'], ['/contacts', 'Доступ к контактам', '⌁'],
+  const links: WorkspaceLink[] = candidate ? [
+    { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/profile', label: 'Профиль', icon: 'profile' }, { to: '/consents', label: 'Согласия и видимость', icon: 'visibility' }, { to: '/assessment', label: 'Оценка', icon: 'assessment' }, { to: '/qualifications', label: 'Подтверждения', icon: 'credentials' }, { to: '/short-tasks', label: 'Задачи компаний', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' }, { to: '/contacts', label: 'Доступ к контактам', icon: 'contacts' },
   ] : [
-    ['/', 'Обзор', '◈'], ['/company', 'Компания', '▦'], ['/needs', 'Потребности', '⊞'], ['/matches', 'Подборка', '⌕'], ['/bank', 'Банк кандидатов', '⌕'], ['/shortlists', 'Шорт-листы', '☆'], ['/recruiting', 'Работа с кандидатами', '◎'], ['/invitations', 'Приглашения', '↗'],
+    { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/company', label: 'Компания', icon: 'company' }, { to: '/needs', label: 'Потребности', icon: 'needs' }, { to: '/matches', label: 'Подборка', icon: 'matches' }, { to: '/bank', label: 'Банк кандидатов', icon: 'bank' }, { to: '/shortlists', label: 'Шорт-листы', icon: 'shortlists' }, { to: '/recruiting', label: 'Работа с кандидатами', icon: 'recruiting' }, { to: '/short-tasks', label: 'Адресные задачи', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' },
   ];
   const query = useQueryClient(); const navigate = useNavigate();
   const logout = async () => { try { await api.post('/auth/logout'); } finally { rotateCsrf(); await query.clear(); navigate('/login'); window.location.reload(); } };
-  return <div className={`${layoutStyles.shell} workspace`}><aside className="sidebar"><Brand /><div className="sidebar-role">{candidate ? 'КАБИНЕТ КАНДИДАТА' : 'КАБИНЕТ РАБОТОДАТЕЛЯ'}</div><nav aria-label="Основная навигация" className="side-nav">{links.map(([to, label, icon]) => <NavLink end={to === '/'} key={to} to={to} aria-label={label} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}><span className="nav-icon" aria-hidden="true">{icon}</span>{label}</NavLink>)}</nav><div className="sidebar-bottom"><div className="profile-mini"><span className="avatar">{(candidate ? user.candidate_profile?.display_name : user.company?.name)?.slice(0, 1) ?? 'Ф'}</span><span className="profile-mini-copy"><strong>{candidate ? user.candidate_profile?.display_name : user.company?.name ?? user.email}</strong><small>{user.email}</small></span></div><button className="logout-link" onClick={logout}>Выйти <span>↗</span></button></div></aside>
-    <main className="main-area"><header className="topbar"><div><span className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="topbar-title">{candidate ? 'Кандидат' : 'Работодатель'} <span className="topbar-separator">/</span> {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</div></div><div className="topbar-right"><span className="status-dot" />Аккаунт активен</div></header><div className="content"><Routes>
+  const mobileMenuRef = useRef<HTMLDetailsElement>(null);
+  const closeMobileMenu = () => { if (mobileMenuRef.current) { mobileMenuRef.current.open = false; mobileMenuRef.current.querySelector('summary')?.focus(); } };
+  return <div className={`${layoutStyles.shell} workspace`}><aside className="sidebar"><Brand /><div className="sidebar-role">{candidate ? 'КАБИНЕТ КАНДИДАТА' : 'КАБИНЕТ РАБОТОДАТЕЛЯ'}</div><WorkspaceLinks links={links} /><div className="sidebar-bottom"><div className="profile-mini"><span className="avatar">{(candidate ? user.candidate_profile?.display_name : user.company?.name)?.slice(0, 1) ?? 'Ф'}</span><span className="profile-mini-copy"><strong>{candidate ? user.candidate_profile?.display_name : user.company?.name ?? user.email}</strong><small>{user.email}</small></span></div><button className="logout-link" onClick={logout}>Выйти <span aria-hidden="true">↗</span></button></div></aside>
+    <main className="main-area"><header className="topbar"><div className="mobile-brand"><Brand /></div><div className="topbar-context"><span className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="topbar-title">{candidate ? 'Кандидат' : 'Работодатель'} <span className="topbar-separator">/</span> {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</div></div><div className="topbar-right"><span className="status-dot" />Аккаунт активен</div></header><details className="mobile-navigation" ref={mobileMenuRef}><summary><span className="nav-icon" aria-hidden="true"><NavIcon name="menu" /></span><span>Разделы кабинета</span></summary><WorkspaceLinks links={links} onNavigate={closeMobileMenu} /><button className="mobile-logout" onClick={() => { closeMobileMenu(); void logout(); }}><span className="nav-icon" aria-hidden="true"><NavIcon name="logout" /></span><span className="nav-label">Выйти из кабинета</span></button></details><div className="content"><Routes>
       {candidate ? <>
         <Route path="/" element={<CandidateHome user={user} />} />
         <Route path="/profile" element={<CandidateProfilePage user={user} />} />
@@ -163,6 +186,8 @@ function Workspace({ user }: { user: User }) {
         <Route path="/profile/preview" element={<PublicProfilePreview />} />
         <Route path="/assessment" element={<AssessmentHome user={user} />} />
         <Route path="/assessment/:attemptId" element={<AssessmentRun />} />
+        <Route path="/qualifications" element={<QualificationPortfolio />} />
+        <Route path="/short-tasks" element={<AddressTasksPage role="candidate" />} />
         <Route path="/invitations" element={<CandidateInvitations />} />
         <Route path="/contacts" element={<CandidateContacts />} />
       </> : <>
@@ -176,7 +201,9 @@ function Workspace({ user }: { user: User }) {
         <Route path="/needs/:needId/candidate-review" element={<CandidateReviewRoute />} />
         <Route path="/recruiting" element={<RecruitingWorkspacePage />} />
         <Route path="/invitations" element={<EmployerInvitations user={user} />} />
+        <Route path="/short-tasks" element={<AddressTasksPage role="employer" />} />
       </>}
+      <Route path="/messages/:invitationId" element={<ConversationPage role={user.account_type} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes></div></main></div>;
 }
@@ -194,18 +221,21 @@ function Badge({ children, tone = '' }: { children: ReactNode; tone?: string }) 
 function CandidateHome({ user }: { user: User }) {
   const profileQuery = useQuery({ queryKey: ['profile'], queryFn: () => api.get<CandidateProfile>('/me/profile') });
   const consentsQuery = useQuery({ queryKey: ['consents'], queryFn: () => api.get<ConsentState>('/me/consents') });
-  const invitesQuery = useQuery({ queryKey: ['candidateInvitations'], queryFn: () => api.get<Group<Invitation>>('/me/invitations') });
+  const invitesQuery = useCandidateInvitations();
   const attemptsQuery = useAttemptHistory();
   const profile = profileQuery.data ?? user.candidate_profile;
   if (profileQuery.isPending || consentsQuery.isPending) return <Loading />;
   if (profileQuery.isError || consentsQuery.isError) return <ErrorBlock error={profileQuery.error ?? consentsQuery.error} retry={() => { void profileQuery.refetch(); void consentsQuery.refetch(); }} />;
   const processingAccepted = consentsQuery.data.states.some((consent) => consent.scope === 'processing' && consent.accepted);
-  const pending = invitesQuery.data?.items?.filter((i) => i.state === 'pending').length ?? 0;
-  const active = profile?.active_attempt_id;
+  const pending = invitesQuery.isSuccess ? pendingInvitationCount(invitesQuery.data.pages) : null;
+  const pendingLabel = pending === null ? '—' : `${invitesQuery.hasNextPage ? '≥' : ''}${pending}`;
+  const publicationAccepted = consentsQuery.data.states.some((consent) => consent.scope === 'publication' && consent.accepted);
+  const discoverable = isProfileDiscoverable({ visibility: profile?.visibility ?? 'hidden', profileComplete: profile?.profile_complete ?? false, processingAccepted, publicationAccepted });
+  const next = candidateNextStep({ activeAttemptId: profile?.active_attempt_id ?? null, pendingInvitations: pending, processingAccepted, profileComplete: profile?.profile_complete ?? false, verifiedGrade: profile?.verified_grade ?? null, discoverable });
   const recent = attemptsQuery.data?.pages.flatMap((page) => page.items)[0];
-  return <><PageHeader eyebrow="ВАШ ПРОФИЛЬ НА ПЛАТФОРМЕ" title={`Здравствуйте, ${profile?.display_name || 'коллега'}`} description="Управляйте профилем, подтверждением навыков и предложениями компаний." action={<Link className="button button-primary" to={!processingAccepted ? '/consents' : active ? `/assessment/${active}` : '/profile'}>{!processingAccepted ? 'Принять согласие' : active ? 'Продолжить оценку' : profile?.profile_complete ? 'Редактировать профиль' : 'Заполнить профиль'} <span>→</span></Link>} />
-    <div className="stat-grid"><Stat label="Профиль" value={profile?.profile_complete ? 'Заполнен' : 'Нужны данные'} detail={profile?.profile_complete ? 'Можно показывать компаниям' : `${profile?.missing_required_fields.length ?? 0} обязательных полей`} tone={profile?.profile_complete ? 'good' : 'warm'} /><Stat label="Подтверждённый уровень" value={gradeName(profile?.verified_grade)} detail="По методике платформы v1" /><Stat label="Приглашения" value={String(pending)} detail="Ожидают вашего решения" tone={pending ? 'highlight' : ''} /><Stat label="Видимость" value={profile?.visibility === 'public' ? 'Открытый профиль' : 'Скрытый профиль'} detail={profile?.visibility === 'public' ? 'Виден при подборе' : 'Пока не показывается'} /></div>
-    <div className="dashboard-grid"><Card title="Следующий шаг" meta={<span className="card-index">01</span>}><div className="next-action"><span className="next-icon">{profile?.profile_complete ? '↗' : '✎'}</span><div><h3>{!processingAccepted ? 'Просмотрите согласие на обработку' : profile?.profile_complete ? 'Подтвердите компетенции' : 'Завершите профиль'}</h3><p>{!processingAccepted ? 'Согласие требуется перед сохранением профиля и новой оценкой.' : profile?.profile_complete ? 'Результат оценки будет помечен как демо, если используются тестовые данные.' : 'Укажите режим работы, часы и город для завершения профиля.'}</p><Link to={!processingAccepted ? '/consents' : profile?.profile_complete ? '/assessment' : '/profile'} className="inline-link">Перейти <span>→</span></Link></div></div></Card>
+  return <><PageHeader eyebrow="ВАШ ПРОФИЛЬ НА ПЛАТФОРМЕ" title={`Здравствуйте, ${profile?.display_name || 'коллега'}`} description="Управляйте профилем, подтверждением навыков и предложениями компаний." action={<Link className="button button-primary" to={next.href}>{next.label} <span>→</span></Link>} />
+    <div className="stat-grid"><Stat label="Профиль" value={profile?.profile_complete ? 'Заполнен' : 'Нужны данные'} detail={profile?.profile_complete ? 'Основные данные сохранены' : `${profile?.missing_required_fields.length ?? 0} обязательных полей`} tone={profile?.profile_complete ? 'good' : 'warm'} /><Stat label="Подтверждённый уровень" value={gradeName(profile?.verified_grade)} detail="По методике платформы v1" /><Stat label="Приглашения" value={pendingLabel} detail={invitesQuery.hasNextPage ? 'Есть ещё страницы приглашений' : pending === null ? 'Не удалось проверить число приглашений' : 'Ожидают вашего решения'} tone={pending ? 'highlight' : ''} /><Stat label="Видимость" value={discoverable ? 'Открытый профиль' : 'Скрытый профиль'} detail={discoverable ? 'Виден при подборе' : 'Видимость под вашим контролем'} /></div>
+    <div className="dashboard-grid"><Card title="Следующий шаг" meta={<span className="card-index">01</span>}><div className="next-action"><span className="next-icon" aria-hidden="true">→</span><div><h3>{next.title}</h3><p>{next.description}</p><Link to={next.href} className="inline-link">{next.label} <span>→</span></Link>{pending !== null && pending > 0 && next.href !== '/invitations' && <p><Link to="/invitations" className="inline-link">Приглашения ждут решения · {pendingLabel} →</Link></p>}</div></div></Card>
       <Card title="Ваши предпочтения" meta={<Link className="quiet-link" to="/profile">Изменить →</Link>}><div className="preference-list"><Preference label="Специализация" value="Backend Python" /><Preference label="Заявленный уровень" value={gradeName(profile?.declared_grade)} /><Preference label="Формат" value={profile?.allowed_work_modes.map(workModeName).join(', ') || 'Не указан'} /><Preference label="Занятость" value={profile?.max_weekly_hours ? `${profile.max_weekly_hours} ч / неделю` : 'Не указана'} /></div></Card>
       <Card title="Последняя оценка" meta={<Link className="quiet-link" to="/assessment">История →</Link>} className="card-full"><div className="recent-assessment">{recent ? <><div className={`grade-token ${recent.passed ? 'grade-success' : ''}`}>{recent.total_score ?? '—'}<small>/24</small></div><div><h3>{gradeName(recent.requested_grade)} по методике платформы v1</h3><p>{recent.passed ? 'Порог выполнен' : recent.passed === false ? 'Порог не достигнут' : 'Оценка не завершена'} · {date(recent.evaluated_at ?? recent.deadline_at)}</p></div><Badge tone={recent.status === 'evaluated' ? 'neutral' : 'warm'}>{titleCase(recent.status)}</Badge></> : <><div className="empty-inline-icon">▤</div><div><h3>Пока нет результатов</h3><p>Можно пройти оценку после заполнения обязательных полей профиля.</p></div><Link className="button button-secondary button-small push-right" to="/assessment">К оценке</Link></>}</div></Card>
     </div>
@@ -279,7 +309,34 @@ function FspLinkCard({ onChange }: { onChange: () => void }) {
   const unlink = async () => { try { await api.delete('/me/fsp-link'); setMessage('Тестовая связь отключена.'); onChange(); void evidence.refetch(); } catch (e) { setError(errorMessage(e)); } };
   const link = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setError(''); try { const fd = new FormData(event.currentTarget); await api.post('/me/fsp-link', { external_id: formValue(fd, 'fsp_id'), binding_method: 'test_fixture' }); setMessage('Тестовая запись связана. Она будет помечена как demo.'); onChange(); void evidence.refetch(); } catch (e) { setError(errorMessage(e)); } };
   if (evidence.isPending) return <Loading />;
-  return <div className="fsp-panel">{error && <ErrorBlock error={error} />}{message && <Notice tone="success">{message}</Notice>}{evidence.data?.binding_status !== 'unlinked' ? <><Badge tone="warm">DEMO · {titleCase(evidence.data?.binding_status ?? 'linked_unverified')}</Badge><p className="field-hint">Связанные достижения: {evidence.data?.evidence.length ?? 0}. Сигнал ФСП учитывается отдельно от компетенций.</p><button className="button button-secondary button-small" onClick={unlink}>Отключить связь</button></> : <form className="form-stack" onSubmit={link}><Field label="ID тестовой записи" name="fsp_id" required maxLength={120} /><button className="button button-secondary button-small">Связать demo-запись</button></form>}</div>;
+  if (evidence.isError) return <ErrorBlock error={evidence.error} retry={() => void evidence.refetch()} />;
+  const history = evidence.data;
+  return <div className="fsp-panel">
+    {error && <ErrorBlock error={error} />}{message && <Notice tone="success">{message}</Notice>}
+    {history.binding_status !== 'unlinked' ? <>
+      <Badge tone="warm">DEMO · {history.binding_status === 'linked_confirmed' ? 'Связь с тестовой записью' : 'Связь не подтверждена'}</Badge>
+      <p className="field-hint">Связанные достижения: {history.evidence.length}. Они не заменяют тест категории и не подтверждают профессиональный грейд.</p>
+      {history.evidence.map((entry, index) => <article className="candidate-entry-card" key={`${entry.event_name}-${index}`}>
+        <h4>{entry.event_name}</h4>
+        <dl className="candidate-qualification-facts">
+          <div><dt>Дисциплина</dt><dd>{entry.discipline || 'Не указана источником'}</dd></div>
+          <div><dt>Результат</dt><dd>{entry.result}</dd></div>
+          <div><dt>Формат</dt><dd>{entry.team_event ? 'Командное событие' : 'Индивидуальное событие'}</dd></div>
+          <div><dt>Участие</dt><dd>{entry.participation_status === 'confirmed' ? 'Подтверждено только в demo-реестре' : 'Не подтверждено'}</dd></div>
+          <div><dt>Роль</dt><dd>{entry.role || 'Не указана источником'}</dd></div>
+          <div><dt>Получено</dt><dd>{date(entry.retrieved_at)}</dd></div>
+        </dl>
+        {entry.team_event && <p className="field-hint">Командный результат сам по себе не подтверждает личный вклад или конкретные навыки участника.</p>}
+        <p className="field-hint">Источник: синтетический реестр ФСП. Это демонстрационные данные.</p>
+      </article>)}
+      {!history.evidence.length && <p className="field-hint">История пока пуста. Отсутствие достижений не означает низкую квалификацию.</p>}
+      <button className="button button-secondary button-small" onClick={unlink}>Отключить связь</button>
+    </> : <form className="form-stack" onSubmit={link}>
+      <p className="field-hint">История ФСП не подключена. Вы можете пройти оценку и получать приглашения без неё.</p>
+      <Field label="ID тестовой записи" name="fsp_id" required maxLength={120} />
+      <button className="button button-secondary button-small">Связать demo-запись</button>
+    </form>}
+  </div>;
 }
 
 function AssessmentHome({ user }: { user: User }) {
@@ -453,17 +510,18 @@ function AssessmentRun() {
 }
 
 function CandidateInvitations() {
-  const query = useQueryClient(); const invitations = useQuery({ queryKey: ['candidateInvitations'], queryFn: () => api.get<Group<Invitation>>('/me/invitations') });
+  const query = useQueryClient(); const invitations = useCandidateInvitations();
   const [error, setError] = useState(''); const decide = async (invite: Invitation, action: 'accept' | 'decline') => { setError(''); try { await api.post(`/invitations/${invite.id}/decision`, { expected_version: invite.version, action }); await query.invalidateQueries({ queryKey: ['candidateInvitations'] }); await query.invalidateQueries({ queryKey: ['contactGrants'] }); } catch (e) { setError(errorMessage(e)); } };
   if (invitations.isPending) return <Loading />;
-  if (invitations.isError) return <ErrorBlock error={invitations.error} retry={() => void invitations.refetch()} />;
-  return <><PageHeader eyebrow="ПРЕДЛОЖЕНИЯ КОМПАНИЙ" title="Приглашения" description="До согласия компания не получает ваши контактные данные. Принятие открывает выбранные вами каналы для этой компании." />{error && <ErrorBlock error={error} />}{invitations.data.items.length ? <div className="invitation-list">{invitations.data.items.map((invite) => <CandidateInvitationCard key={invite.id} invitation={invite} onDecision={(action) => void decide(invite, action)} />)}</div> : <Empty title="Приглашений пока нет" detail="Когда компания отправит предложение, вы увидите здесь условия и причины приглашения." />}</>;
+  if (invitations.isError && !invitations.data) return <ErrorBlock error={invitations.error} retry={() => void invitations.refetch()} />;
+  const items = invitations.data?.pages.flatMap((page) => page.items) ?? [];
+  return <><PageHeader eyebrow="ПРЕДЛОЖЕНИЯ КОМПАНИЙ" title="Приглашения" description="До согласия компания не получает ваши контактные данные. Принятие открывает выбранные вами каналы для этой компании." />{error && <ErrorBlock error={error} />}{items.length ? <div className="invitation-list">{items.map((invite) => <CandidateInvitationCard key={invite.id} invitation={invite} onDecision={(action) => void decide(invite, action)} />)}</div> : <Empty title="Приглашений пока нет" detail="Когда компания отправит предложение, вы увидите здесь условия и причины приглашения." />}{invitations.isError && <ErrorBlock error={invitations.error} retry={() => { if (invitations.isFetchNextPageError) void invitations.fetchNextPage(); else void invitations.refetch(); }} />}{invitations.hasNextPage && <button className="button button-secondary button-wide" disabled={invitations.isFetching} onClick={() => void invitations.fetchNextPage()}>{invitations.isFetchingNextPage ? 'Загружаем…' : 'Показать ещё приглашения'}</button>}</>;
 }
 
 function CandidateInvitationCard({ invitation, onDecision }: { invitation: Invitation; onDecision: (action: 'accept' | 'decline') => void }) {
   const [expanded, setExpanded] = useState(false);
   const hasCompanySnapshot = Boolean(invitation.company_industry || invitation.company_contact_email || invitation.company_contact_phone);
-  return <Card className="invite-card"><div className="invite-top"><div><div className="eyebrow">ПРЕДЛОЖЕНИЕ · {date(invitation.updated_at)}</div><h2>{invitation.company_name}</h2></div><Badge tone={invitation.state === 'pending' ? 'warm' : invitation.state === 'accepted' ? 'good' : 'neutral'}>{invitation.state === 'pending' ? 'Ожидает решения' : invitation.state === 'accepted' ? 'Принято' : titleCase(invitation.state)}</Badge></div><div className="salary-highlight">{money(invitation.salary.min_kopecks)}–{money(invitation.salary.max_kopecks)} ₽ <small>/ месяц · {invitation.salary.basis === 'gross' ? 'до вычета налогов' : 'на руки'}</small></div><p>{invitation.description}</p><div className="invite-meta"><span>Способ контакта: <strong>{invitation.contact_method === 'platform' ? 'Открытие выбранных контактов' : invitation.contact_method === 'email' ? 'По электронной почте' : 'По телефону'}</strong></span><span>Действует до {date(invitation.expires_at)}</span></div>{hasCompanySnapshot && <div className="invitation-company-snapshot"><strong>О компании на момент приглашения</strong><div className="invitation-company-fields">{invitation.company_industry && <div><small>Индустрия</small><span>{invitation.company_industry}</span></div>}{invitation.company_contact_email && <div><small>Контактный email</small><a href={`mailto:${invitation.company_contact_email}`}>{invitation.company_contact_email}</a></div>}{invitation.company_contact_phone && <div><small>Контактный телефон</small><a href={`tel:${invitation.company_contact_phone}`}>{invitation.company_contact_phone}</a></div>}</div><small className="field-hint">Эти сведения сохранены в предложении и не обновляются при изменении профиля компании.</small></div>}{invitation.company_comment && <div className="company-comment"><small>Комментарий компании</small><p>{invitation.company_comment}</p></div>}{invitation.discussion_topics.length > 0 && <div className="topic-row">{invitation.discussion_topics.map((topic) => <Badge key={topic} tone="neutral">{topic}</Badge>)}</div>}<button className="text-button reason-toggle" onClick={() => setExpanded(!expanded)}>{expanded ? 'Скрыть основания' : `Почему вас пригласили · ${invitation.system_reasons.length}`} {expanded ? '↑' : '↓'}</button>{expanded && <div className="reason-list">{invitation.system_reasons.length ? invitation.system_reasons.map((reason, i) => <div key={`${reason.kind}-${i}`}><span className="reason-check">•</span><span>{reason.text}{reason.demo && <Badge tone="warm">demo</Badge>}</span></div>) : <p className="field-hint">Системные основания не указаны.</p>}</div>}{invitation.state === 'pending' && <div className="invite-actions"><button className="button button-primary" onClick={() => onDecision('accept')}>Согласиться обсудить вакансию и открыть выбранные контакты</button><button className="button button-secondary" onClick={() => onDecision('decline')}>Отказаться</button></div>}{invitation.state === 'accepted' && <Notice tone="success">Вы согласились обсудить вакансию. Это не принятие предложения о работе и не подтверждение трудоустройства. Управляйте разрешениями в разделе «Доступ к контактам».</Notice>}</Card>;
+  return <Card className="invite-card"><div className="invite-top"><div><div className="eyebrow">ПРЕДЛОЖЕНИЕ · {date(invitation.updated_at)}</div><h2>{invitation.company_name}</h2></div><Badge tone={invitation.state === 'pending' ? 'warm' : invitation.state === 'accepted' ? 'good' : 'neutral'}>{invitation.state === 'pending' ? 'Ожидает решения' : invitation.state === 'accepted' ? 'Принято' : titleCase(invitation.state)}</Badge></div><div className="salary-highlight">{money(invitation.salary.min_kopecks)}–{money(invitation.salary.max_kopecks)} ₽ <small>/ месяц · {invitation.salary.basis === 'gross' ? 'до вычета налогов' : 'на руки'}</small></div><p>{invitation.description}</p>{invitation.state === 'accepted' && <div className="invite-actions"><Link className="button button-secondary button-small" to={`/messages/${invitation.id}`}>Открыть диалог</Link></div>}<div className="invite-meta"><span>Способ контакта: <strong>{invitation.contact_method === 'platform' ? 'Открытие выбранных контактов' : invitation.contact_method === 'email' ? 'По электронной почте' : 'По телефону'}</strong></span><span>Действует до {date(invitation.expires_at)}</span></div>{hasCompanySnapshot && <div className="invitation-company-snapshot"><strong>О компании на момент приглашения</strong><div className="invitation-company-fields">{invitation.company_industry && <div><small>Индустрия</small><span>{invitation.company_industry}</span></div>}{invitation.company_contact_email && <div><small>Контактный email</small><a href={`mailto:${invitation.company_contact_email}`}>{invitation.company_contact_email}</a></div>}{invitation.company_contact_phone && <div><small>Контактный телефон</small><a href={`tel:${invitation.company_contact_phone}`}>{invitation.company_contact_phone}</a></div>}</div><small className="field-hint">Эти сведения сохранены в предложении и не обновляются при изменении профиля компании.</small></div>}{invitation.company_comment && <div className="company-comment"><small>Комментарий компании</small><p>{invitation.company_comment}</p></div>}{invitation.discussion_topics.length > 0 && <div className="topic-row">{invitation.discussion_topics.map((topic) => <Badge key={topic} tone="neutral">{topic}</Badge>)}</div>}<button className="text-button reason-toggle" onClick={() => setExpanded(!expanded)}>{expanded ? 'Скрыть основания' : `Почему вас пригласили · ${invitation.system_reasons.length}`} {expanded ? '↑' : '↓'}</button>{expanded && <div className="reason-list">{invitation.system_reasons.length ? invitation.system_reasons.map((reason, i) => <div key={`${reason.kind}-${i}`}><span className="reason-check">•</span><span>{reason.text}{reason.demo && <Badge tone="warm">demo</Badge>}</span></div>) : <p className="field-hint">Системные основания не указаны.</p>}</div>}{invitation.state === 'pending' && <div className="invite-actions"><button className="button button-primary" onClick={() => onDecision('accept')}>Согласиться обсудить вакансию и открыть выбранные контакты</button><button className="button button-secondary" onClick={() => onDecision('decline')}>Отказаться</button></div>}{invitation.state === 'accepted' && <Notice tone="success">Вы согласились обсудить вакансию. Это не принятие предложения о работе и не подтверждение трудоустройства. Управляйте разрешениями в разделе «Доступ к контактам».</Notice>}</Card>;
 }
 
 function CandidateContacts() {
@@ -549,7 +607,7 @@ function MatchCard({ match, selected, onToggle, needId }: { match: MatchCandidat
     {sent && <Notice tone="success">{sent}</Notice>}
     {showInvite && <InvitationComposer candidate={candidate} needId={needId} need={needQuery.data} onSent={(message) => { setSent(message); setShowInvite(false); }} />}
     {showPipeline && <RecruitingRecordEditor candidateId={candidate.id} needId={needId} onSaved={() => setShowPipeline(false)} onCancel={() => setShowPipeline(false)} />}
-    <div className="candidate-actions"><Link className="button button-secondary button-small" to={`/needs/${encodeURIComponent(needId)}/candidate-review?candidate_id=${encodeURIComponent(candidate.id)}`}>Разобрать профиль</Link><button className="button button-secondary button-small" onClick={() => setShowPipeline(true)}>В рабочую воронку</button><button className="button button-secondary button-small" onClick={pdf}>Профиль PDF ↗</button><button className="button button-primary button-small" onClick={() => setShowInvite(!showInvite)}>{showInvite ? 'Закрыть' : 'Пригласить'}</button></div>
+    <div className="candidate-actions"><Link className="button button-secondary button-small" to={`/needs/${encodeURIComponent(needId)}/candidate-review?candidate_id=${encodeURIComponent(candidate.id)}`}>Разобрать профиль</Link><Link className="button button-secondary button-small" to={`/short-tasks?need_id=${encodeURIComponent(needId)}&candidate_id=${encodeURIComponent(candidate.id)}`}>Предложить задачу</Link><button className="button button-secondary button-small" onClick={() => setShowPipeline(true)}>В рабочую воронку</button><button className="button button-secondary button-small" onClick={pdf}>Профиль PDF ↗</button><button className="button button-primary button-small" onClick={() => setShowInvite(!showInvite)}>{showInvite ? 'Закрыть' : 'Пригласить'}</button></div>
   </Card>;
 }
 
@@ -584,7 +642,7 @@ function InvitationComposer({ candidate, needId, need, onSent, initialTopics = [
   };
   return <form className="invite-form" onSubmit={(e) => void invitation(e)}>
     {error && <ErrorBlock error={error} />}
-    <div className="form-grid"><Field label="Зарплата от, ₽ / месяц" name="min" type="number" required min="1" defaultValue={need ? Math.round(need.salary.min_kopecks / 100) : undefined} /><Field label="Зарплата до, ₽ / месяц" name="max" type="number" required min="1" defaultValue={need ? Math.round(need.salary.max_kopecks / 100) : undefined} /><label className="field"><span>Условия суммы</span><select name="basis" defaultValue={need?.salary.basis ?? 'gross'}><option value="gross">До налогов</option><option value="net">На руки</option></select></label><Field label="Часов в неделю" name="hours" type="number" min="1" max="40" required defaultValue={need?.workload_hours_per_week ?? 40} /><label className="field span-all"><span>Как связаться</span><select name="contact_method"><option value="platform">Открыть выбранные контакты</option><option value="email">Email</option><option value="phone">Телефон</option></select></label><TextArea className="span-all" label="Описание предложения" name="description" required rows={3} maxLength={3000} /><TextArea className="span-all" label="Комментарий компании" name="comment" rows={2} maxLength={1500} /><TextArea className="span-all" label="Темы для обсуждения (по одной в строке, до 3)" name="topics" rows={2} defaultValue={initialTopics.slice(0, 3).join('\n')} /></div>
+    <div className="form-grid"><Field label="Зарплата от, ₽ / месяц" name="min" type="number" required min="1" defaultValue={need ? Math.round(need.salary.min_kopecks / 100) : undefined} /><Field label="Зарплата до, ₽ / месяц" name="max" type="number" required min="1" defaultValue={need ? Math.round(need.salary.max_kopecks / 100) : undefined} /><label className="field"><span>Условия суммы</span><select name="basis" defaultValue={need?.salary.basis ?? 'gross'}><option value="gross">До налогов</option><option value="net">На руки</option></select></label><Field label="Часов в неделю" name="hours" type="number" min="1" max="40" required defaultValue={need?.workload_hours_per_week ?? 40} /><label className="field span-all"><span>Как связаться</span><select name="contact_method"><option value="platform">Открыть выбранные контакты</option><option value="email">Email</option><option value="phone">Телефон</option></select></label><TextArea className="span-all" label="Описание предложения" name="description" required rows={3} maxLength={3000} defaultValue={need?.description} /><TextArea className="span-all" label="Комментарий компании" name="comment" rows={2} maxLength={1500} /><TextArea className="span-all" label="Темы для обсуждения (по одной в строке, до 3)" name="topics" rows={2} defaultValue={initialTopics.slice(0, 3).join('\n')} /></div>
     <div className="invite-form-actions"><span>Контакт откроется только после согласия кандидата.</span><button className="button button-primary button-small" disabled={sending}>{sending ? 'Отправляем…' : 'Отправить приглашение'}</button></div>
   </form>;
 }
@@ -599,10 +657,20 @@ function CandidateReviewRoute() {
   const { needId = '' } = useParams(); const location = useLocation();
   const candidateId = new URLSearchParams(location.search).get('candidate_id') ?? '';
   const validUuid = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-  const candidate = useQuery({ queryKey: ['candidateReviewProfile', candidateId], queryFn: () => api.get<Candidate>(`/candidates/${encodeURIComponent(candidateId)}`), enabled: validUuid(candidateId), retry: false });
-  const [topics, setTopics] = useState<string[]>([]); const [showComposer, setShowComposer] = useState(false); const [notice, setNotice] = useState('');
-  if (!validUuid(needId) || !validUuid(candidateId)) return <><PageHeader eyebrow="РАБОТА С КАНДИДАТАМИ" title="Некорректная ссылка" description="Для разбора укажите корректные идентификаторы потребности и кандидата." /><Link className="button button-secondary" to="/matches">Вернуться к подборке</Link></>;
-  return <><PageHeader eyebrow="РАЗБОР КАНДИДАТА" title="Профиль и вопросы для интервью" description="Сверьте доказательства с требованиями роли. Предложенные темы требуют проверки вашей командой и не выставляют оценку." />{notice && <Notice tone="success">{notice}</Notice>}<CandidateReviewPanel needId={needId} candidateId={candidateId} onTopicsSelected={(selectedTopics) => { setTopics(selectedTopics.slice(0, 3)); setShowComposer(true); }} />{candidate.isPending && <Loading label="Проверяем доступ к открытому профилю" />}{candidate.isError && <ErrorBlock error={candidate.error} retry={() => void candidate.refetch()} />}{candidate.data && <Card title="Следующий шаг"><button className="button button-primary" onClick={() => setShowComposer((current) => !current)}>{showComposer ? 'Закрыть предложение' : 'Составить приглашение'}</button>{showComposer && <InvitationComposer key={`${candidateId}:${topics.join('|')}`} candidate={candidate.data} needId={needId} initialTopics={topics} onSent={(message) => { setNotice(message); setShowComposer(false); }} />}</Card>}</>;
+  if (!validUuid(needId) || !validUuid(candidateId)) return <><PageHeader eyebrow="РАБОТА С КАНДИДАТАМИ" title="Некорректная ссылка" description="Откройте профиль из подборки, чтобы сохранить контекст потребности." /><Link className="button button-secondary" to="/matches">Вернуться к подборке</Link></>;
+  return <CandidateReviewWorkspace key={`${needId}:${candidateId}`} needId={needId} candidateId={candidateId} />;
+}
+
+function CandidateReviewWorkspace({ needId, candidateId }: { needId: string; candidateId: string }) {
+  const [draft, setDraft] = useState<{ need: Need; candidate: Candidate; topics: string[] }>();
+  const [notice, setNotice] = useState('');
+  const composerRef = useRef<HTMLElement>(null);
+  useEffect(() => { if (draft) composerRef.current?.focus(); }, [draft]);
+  return <><PageHeader eyebrow="РАЗБОР КАНДИДАТА" title="От профиля к разговору" description="Посмотрите, что уже известно и что осталось уточнить. Условия потребности перейдут в приглашение — проверьте их перед отправкой." action={<Link className="button button-secondary" to={`/matches?need=${encodeURIComponent(needId)}`}>К подборке</Link>} />
+    {notice && <Notice tone="success">{notice}</Notice>}
+    <CandidateReviewPanel needId={needId} candidateId={candidateId} onTopicsSelected={(topics, need, candidate) => { setNotice(''); setDraft({ topics: topics.slice(0, 3), need, candidate }); }} />
+    {draft && <section className="card" ref={composerRef} tabIndex={-1} aria-label="Подготовка приглашения"><div className="card-head"><h2>Приглашение · {draft.candidate.display_name}</h2><button className="button button-secondary button-small" onClick={() => setDraft(undefined)}>Закрыть предложение</button></div><p>Условия перенесены из «{draft.need.title}». Можно изменить их перед отправкой. Это приглашение обсудить работу.</p><InvitationComposer key={`${draft.need.id}:${draft.need.version}:${draft.candidate.id}:${draft.topics.join('|')}`} candidate={draft.candidate} needId={draft.need.id} need={draft.need} initialTopics={draft.topics} onSent={(message) => { setNotice(message); setDraft(undefined); }} /></section>}
+  </>;
 }
 
 function candidateIdFromInput(value: string): string | null {
@@ -730,7 +798,7 @@ function EmployerInvitationCard({ invitation, onWithdraw }: { invitation: Invita
   return <Card className="invite-card">
     <div className="invite-top"><div><div className="eyebrow">ПРЕДЛОЖЕНИЕ · {date(invitation.updated_at)}</div><h2>{candidate.data?.display_name ?? 'Кандидат'}</h2><p>{candidate.data ? `${gradeName(candidate.data.verified_grade ?? candidate.data.declared_grade)} · ${candidate.data.headline ?? 'Backend Python'}` : invitation.candidate_id}</p></div><Badge tone={invitation.state === 'pending' ? 'warm' : invitation.state === 'accepted' ? 'good' : 'neutral'}>{invitation.state === 'pending' ? 'Ожидает ответа' : invitation.state === 'accepted' ? 'Принято' : titleCase(invitation.state)}</Badge></div>
     <div className="salary-highlight">{money(invitation.salary.min_kopecks)}–{money(invitation.salary.max_kopecks)} ₽ <small>/ месяц · {invitation.salary.basis === 'gross' ? 'до вычета налогов' : 'на руки'}</small></div>
-    <p>{invitation.description}</p><div className="invite-meta"><span>Способ контакта: <strong>{invitation.contact_method === 'platform' ? 'Открытие выбранных контактов' : invitation.contact_method === 'email' ? 'По электронной почте' : 'По телефону'}</strong></span><span>Истекает {date(invitation.expires_at)}</span></div>
+    <p>{invitation.description}</p>{invitation.state === 'accepted' && <div className="invite-actions"><Link className="button button-secondary button-small" to={`/messages/${invitation.id}`}>Открыть диалог</Link></div>}<div className="invite-meta"><span>Способ контакта: <strong>{invitation.contact_method === 'platform' ? 'Открытие выбранных контактов' : invitation.contact_method === 'email' ? 'По электронной почте' : 'По телефону'}</strong></span><span>Истекает {date(invitation.expires_at)}</span></div>
     {invitation.system_reasons.length > 0 && <div className="reason-list">{invitation.system_reasons.map((reason, index) => <div key={`${reason.kind}-${index}`}><span className="reason-check">•</span><span>{reason.text}{reason.demo && <Badge tone="warm">demo</Badge>}</span></div>)}</div>}
     {error && <ErrorBlock error={error} />}{contacts.error && <ErrorBlock error={contacts.error} retry={() => void contacts.reveal()} />}
     {invitation.state === 'accepted' && contacts.contact && <div className="contact-reveal"><Notice tone="success">Контакты подтверждены сервером на {date(contacts.contact.granted_at)}. Компания может читать выбранные контакты.</Notice>{contacts.contact.channels.map((channel) => <div key={channel.type}><small>{titleCase(channel.type)}</small><strong>{channel.value}</strong></div>)}<button className="text-button" type="button" onClick={contacts.hide}>Скрыть контакты</button></div>}

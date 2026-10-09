@@ -15,7 +15,7 @@ export type OwnContacts = Schemas['OwnContacts'];
 export type ContactBundle = Schemas['ContactBundle'];
 export type Grade = 'junior' | 'middle';
 export type SkillId = 'python-basics' | 'http-api' | 'sql-transactions' | 'reliability' | 'postgres' | 'docker' | 'fastapi';
-export type ApiPayload = Schemas['RegisterRequest'] | Schemas['ConfirmEmailRequest'] | Schemas['ResendConfirmationRequest'] | Schemas['LoginRequest'] | Schemas['CandidateProfilePatch'] | Schemas['VisibilityRequest'] | Schemas['OwnContactsPatch'] | Schemas['CompanyPatch'] | Schemas['FspLinkRequest'] | Schemas['CreateAttemptRequest'] | Schemas['AnswerRequest'] | Schemas['NeedCreateRequest'] | Schemas['NeedPatchRequest'] | Schemas['ConfirmCompetenciesRequest'] | Schemas['SearchRequest'] | Schemas['ShortlistCreateRequest'] | Schemas['ShortlistPatchRequest'] | Schemas['InvitationCreateRequest'] | Schemas['InvitationDecisionRequest'] | Schemas['InvitationSupersedeRequest'] | Schemas['CandidateComparisonRequest'] | Schemas['RecruitingRecordPutRequest'] | Schemas["CandidateBankSearchRequest"] | Schemas["ConsentMutationRequest"] | { expected_version: number };
+export type ApiPayload = Schemas['RegisterRequest'] | Schemas['ConfirmEmailRequest'] | Schemas['ResendConfirmationRequest'] | Schemas['LoginRequest'] | Schemas['CandidateProfilePatch'] | Schemas['VisibilityRequest'] | Schemas['OwnContactsPatch'] | Schemas['CompanyPatch'] | Schemas['FspLinkRequest'] | Schemas['CreateAttemptRequest'] | Schemas['AnswerRequest'] | Schemas['NeedCreateRequest'] | Schemas['NeedPatchRequest'] | Schemas['ConfirmCompetenciesRequest'] | Schemas['SearchRequest'] | Schemas['ShortlistCreateRequest'] | Schemas['ShortlistPatchRequest'] | Schemas['InvitationCreateRequest'] | Schemas['InvitationDecisionRequest'] | Schemas['InvitationSupersedeRequest'] | Schemas['CandidateComparisonRequest'] | Schemas['RecruitingRecordPutRequest'] | Schemas["CandidateBankSearchRequest"] | Schemas["ConsentMutationRequest"] | Schemas['InvitationMessageCreateRequest'] | Schemas['ShortTaskCreateRequest'] | Schemas['ShortTaskTransitionRequest'] | Schemas['ShortTaskAcceptRequest'] | Schemas['ShortTaskSubmissionRequest'] | Schemas['ShortTaskReviewRequest'] | { expected_version: number };
 
 type Envelope<T> = { data: T };
 type ApiError = { error?: { code?: string; message?: string; field?: string; retryable?: boolean; eligible_at?: string | null; active_attempt_id?: string | null } };
@@ -114,9 +114,9 @@ async function send<T>(path: string, method: string, payload?: ApiPayload, idemp
 
 export const api = {
   get: <T>(path: string) => send<T>(path, 'GET'),
-  post: <T>(path: string, body?: ApiPayload) => send<T>(path, 'POST', body),
-  put: <T>(path: string, body: ApiPayload) => send<T>(path, 'PUT', body),
-  patch: <T>(path: string, body: ApiPayload) => send<T>(path, 'PATCH', body),
+  post: <T>(path: string, body?: ApiPayload, idempotencyKey?: string) => send<T>(path, 'POST', body, idempotencyKey),
+  put: <T>(path: string, body: ApiPayload, idempotencyKey?: string) => send<T>(path, 'PUT', body, idempotencyKey),
+  patch: <T>(path: string, body: ApiPayload, idempotencyKey?: string) => send<T>(path, 'PATCH', body, idempotencyKey),
   delete: <T>(path: string) => send<T>(path, 'DELETE'),
   download: async (path: string) => {
     const response = await fetch(`/api/v1${path}`, { credentials: 'include' });

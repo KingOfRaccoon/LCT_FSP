@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { api, errorMessage, RequestError, skillLabels, type ApiPayload, type Schemas, type SkillId } from '../../api';
+import { summarizeDecision } from '../decision-brief';
 import './employer.css';
 
 type Need = Schemas['Need'];
@@ -135,7 +136,7 @@ export function InterviewKitView({ kit, roleTasks = [] }: { kit: Kit; roleTasks?
   </section>;
 }
 
-export function CandidateReviewPanel({ needId, candidateId, onTopicsSelected }: { needId: string; candidateId: string; onTopicsSelected?: (topics: string[]) => void }) {
+export function CandidateReviewPanel({ needId, candidateId, onTopicsSelected }: { needId: string; candidateId: string; onTopicsSelected?: (topics: string[], need: Need, candidate: Candidate) => void }) {
   const [review, setReview] = useState<Review>();
   const [error, setError] = useState(''); const [loading, setLoading] = useState(true); const [refresh, setRefresh] = useState(0);
   useEffect(() => {
@@ -149,13 +150,40 @@ export function CandidateReviewPanel({ needId, candidateId, onTopicsSelected }: 
     return () => { current = false; };
   }, [needId, candidateId, refresh]);
   const topics = review?.interview_kit.personal_followups.slice(0, 3).map((item) => item.prompt) ?? [];
-  return <section className="card employer-review-panel"><div className="card-head"><div><div className="eyebrow">КАРТА РЕШЕНИЯ</div><h2>Проверка профиля</h2></div><Link className="quiet-link" to={needPath(needId, candidateId)}>Открыть карточку →</Link></div>
+  const brief = review ? summarizeDecision(review.fit.checks) : undefined;
+  const invitationBlockReason = review?.need.status !== 'active'
+    ? `Потребность ${review?.need.status === 'draft' ? 'в черновике' : 'архивирована'} — приглашение пока подготовить нельзя.`
+    : review?.fit.state === 'excluded' ? 'По текущим условиям кандидат исключён. Сначала проверьте несовпадения в карте.' : '';
+  const renderChecks = (checks: Schemas['FitCheck'][], kind: 'skill' | 'condition' | 'mismatch') => checks.map((check, index) => <li key={`${kind}-${check.type}-${check.skill_id ?? ''}-${index}`}>
+    <strong>{check.skill_id ? skillName(check.skill_id) : fitCheckLabel(check.type)}</strong>
+    {check.importance && <Badge tone={check.importance === 'required' ? 'warm' : 'muted'}>{check.importance === 'required' ? 'обязательный' : 'желательный'}</Badge>}
+    <Badge tone={fitTone(check.status)}>{statusLabel[check.status]}</Badge><small>{check.reason}</small>
+  </li>);
+  const unresolved = brief ? [...brief.requiredToClarify, ...brief.openConditions, ...(brief.specialization && brief.specialization.status !== 'met' && brief.specialization.status !== 'mismatch' ? [brief.specialization] : [])] : [];
+  const hasNoOpenItems = brief && unresolved.length === 0 && brief.mismatches.length === 0 && brief.preferredTopics.length === 0;
+  return <section className="card employer-review-panel"><div className="card-head"><div><div className="eyebrow">КАРТА РЕШЕНИЯ</div><h2>Проверка профиля</h2></div>{!onTopicsSelected && <Link className="quiet-link" to={needPath(needId, candidateId)}>Открыть карточку →</Link>}</div>
     {error && <ErrorMessage message={error} retry={() => setRefresh((value) => value + 1)} />}{loading && <Loading label="Проверяем текущую видимость профиля" />}
-    {review && <><div className="employer-review-summary"><strong>{review.candidate.display_name}</strong><Badge tone={review.fit.state === 'confirmed' ? 'good' : 'warm'}>{stateLabel[review.fit.state]}</Badge><p>{review.fit.summary}</p></div><div className="employer-fit-list">{review.fit.checks.map((check, index) => <div key={`${check.type}-${check.skill_id ?? ''}-${index}`}><span>{check.skill_id ? skillName(check.skill_id) : fitCheckLabel(check.type)}</span><Badge tone={fitTone(check.status)}>{statusLabel[check.status]}</Badge><small>{check.reason}</small></div>)}</div>
-      <InterviewKitView kit={review.interview_kit} roleTasks={review.need.role_tasks} />
-      {onTopicsSelected && <button className="button button-secondary button-small" disabled={!topics.length} onClick={() => onTopicsSelected(topics)}>Скопировать темы в приглашение ({topics.length})</button>}
+    {review && brief && <><div className="employer-review-summary"><span className="employer-person-avatar" aria-hidden="true">{review.candidate.display_name.slice(0, 1)}</span><strong>{review.candidate.display_name}</strong><div className="employer-review-flags"><Badge tone={review.fit.state === 'confirmed' ? 'good' : review.fit.state === 'excluded' ? 'danger' : 'warm'}>{stateLabel[review.fit.state]}</Badge>{review.candidate.demo || review.candidate.qualification?.demo ? <Badge tone="warm">DEMO</Badge> : <Badge tone="good">Публичный профиль</Badge>}</div><p>{review.fit.summary}</p></div>
+      <section className="employer-decision-brief" aria-labelledby={`decision-brief-${candidateId}`}><h3 id={`decision-brief-${candidateId}`}>Что осталось выяснить</h3>
+        <p className="employer-brief-line"><strong>Подтверждены тестом:</strong> {brief.confirmedSkills.length ? brief.confirmedSkills.map(({ skill_id }) => skillName(skill_id!)).join(', ') : 'нет подтверждённых навыков из требований'}</p>
+        <p className="employer-brief-line"><strong>Условия по данным профиля:</strong> {brief.matchingConditions.length ? brief.matchingConditions.map((check) => fitCheckLabel(check.type)).join(', ') : 'совпадений нет'} <small>(заявленные предпочтения, не отдельная проверка)</small></p>
+        <p className="employer-brief-line"><strong>Уровень:</strong> {brief.grade ? statusLabel[brief.grade.status] : 'не указан'} · <strong>Специализация:</strong> {brief.specialization ? brief.specialization.status === 'met' ? 'совпадает с потребностью' : statusLabel[brief.specialization.status] : 'не указана'}</p>
+        {unresolved.length > 0 && <BriefGroup title="Нужно уточнить" items={renderChecks(unresolved, 'condition')} />}
+        {brief.mismatches.length > 0 && <BriefGroup title="Не совпадает" items={renderChecks(brief.mismatches, 'mismatch')} tone="danger" />}
+        {brief.preferredTopics.length > 0 && <details className="employer-preferred-topics"><summary>Желательные темы · {brief.preferredTopics.length}</summary><ul>{brief.preferredTopics.map((check, index) => <li key={`${check.skill_id}-${index}`}><strong>{skillName(check.skill_id!)}</strong><small>{check.status === 'declared' ? 'Навык заявлен кандидатом, без тестового подтверждения' : 'Сведений о навыке нет'}</small></li>)}</ul></details>}
+        {hasNoOpenItems && <p className="employer-muted">По этой сводке обязательных уточнений и несовпадений нет.</p>}
+        {brief.confirmedSkills.length + brief.matchingConditions.length + unresolved.length + brief.mismatches.length + brief.preferredTopics.length === 0 && <p className="employer-muted">В ответе нет пунктов для краткой сводки. Подробности и вопросы интервью доступны ниже.</p>}
+      </section>
+      <details className="employer-review-details"><summary>Подробная карта и вопросы интервью</summary><div className="employer-fit-list">{review.fit.checks.map((check, index) => <div key={`${check.type}-${check.skill_id ?? ''}-${index}`}><span>{check.skill_id ? skillName(check.skill_id) : fitCheckLabel(check.type)}</span><Badge tone={fitTone(check.status)}>{statusLabel[check.status]}</Badge><small>{check.reason}</small></div>)}</div>
+        <InterviewKitView kit={review.interview_kit} roleTasks={review.need.role_tasks} />
+      </details>
+      {onTopicsSelected && (invitationBlockReason ? <p className="employer-invitation-blocked" role="status">{invitationBlockReason}</p> : <button type="button" className="button button-primary employer-prepare-invitation" onClick={() => onTopicsSelected(topics, review.need, review.candidate)}>Подготовить приглашение{topics.length ? ` · ${topics.length} тем` : ''}</button>)}
     </>}
   </section>;
+}
+
+function BriefGroup({ title, items, note, tone }: { title: string; items: ReactNode; note?: string; tone?: 'danger' }) {
+  return <div className={`employer-brief-group${tone ? ' employer-brief-group-danger' : ''}`}><h4>{title}</h4><ul>{items}</ul>{note && <p className="employer-muted">{note}</p>}</div>;
 }
 
 /** Company-private pipeline. Server is the source of truth; filters and cursor are sent on every list request. */

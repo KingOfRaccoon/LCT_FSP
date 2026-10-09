@@ -1,0 +1,14 @@
+.candidate-qualification-card { margin: 0; }
+.candidate-qualification-card .candidate-section-heading { margin-bottom: 13px; }
+.candidate-qualification-card h2 { margin: 5px 0 0; font-family: 'TDA Text', 'JetBrains Mono', monospace; font-size: 18px; }
+.candidate-qualification-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.candidate-qualification-facts div { display: grid; gap: 4px; }
+.candidate-qualification-facts dt { color: var(--muted); font-size: 9px; }
+.candidate-qualification-facts dd { margin: 0; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.candidate-empty-state strong { color: var(--text); }
+.candidate-empty-state p { margin: 8px auto 0; max-width: 560px; line-height: 1.6; }
+
+@media (max-width: 640px) {
+  .candidate-qualification-facts { grid-template-columns: 1fr; }
+  .candidate-qualification-card .candidate-section-heading { align-items: flex-start; flex-direction: column; }
+}

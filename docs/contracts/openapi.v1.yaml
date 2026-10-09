@@ -3,7 +3,7 @@
   "info": {
     "title": "FSP Talent Platform API",
     "version": "1.0.0",
-    "description": "P0 same-origin session API. All JSON DTO fields use snake_case. Public DTOs contain explicit provenance/demo fields and omit contacts, external identity IDs, task answers, keys, and rubrics. See ../23-api-and-data-contract.md for business and privacy rules."
+    "description": "P0 same-origin session API. All JSON DTO fields use snake_case. Public DTOs contain explicit provenance/demo fields and omit contacts, external identity IDs, closed assessment answers, keys, and rubrics; task participants can read the declared short-task rubric. See ../23-api-and-data-contract.md for business and privacy rules."
   },
   "servers": [
     {
@@ -8373,6 +8373,610 @@
           }
         }
       }
+    },
+    "/me/qualifications": {
+      "get": {
+        "operationId": "get_my_qualification_portfolio",
+        "summary": "Read own qualification portfolio",
+        "description": "Candidate only. Returns the authenticated candidate's qualification records, explicit method availability, and the currently released specialization catalog. Unavailable methods do not publish a grade or evidence attempt identifier.",
+        "responses": {
+          "200": {
+            "description": "Own portfolio and released specialization catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualificationPortfolioEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invitations/{invitation_id}/messages": {
+      "parameters": [
+        {
+          "name": "invitation_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "listInvitationMessages",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invitation message page for an authorized participant.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationMessagePageEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid invitation ID, limit, or cursor."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Invitation is unavailable to this actor."
+          }
+        }
+      },
+      "post": {
+        "operationId": "sendInvitationMessage",
+        "security": [
+          {
+            "cookieSession": [],
+            "csrfToken": [],
+            "idempotencyKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvitationMessageCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Message created or idempotently replayed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationMessageEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Text is invalid or empty after trimming."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Invitation is unavailable to this actor or its original grant is inactive."
+          },
+          "409": {
+            "description": "Idempotency key was reused with a different body."
+          }
+        }
+      }
+    },
+    "/short-tasks": {
+      "get": {
+        "operationId": "listShortTasks",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tasks visible to the authenticated candidate or active company; current access is checked on every read.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortTaskPageEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Actor role is not supported for this endpoint."
+          }
+        }
+      },
+      "post": {
+        "operationId": "createShortTask",
+        "security": [
+          {
+            "cookieSession": [],
+            "csrfToken": [],
+            "idempotencyKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShortTaskCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Task offered to a currently public, publication-consented candidate; the company and need are snapshotted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortTaskEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid task, rubric, duration, deadline, or exact-answer configuration."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Verified employer role required."
+          },
+          "404": {
+            "description": "Need or currently public and consented candidate is unavailable to this company."
+          },
+          "409": {
+            "description": "Need version or idempotency conflict."
+          }
+        }
+      }
+    },
+    "/short-tasks/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getShortTask",
+        "responses": {
+          "200": {
+            "description": "Task projection for its candidate or originating company, with company solution access rechecked against sharing consent.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortTaskEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Task is unavailable to this actor."
+          }
+        }
+      }
+    },
+    "/short-tasks/{id}/accept": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "acceptShortTask",
+        "security": [
+          {
+            "cookieSession": [],
+            "csrfToken": [],
+            "idempotencyKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShortTaskAcceptRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Candidate explicitly accepts the displayed sharing notice; this does not grant contact access.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortTaskEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Task is unavailable to this candidate."
+          },
+          "409": {
+            "description": "Stale version, changed notice, or invalid state transition."
+          }
+        }
+      }
+    },
+    "/short-tasks/{id}/decline": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "declineShortTask",
+        "security": [
+          {
+            "cookieSession": [],
+            "csrfToken": [],
+            "idempotencyKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShortTaskTransitionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task declined or accepted by idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortTaskEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Task is unavailable to this candidate."
+          },
+          "409": {
+            "description": "Stale version or invalid state transition."
+          }
+        }
+      }
+    },
+    "/short-tasks/{id}/submit": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "submitShortTask",
+        "security": [
+          {
+            "cookieSession": [],
+            "csrfToken": [],
+            "idempotencyKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShortTaskSubmissionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Candidate solution submitted after explicit sharing acceptance; submission and automatic result do not affect qualification, rank, or contact grants.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortTaskEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solution is empty or exceeds the limit."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Task is unavailable or solution sharing was revoked."
+          },
+          "409": {
+            "description": "Stale version or invalid state transition."
+          }
+        }
+      }
+    },
+    "/short-tasks/{id}/review": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "reviewShortTask",
+        "security": [
+          {
+            "cookieSession": [],
+            "csrfToken": [],
+            "idempotencyKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShortTaskReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Employer review is bounded by the snapshotted rubric and remains separate from the automatic result and qualification.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortTaskEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Review criteria, scores, or feedback are invalid."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Task or shared solution is unavailable."
+          },
+          "409": {
+            "description": "Stale version or invalid state transition."
+          }
+        }
+      }
+    },
+    "/short-tasks/{id}/withdraw": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "withdrawShortTask",
+        "security": [
+          {
+            "cookieSession": [],
+            "csrfToken": [],
+            "idempotencyKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShortTaskTransitionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Candidate withdraws an accepted or submitted task, or the originating company withdraws its own offered or accepted task; sharing revocation remains a separate candidate action.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortTaskEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Task is unavailable to this actor."
+          },
+          "409": {
+            "description": "Stale version or invalid state transition."
+          }
+        }
+      }
+    },
+    "/short-tasks/{id}/revoke-sharing": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "revokeShortTaskSharing",
+        "security": [
+          {
+            "cookieSession": [],
+            "csrfToken": [],
+            "idempotencyKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShortTaskTransitionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Candidate revokes employer solution access; replayed and subsequent employer projections omit the solution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortTaskEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "404": {
+            "description": "Task is unavailable to this candidate."
+          },
+          "409": {
+            "description": "Stale version or invalid state transition."
+          }
+        }
+      }
     }
   },
   "components": {
@@ -13261,6 +13865,733 @@
         "required": [
           "status"
         ]
+      },
+      "QualificationPortfolioEnvelope": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/QualificationPortfolio"
+          }
+        }
+      },
+      "QualificationPortfolio": {
+        "type": "object",
+        "required": [
+          "items",
+          "available_specializations",
+          "catalog_note"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QualificationPortfolioItem"
+            }
+          },
+          "available_specializations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailableSpecialization"
+            }
+          },
+          "catalog_note": {
+            "type": "string"
+          }
+        }
+      },
+      "QualificationPortfolioItem": {
+        "type": "object",
+        "required": [
+          "specialization_id",
+          "label",
+          "grade",
+          "assessed_at",
+          "policy_version",
+          "bank_version",
+          "demo",
+          "source",
+          "method_status"
+        ],
+        "properties": {
+          "specialization_id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "grade": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "junior",
+              "middle",
+              null
+            ]
+          },
+          "assessed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "policy_version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bank_version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "demo": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "platform_assessment"
+            ]
+          },
+          "method_status": {
+            "type": "string",
+            "enum": [
+              "published_demo",
+              "unavailable"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "AvailableSpecialization": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "grades"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "grades": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "junior",
+                "middle"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "InvitationMessageCreateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      },
+      "InvitationMessage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "sender_role",
+          "text",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sender_role": {
+            "type": "string",
+            "enum": [
+              "candidate",
+              "employer"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "InvitationMessagePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "invitation_id",
+          "company_name",
+          "description",
+          "salary",
+          "can_send",
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "invitation_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "company_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "salary": {
+            "$ref": "#/components/schemas/MoneyRange"
+          },
+          "can_send": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvitationMessage"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 512
+          }
+        }
+      },
+      "InvitationMessageEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/InvitationMessage"
+          }
+        }
+      },
+      "InvitationMessagePageEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/InvitationMessagePage"
+          }
+        }
+      },
+      "ShortTaskCreateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "need_id",
+          "candidate_id",
+          "expected_need_version",
+          "title",
+          "purpose",
+          "instructions",
+          "estimated_minutes",
+          "due_at",
+          "evaluation_mode",
+          "rubric"
+        ],
+        "properties": {
+          "need_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "candidate_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expected_need_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "instructions": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "estimated_minutes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 480
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "evaluation_mode": {
+            "type": "string",
+            "enum": [
+              "rubric",
+              "exact"
+            ]
+          },
+          "expected_answer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "description": "Private server-side key; never included in any response DTO."
+          },
+          "rubric": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/ShortTaskRubricCriterion"
+            }
+          }
+        }
+      },
+      "ShortTaskRubricCriterion": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "max_points"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "max_points": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        }
+      },
+      "ShortTaskTransitionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_version"
+        ],
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sharing_notice_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        }
+      },
+      "ShortTaskAcceptRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_version",
+          "sharing_notice_version"
+        ],
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sharing_notice_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        }
+      },
+      "ShortTaskSubmissionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_version",
+          "solution"
+        ],
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "solution": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000
+          }
+        }
+      },
+      "ShortTaskReviewCriterion": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "score"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      },
+      "ShortTaskReviewRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_version",
+          "criteria",
+          "feedback",
+          "source"
+        ],
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "criteria": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/ShortTaskReviewCriterion"
+            }
+          },
+          "feedback": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "employer"
+            ]
+          }
+        }
+      },
+      "ShortTaskAutomaticResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "matched",
+          "source"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "exact"
+            ]
+          },
+          "matched": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "server_exact_match"
+            ]
+          }
+        }
+      },
+      "ShortTaskEmployerReview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "criteria",
+          "feedback",
+          "source",
+          "reviewed_at"
+        ],
+        "properties": {
+          "criteria": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShortTaskReviewCriterion"
+            }
+          },
+          "feedback": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "employer"
+            ]
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ShortTask": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "need_id",
+          "candidate_id",
+          "need_version",
+          "need_title",
+          "title",
+          "purpose",
+          "instructions",
+          "estimated_minutes",
+          "due_at",
+          "evaluation_mode",
+          "rubric",
+          "status",
+          "version",
+          "sharing_notice",
+          "accepted_at",
+          "sharing_revoked_at",
+          "solution",
+          "automatic_result",
+          "employer_review",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "need_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "candidate_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "need_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "need_title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "purpose": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "instructions": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "estimated_minutes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 480
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "evaluation_mode": {
+            "type": "string",
+            "enum": [
+              "rubric",
+              "exact"
+            ]
+          },
+          "rubric": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShortTaskRubricCriterion"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "offered",
+              "accepted",
+              "declined",
+              "submitted",
+              "reviewed",
+              "withdrawn",
+              "expired"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sharing_notice": {
+            "$ref": "#/components/schemas/ShortTaskSharingNotice"
+          },
+          "accepted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "sharing_revoked_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "solution": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 20000,
+            "description": "Candidate sees the original. Employer sees only a PublicTextRedactor projection while sharing is active; null after revocation."
+          },
+          "automatic_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShortTaskAutomaticResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "employer_review": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShortTaskEmployerReview"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ShortTaskSharingNotice": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "text"
+        ],
+        "properties": {
+          "version": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        }
+      },
+      "ShortTaskPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShortTask"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 512
+          }
+        }
+      },
+      "ShortTaskEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ShortTask"
+          }
+        }
+      },
+      "ShortTaskPageEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ShortTaskPage"
+          }
+        }
       }
     }
   }

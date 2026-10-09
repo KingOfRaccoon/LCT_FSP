@@ -326,7 +326,7 @@ class MatchingService(
             "visibility" to if (row["visibility"] == "public") "visible" else row["visibility"],
             "email_confirmed" to (row["email_confirmed"] == true),
             "demo" to (data["demo"] as? Boolean ?: demoMode),
-            "specialization_id" to (row["specialization_id"]?.toString() ?: data["specialization_id"]?.toString()),
+            "specialization_id" to (row["specialization_id"]?.toString() ?: data["specialization_id"]?.toString() ?: MatchingPolicy.SPECIALIZATION_ID),
             "declared_grade" to data["declared_grade"],
             "verified_grade" to row["verified_grade"]?.toString(),
             "allowed_work_modes" to data["allowed_work_modes"],
