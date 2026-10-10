@@ -15,8 +15,24 @@ export function ProctoringSetupModal({ open, onReady, onCancel }: ProctoringSetu
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRequesting, setIsRequesting] = useState(false);
+  const [multiMonitorDetected, setMultiMonitorDetected] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    const checkScreens = () => {
+      try {
+        const isExtended = Boolean((window.screen as any)?.isExtended);
+        const virtualSpan = window.screen.availWidth > window.screen.width * 1.4;
+        setMultiMonitorDetected(isExtended || virtualSpan);
+      } catch {
+        // ignore
+      }
+    };
+    checkScreens();
+    const interval = setInterval(checkScreens, 2500);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (cameraStream && videoRef.current) {
@@ -153,6 +169,27 @@ export function ProctoringSetupModal({ open, onReady, onCancel }: ProctoringSetu
               >
                 Выбрать экран
               </button>
+            )}
+          </div>
+
+          <div className="proctoring-check-item">
+            <div className="proctoring-check-info">
+              <span>📺</span>
+              <div>
+                <strong>3. Контроль внешних дисплеев (Anti-Cheat)</strong>
+                <small>
+                  {multiMonitorDetected
+                    ? 'Обнаружен 2-й экран! Рекомендуется отключить (Win + P).'
+                    : 'Один монитор — регламент соблюден'}
+                </small>
+              </div>
+            </div>
+            {multiMonitorDetected ? (
+              <span className="proctoring-check-status-badge" style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}>
+                ⚠️ 2 монитора
+              </span>
+            ) : (
+              <span className="proctoring-check-status-badge ok">✓ 1 монитор (ОК)</span>
             )}
           </div>
         </div>

@@ -4,6 +4,7 @@ import type { ProctoringEventType } from './proctoring-types';
 interface UseProctoringMediaOptions {
   onEvent?: (type: ProctoringEventType, meta?: Record<string, string | number | boolean>) => void;
   chunkIntervalMs?: number;
+  attemptId?: string;
 }
 
 export interface ProctoringRecordedMedia {
@@ -14,7 +15,8 @@ export interface ProctoringRecordedMedia {
 function startStreamRecorder(
   stream: MediaStream,
   chunksRef: { current: Blob[] },
-  intervalMs: number
+  intervalMs: number,
+  onChunk?: (chunk: Blob) => void
 ): MediaRecorder | null {
   chunksRef.current = [];
   const candidates = [
@@ -48,6 +50,7 @@ function startStreamRecorder(
   recorder.ondataavailable = (event) => {
     if (event.data && event.data.size > 0) {
       chunksRef.current.push(event.data);
+      onChunk?.(event.data);
     }
   };
 
@@ -60,7 +63,7 @@ function startStreamRecorder(
   }
 }
 
-export function useProctoringMedia({ onEvent, chunkIntervalMs = 1000 }: UseProctoringMediaOptions = {}) {
+export function useProctoringMedia({ onEvent, chunkIntervalMs = 2000, attemptId }: UseProctoringMediaOptions = {}) {
   const [cameraStream, setCameraStreamState] = useState<MediaStream | null>(null);
   const [screenStream, setScreenStreamState] = useState<MediaStream | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -149,7 +152,14 @@ export function useProctoringMedia({ onEvent, chunkIntervalMs = 1000 }: UseProct
 
     // 1. Start Camera recorder
     if (cam && cam.active) {
-      const recorder = startStreamRecorder(cam, cameraChunksRef, chunkIntervalMs);
+      const recorder = startStreamRecorder(cam, cameraChunksRef, chunkIntervalMs, (chunk) => {
+        if (attemptId) {
+          fetch(`/api/v1/attempts/${attemptId}/proctoring/chunk?type=camera`, {
+            method: 'POST',
+            body: chunk,
+          }).catch(() => {});
+        }
+      });
       if (recorder) {
         cameraRecorderRef.current = recorder;
         camStarted = true;
@@ -158,7 +168,14 @@ export function useProctoringMedia({ onEvent, chunkIntervalMs = 1000 }: UseProct
 
     // 2. Start Screen recorder
     if (scr && scr.active) {
-      const recorder = startStreamRecorder(scr, screenChunksRef, chunkIntervalMs);
+      const recorder = startStreamRecorder(scr, screenChunksRef, chunkIntervalMs, (chunk) => {
+        if (attemptId) {
+          fetch(`/api/v1/attempts/${attemptId}/proctoring/chunk?type=screen`, {
+            method: 'POST',
+            body: chunk,
+          }).catch(() => {});
+        }
+      });
       if (recorder) {
         screenRecorderRef.current = recorder;
         scrStarted = true;
@@ -171,7 +188,7 @@ export function useProctoringMedia({ onEvent, chunkIntervalMs = 1000 }: UseProct
     } else {
       setRecordingError('Потоки камеры или экрана не активны');
     }
-  }, [chunkIntervalMs, setCameraStream, setScreenStream]);
+  }, [attemptId, chunkIntervalMs, setCameraStream, setScreenStream]);
 
   // Stop recording both streams asynchronously
   const stopRecording = useCallback((): Promise<ProctoringRecordedMedia> => {

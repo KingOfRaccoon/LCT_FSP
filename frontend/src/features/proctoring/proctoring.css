@@ -293,3 +293,107 @@
   font-size: 0.8rem;
   color: #6c757d;
 }
+
+.proctoring-timeline-item.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.proctoring-timeline-item.clickable:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #38bdf8;
+}
+
+.proctoring-timeline-item.active {
+  border: 2px solid #38bdf8 !important;
+  background: #f0f9ff !important;
+}
+
+/* Interactive Timeline Scrubber */
+.proctoring-scrub-container {
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #1e293b;
+}
+
+.proctoring-scrub-bar-wrapper {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.proctoring-scrub-track {
+  width: 100%;
+  height: 6px;
+  background: #334155;
+  border-radius: 3px;
+  position: relative;
+}
+
+.proctoring-scrub-progress {
+  height: 100%;
+  background: #38bdf8;
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+
+.proctoring-scrub-pin {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  z-index: 2;
+  border: 2px solid #0f172a;
+}
+
+.proctoring-scrub-pin:hover {
+  transform: translate(-50%, -50%) scale(1.6);
+  z-index: 3;
+}
+
+.proctoring-scrub-pin.high {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+
+.proctoring-scrub-pin.medium {
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+}
+
+.proctoring-scrub-pin.low {
+  background: #38bdf8;
+}
+
+/* Security Dynamic Watermark Overlay */
+.anti-cheat-watermark-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  z-index: 999;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-gap: 40px;
+  padding: 20px;
+  overflow: hidden;
+  opacity: 0.08;
+}
+
+.anti-cheat-watermark-item {
+  transform: rotate(-22deg);
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #000000;
+  white-space: nowrap;
+}

@@ -568,6 +568,25 @@ export function offlineMockPlugin(): Plugin {
           return;
         }
 
+        // 1b. Resilient chunk streaming: POST /attempts/:id/proctoring/chunk
+        const chunkUploadMatch = cleanPath.match(/^\/attempts\/([^/]+)\/proctoring\/chunk$/);
+        if (chunkUploadMatch && method === 'POST') {
+          const attemptId = chunkUploadMatch[1];
+          const urlObj = new URL(req.url || '', 'http://localhost');
+          const type = urlObj.searchParams.get('type') === 'screen' ? 'screen' : 'camera';
+          const fileName = `${attemptId}_${type}.webm`;
+          const filePath = path.join(PROCTORING_STORAGE_DIR, fileName);
+          const appendStream = fs.createWriteStream(filePath, { flags: 'a' });
+          req.pipe(appendStream);
+          appendStream.on('finish', () => {
+            sendJson(200, { success: true });
+          });
+          appendStream.on('error', () => {
+            sendJson(500, { error: 'Failed to append chunk' });
+          });
+          return;
+        }
+
         // 2. Stream proctoring media: GET /attempts/:id/proctoring/media
         if (mediaUploadMatch && method === 'GET') {
           const attemptId = mediaUploadMatch[1];

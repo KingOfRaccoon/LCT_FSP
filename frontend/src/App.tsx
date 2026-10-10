@@ -224,7 +224,7 @@ function WorkspaceLinks({ links, onNavigate }: { links: WorkspaceLink[]; onNavig
 function Workspace({ user }: { user: User }) {
   const candidate = user.account_type === 'candidate';
   const links: WorkspaceLink[] = candidate ? [
-    { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/profile', label: 'Профиль', icon: 'profile' }, { to: '/vacancies', label: 'Вакансии и отклики', icon: 'matches' }, { to: '/consents', label: 'Согласия и видимость', icon: 'visibility' }, { to: '/assessment', label: 'Оценка', icon: 'assessment' }, { to: '/qualifications', label: 'Подтверждения', icon: 'credentials' }, { to: '/short-tasks', label: 'Задачи компаний', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' }, { to: '/contacts', label: 'Доступ к контактам', icon: 'contacts' },
+    { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/profile', label: 'Профиль', icon: 'profile' }, { to: '/vacancies', label: 'Вакансии и отклики', icon: 'matches' }, { to: '/consents', label: 'Согласия и видимость', icon: 'visibility' }, { to: '/assessment', label: 'Оценка', icon: 'assessment' }, { to: '/sandbox', label: 'Песочница Python', icon: 'tasks' }, { to: '/qualifications', label: 'Подтверждения', icon: 'credentials' }, { to: '/short-tasks', label: 'Задачи компаний', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' }, { to: '/contacts', label: 'Доступ к контактам', icon: 'contacts' },
   ] : [
     { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/company', label: 'Компания', icon: 'company' }, { to: '/needs', label: 'Потребности', icon: 'needs' }, { to: '/employer-vacancies', label: 'Отклики на вакансии', icon: 'tasks' }, { to: '/matches', label: 'Подборка', icon: 'matches' }, { to: '/bank', label: 'Банк кандидатов', icon: 'bank' }, { to: '/shortlists', label: 'Шорт-листы', icon: 'shortlists' }, { to: '/recruiting', label: 'Работа с кандидатами', icon: 'recruiting' }, { to: '/proctoring', label: 'Проверка фрода', icon: 'assessment' }, { to: '/short-tasks', label: 'Адресные задачи', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' },
   ];
@@ -243,6 +243,8 @@ function Workspace({ user }: { user: User }) {
         <Route path="/profile/preview" element={<PublicProfilePreview />} />
         <Route path="/assessment" element={<AssessmentHome user={user} />} />
         <Route path="/assessment/:attemptId" element={<AssessmentRun />} />
+        <Route path="/sandbox" element={<PracticePage defaultTab="sandbox" />} />
+        <Route path="/practice" element={<PracticePage />} />
         <Route path="/qualifications" element={<QualificationPortfolio />} />
         <Route path="/short-tasks" element={<AddressTasksPage role="candidate" />} />
         <Route path="/invitations" element={<CandidateInvitations />} />
@@ -451,6 +453,7 @@ function AssessmentRun() {
   const { attemptId = '' } = useParams(); const query = useQueryClient();
   const attemptQuery = useQuery({ queryKey: ['attempt', attemptId], queryFn: () => api.get<Attempt>(`/attempts/${attemptId}`), staleTime: 0, refetchOnWindowFocus: false, refetchOnReconnect: false });
   const consentsQuery = useQuery({ queryKey: ['consents'], queryFn: () => api.get<ConsentState>('/me/consents') });
+  const meQuery = useQuery({ queryKey: ['me'], queryFn: () => api.get<User>('/auth/me') });
   const processingAccepted = consentsQuery.data?.states.some((consent) => consent.scope === 'processing' && consent.accepted) ?? false;
   const [attempt, setAttempt] = useState<Attempt | undefined>(); const [answers, setAnswers] = useState<Record<string, string>>({});
   const resultProfileQuery = useQuery({ queryKey: ['profile'], queryFn: () => api.get<CandidateProfile>('/me/profile'), enabled: Boolean(attempt && attempt.status !== 'in_progress') });
@@ -471,7 +474,7 @@ function AssessmentRun() {
     isRecording,
     startRecording,
     stopRecording,
-  } = useProctoringMedia();
+  } = useProctoringMedia({ attemptId });
 
   const { events, emitEvent, lastWarning: eventWarning } = useEventMonitor({
     active: proctoringActive && attempt?.status === 'in_progress',
@@ -720,12 +723,22 @@ function AssessmentRun() {
     );
   }
 
-  return <div className="assessment-run">
+  const candidateWatermark = `${meQuery.data?.candidate_profile?.display_name || meQuery.data?.email || 'ID: ' + attempt.id.slice(0, 8)} · ${attempt.id.slice(0, 8)}`;
+
+  return <div className="assessment-run" style={{ position: 'relative' }}>
     <ProctoringOverlay
       cameraStream={cameraStream}
       isRecording={isRecording}
       warning={faceWarning || eventWarning}
     />
+    {/* Dynamic anti-cheat watermark overlay */}
+    <div className="anti-cheat-watermark-overlay" aria-hidden="true">
+      {Array.from({ length: 24 }).map((_, i) => (
+        <div key={i} className="anti-cheat-watermark-item">
+          {candidateWatermark} · CONFIDENTIAL
+        </div>
+      ))}
+    </div>
     <div className="run-top"><div><Link className="back-link" to="/assessment">← Выйти к оценкам</Link><h1>Оценка · {gradeName(attempt.requested_grade)}</h1><p>Выберите один ответ в каждом пункте. Ответы сохраняются автоматически.</p></div><div className={`timer ${minutes < 5 ? 'timer-warning' : ''}`} aria-label="Оставшееся время"><small>ОСТАЛОСЬ</small><strong>{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}</strong></div></div>
     {attempt.demo && <div className="demo-attempt-marker"><Badge tone="warm">DEMO · результат на тестовых данных</Badge></div>}
     <div className="save-line" aria-live="polite">{saveStatus === 'saved' ? '✓ Ответы сохранены' : saveStatus === 'saving' ? 'Сохраняем ответы…' : saveStatus === 'error' ? 'Не удалось сохранить ответы' : 'Есть несохранённые ответы'}{` · сервер подтвердил ${savedAck.count} из 24 · ${savedAck.savedAt ? date(savedAck.savedAt) : 'время пока не указано'}`}{saveStatus === 'error' && (saveConflict ? <button className="text-button" onClick={() => void reloadServerDraft()}>Загрузить серверный черновик</button> : <button className="text-button" onClick={() => void performSave()}>Повторить</button>)}</div>

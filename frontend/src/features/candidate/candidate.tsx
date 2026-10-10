@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { useQuery } from '@tanstack/react-query';
 import { api, errorMessage, skillLabels, type Attempt, type CandidateProfile, type Schemas } from '../../api';
 import { ThemeToggle } from '../../theme';
+import { CodeRunnerSandbox } from '../sandbox/CodeRunnerSandbox';
 import './candidate.css';
 
 type ExperienceInput = Schemas['ExperienceEntryInput'];
@@ -55,33 +56,90 @@ const practiceQuestions = [
   },
 ] as const;
 
-export function PracticePage() {
+export function PracticePage({ defaultTab = 'theory' }: { defaultTab?: 'theory' | 'sandbox' }) {
+  const [tab, setTab] = useState<'theory' | 'sandbox'>(defaultTab);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   return <main className="candidate-practice">
     <ThemeToggle />
     <header className="candidate-feature-heading">
-      <span className="candidate-eyebrow">ПОДГОТОВКА К ФОРМАТУ ОЦЕНКИ</span>
-      <h1>Попробуйте тренировочные вопросы</h1>
-      <p>Это отдельная демонстрация интерфейса. Ответы не оцениваются платформой, не сохраняются и не влияют на профиль, грейд или право на повторную оценку.</p>
+      <span className="candidate-eyebrow">ПОДГОТОВКА И ТРЕНИРОВКА</span>
+      <h1>{tab === 'sandbox' ? 'Интерактивная песочница Python' : 'Попробуйте тренировочные вопросы'}</h1>
+      <p>
+        {tab === 'sandbox'
+          ? 'Пишите код на Python прямо в браузере, запускайте автоматические unit-тесты и проверяйте понимание алгоритмов и бэкенд-паттернов.'
+          : 'Отдельная демонстрация формата вопросов. Ответы не оцениваются платформой, не сохраняются и не влияют на профиль, грейд или право на повторную оценку.'}
+      </p>
     </header>
-    <div className="candidate-practice-banner" role="note"><strong>Тренировка интерфейса · без присвоения грейда</strong><span>Выберите вариант, чтобы увидеть разбор. Вы увидите статус сохранения выбора в этой тренировке, но ответы останутся только в памяти открытой страницы.</span></div>
-    {practiceQuestions.map((item, index) => {
-      const selected = answers[item.id];
-      return <section className="card candidate-practice-card" key={item.id}>
-        <div className="candidate-practice-meta"><span>{String(index + 1).padStart(2, '0')} · {item.block}</span><span>Тренировка</span></div>
-        <h2>{item.prompt}</h2>
-        <fieldset className="candidate-practice-options">
-          <legend className="candidate-visually-hidden">Варианты ответа: {item.prompt}</legend>
-          {item.options.map((option, optionIndex) => <label className={`candidate-practice-option ${selected === optionIndex ? 'is-selected' : ''}`} key={option}>
-            <input type="radio" name={item.id} value={optionIndex} checked={selected === optionIndex} onChange={() => setAnswers((current) => ({ ...current, [item.id]: optionIndex }))} />
-            <span className="candidate-option-key" aria-hidden="true">{String.fromCharCode(65 + optionIndex)}</span><span>{option}</span>
-          </label>)}
-        </fieldset>
-        {selected !== undefined && <div className={`candidate-practice-explanation ${selected === item.correct ? 'is-correct' : 'is-review'}`} aria-live="polite"><strong>{selected === item.correct ? 'Верно для этого тренировочного вопроса' : 'Посмотрите разбор'}</strong><p>{item.explanation}</p></div>}
-        {selected !== undefined && <p className="candidate-practice-save-state" role="status">✓ Выбор сохранён в этой тренировке; сервер его не получал</p>}
-      </section>;
-    })}
-    <p className="candidate-practice-footnote">После закрытия страницы выборы и разборы исчезнут. Эта тренировка не использует вопросы зачётного банка.</p>
+
+    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+      <button
+        type="button"
+        className={`button button-small ${tab === 'theory' ? 'button-primary' : 'button-secondary'}`}
+        onClick={() => setTab('theory')}
+      >
+        Теоретические вопросы
+      </button>
+      <button
+        type="button"
+        className={`button button-small ${tab === 'sandbox' ? 'button-primary' : 'button-secondary'}`}
+        onClick={() => setTab('sandbox')}
+      >
+        🐍 Песочница Python (Code Runner)
+      </button>
+    </div>
+
+    {tab === 'sandbox' ? (
+      <CodeRunnerSandbox />
+    ) : (
+      <>
+        <div className="candidate-practice-banner" role="note">
+          <strong>Тренировка интерфейса · без присвоения грейда</strong>
+          <span>Выберите вариант, чтобы увидеть разбор. Вы увидите статус сохранения выбора в этой тренировке, но ответы останутся только в памяти открытой страницы.</span>
+        </div>
+        {practiceQuestions.map((item, index) => {
+          const selected = answers[item.id];
+          return (
+            <section className="card candidate-practice-card" key={item.id}>
+              <div className="candidate-practice-meta">
+                <span>{String(index + 1).padStart(2, '0')} · {item.block}</span>
+                <span>Тренировка</span>
+              </div>
+              <h2>{item.prompt}</h2>
+              <fieldset className="candidate-practice-options">
+                <legend className="candidate-visually-hidden">Варианты ответа: {item.prompt}</legend>
+                {item.options.map((option, optionIndex) => (
+                  <label className={`candidate-practice-option ${selected === optionIndex ? 'is-selected' : ''}`} key={option}>
+                    <input
+                      type="radio"
+                      name={item.id}
+                      value={optionIndex}
+                      checked={selected === optionIndex}
+                      onChange={() => setAnswers((current) => ({ ...current, [item.id]: optionIndex }))}
+                    />
+                    <span className="candidate-option-key" aria-hidden="true">{String.fromCharCode(65 + optionIndex)}</span>
+                    <span>{option}</span>
+                  </label>
+                ))}
+              </fieldset>
+              {selected !== undefined && (
+                <div className={`candidate-practice-explanation ${selected === item.correct ? 'is-correct' : 'is-review'}`} aria-live="polite">
+                  <strong>{selected === item.correct ? 'Верно для этого тренировочного вопроса' : 'Посмотрите разбор'}</strong>
+                  <p>{item.explanation}</p>
+                </div>
+              )}
+              {selected !== undefined && (
+                <p className="candidate-practice-save-state" role="status">
+                  ✓ Выбор сохранён в этой тренировке; сервер его не получал
+                </p>
+              )}
+            </section>
+          );
+        })}
+        <p className="candidate-practice-footnote">
+          После закрытия страницы выборы и разборы исчезнут. Эта тренировка не использует вопросы зачётного банка.
+        </p>
+      </>
+    )}
   </main>;
 }
 

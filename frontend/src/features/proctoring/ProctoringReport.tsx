@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ProctoringReportData, ProctoringEvent } from './proctoring-types.ts';
 import { submitManagerVerdict, getActiveFraudBan, loadProctoringVideoBlob } from './proctoring-storage.ts';
 import './proctoring.css';
@@ -21,6 +21,14 @@ export function ProctoringReport({
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
   const [managerComment, setManagerComment] = useState('');
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [currentProgress, setCurrentProgress] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+
+  const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
+  const screenVideoRef = useRef<HTMLVideoElement | null>(null);
+  const timelineContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setReport(initialReport);
@@ -81,6 +89,56 @@ export function ProctoringReport({
       );
       onVerdictSubmitted?.(updated);
     }
+  };
+
+  const seekToSeconds = (sec: number, eventId?: string) => {
+    if (eventId) setSelectedEventId(eventId);
+    const target = Math.max(0, sec);
+    if (cameraVideoRef.current) {
+      cameraVideoRef.current.currentTime = target;
+      cameraVideoRef.current.play().catch(() => {});
+    }
+    if (screenVideoRef.current) {
+      screenVideoRef.current.currentTime = target;
+      screenVideoRef.current.play().catch(() => {});
+    }
+    setIsPlaying(true);
+    const total = Math.max(1, report.duration_seconds || 60);
+    setCurrentProgress(Math.min(100, (target / total) * 100));
+    if (timelineContainerRef.current) {
+      timelineContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  };
+
+  const seekToEvent = (ev: ProctoringEvent) => {
+    const startMs = new Date(report.started_at).getTime();
+    const evMs = new Date(ev.timestamp).getTime();
+    const offsetSec = Math.max(0, Math.floor((evMs - startMs) / 1000) - 2);
+    seekToSeconds(offsetSec, ev.id);
+  };
+
+  const toggleSyncPlayback = () => {
+    if (isPlaying) {
+      cameraVideoRef.current?.pause();
+      screenVideoRef.current?.pause();
+      setIsPlaying(false);
+    } else {
+      cameraVideoRef.current?.play().catch(() => {});
+      screenVideoRef.current?.play().catch(() => {});
+      setIsPlaying(true);
+    }
+  };
+
+  const stepSeconds = (delta: number) => {
+    const cur = cameraVideoRef.current?.currentTime || screenVideoRef.current?.currentTime || 0;
+    seekToSeconds(cur + delta);
+  };
+
+  const handleScrubClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const targetSec = ratio * (report.duration_seconds || 60);
+    seekToSeconds(targetSec);
   };
 
   const getStatusBadge = () => {
@@ -309,6 +367,73 @@ export function ProctoringReport({
             </div>
           </div>
 
+          {/* Synchronized Playback and Interactive Timeline */}
+          <div className="proctoring-scrub-container" ref={timelineContainerRef}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="button button-small button-primary"
+                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.8rem' }}
+                  onClick={toggleSyncPlayback}
+                >
+                  {isPlaying ? '⏸ Пауза оба' : '▶ Синхронный плей'}
+                </button>
+                <button
+                  type="button"
+                  className="button button-small button-secondary"
+                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
+                  onClick={() => stepSeconds(-5)}
+                >
+                  ⏪ -5с
+                </button>
+                <button
+                  type="button"
+                  className="button button-small button-secondary"
+                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
+                  onClick={() => stepSeconds(5)}
+                >
+                  +5с ⏩
+                </button>
+              </div>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                🎯 Кликните на маркер нарушения на таймлайне для мгновенного перехода
+              </span>
+            </div>
+
+            <div
+              className="proctoring-scrub-bar-wrapper"
+              onClick={handleScrubClick}
+              title="Нажмите на шкалу для перемотки"
+            >
+              <div className="proctoring-scrub-track">
+                <div
+                  className="proctoring-scrub-progress"
+                  style={{ width: `${currentProgress}%` }}
+                />
+                {report.events.map((ev) => {
+                  const startMs = new Date(report.started_at).getTime();
+                  const evMs = new Date(ev.timestamp).getTime();
+                  const offsetSec = Math.max(0, (evMs - startMs) / 1000);
+                  const total = Math.max(1, report.duration_seconds || 60);
+                  const pct = Math.min(100, Math.max(0, (offsetSec / total) * 100));
+                  return (
+                    <div
+                      key={ev.id}
+                      className={`proctoring-scrub-pin ${ev.severity}`}
+                      style={{ left: `${pct}%` }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        seekToEvent(ev);
+                      }}
+                      title={`${new Date(ev.timestamp).toLocaleTimeString('ru-RU')}: ${getEventTitle(ev.event_type)}`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           <div
             style={{
               display: 'grid',
@@ -330,9 +455,16 @@ export function ProctoringReport({
                 {videoSrc ? (
                   <>
                     <video
+                      ref={cameraVideoRef}
                       controls
                       playsInline
                       src={videoSrc}
+                      onTimeUpdate={(e) => {
+                        const cur = (e.target as HTMLVideoElement).currentTime;
+                        if (report.duration_seconds > 0) {
+                          setCurrentProgress((cur / report.duration_seconds) * 100);
+                        }
+                      }}
                       style={{
                         width: '100%',
                         maxHeight: '340px',
@@ -374,6 +506,7 @@ export function ProctoringReport({
                 {screenVideoSrc ? (
                   <>
                     <video
+                      ref={screenVideoRef}
                       controls
                       playsInline
                       src={screenVideoSrc}
@@ -494,21 +627,57 @@ export function ProctoringReport({
           </p>
         ) : (
           <ul className="proctoring-events-timeline">
-            {filteredEvents.map((ev) => (
-              <li key={ev.id} className={`proctoring-timeline-item ${ev.severity}`}>
-                <div className="proctoring-timeline-time">
-                  {new Date(ev.timestamp).toLocaleTimeString('ru-RU')}
-                </div>
-                <div className="proctoring-timeline-desc">
-                  <strong>{getEventTitle(ev.event_type)}</strong>
-                  <small>
-                    Важность: {ev.severity.toUpperCase()}
-                    {ev.duration_seconds ? ` · Длительность: ${ev.duration_seconds} сек.` : ''}
-                    {ev.metadata ? ` · ${JSON.stringify(ev.metadata)}` : ''}
-                  </small>
-                </div>
-              </li>
-            ))}
+            {filteredEvents.map((ev) => {
+              const startMs = new Date(report.started_at).getTime();
+              const evMs = new Date(ev.timestamp).getTime();
+              const sec = Math.max(0, Math.floor((evMs - startMs) / 1000));
+              const m = Math.floor(sec / 60).toString().padStart(2, '0');
+              const s = (sec % 60).toString().padStart(2, '0');
+              const isSelected = selectedEventId === ev.id;
+
+              return (
+                <li
+                  key={ev.id}
+                  className={`proctoring-timeline-item ${ev.severity} ${isSelected ? 'active' : ''} ${isManagerView ? 'clickable' : ''}`}
+                  onClick={() => {
+                    if (isManagerView) {
+                      seekToEvent(ev);
+                    }
+                  }}
+                  title={isManagerView ? 'Нажмите, чтобы перемотать видео на момент нарушения' : undefined}
+                >
+                  <div className="proctoring-timeline-time">
+                    {new Date(ev.timestamp).toLocaleTimeString('ru-RU')}
+                    <div style={{ fontSize: '0.72rem', color: '#6b7280', marginTop: '2px' }}>
+                      ⏱ +{m}:{s}
+                    </div>
+                  </div>
+                  <div className="proctoring-timeline-desc">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                      <strong>{getEventTitle(ev.event_type)}</strong>
+                      {isManagerView && (
+                        <button
+                          type="button"
+                          className="button button-small button-secondary"
+                          style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            seekToEvent(ev);
+                          }}
+                        >
+                          ▶ В плеер (+{m}:{s})
+                        </button>
+                      )}
+                    </div>
+                    <small>
+                      Важность: {ev.severity.toUpperCase()}
+                      {ev.duration_seconds ? ` · Длительность: ${ev.duration_seconds} сек.` : ''}
+                      {ev.metadata ? ` · ${JSON.stringify(ev.metadata)}` : ''}
+                    </small>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
