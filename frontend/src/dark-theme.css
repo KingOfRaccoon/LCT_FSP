@@ -215,11 +215,15 @@
 /* Consent body text, styled like fsp-russia.ru's cookie popup: a light pill on the dark page. */
 [data-theme='dark'] .case-consent-text { background: rgba(217, 217, 217, .9); color: #1b1c21; }
 
-/* Theme toggle button, sits in the topbar left of the account status indicator */
-body .theme-toggle {
+/* Theme toggle button: circular icon, pinned to the same top-right corner on every
+   screen (workspace, login, email verification, practice). */
+html body .theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 50;
   width: 28px;
   height: 28px;
-  margin-right: 12px;
   display: grid;
   place-items: center;
   border: 1px solid var(--border);
@@ -227,6 +231,13 @@ body .theme-toggle {
   background: var(--surface);
   color: var(--text);
   font-size: 13px;
-  flex: none;
 }
 body .theme-toggle:hover { border-color: var(--brand); color: var(--brand); }
+
+/* Keep the workspace header's account-status text clear of the corner toggle. */
+body .topbar .topbar-right { margin-right: 44px; }
+
+@media (max-width: 650px) {
+  html body .theme-toggle { top: 14px; right: 14px; }
+  body .topbar .topbar-right { margin-right: 36px; }
+}

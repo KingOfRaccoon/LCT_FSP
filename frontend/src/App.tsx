@@ -22,7 +22,7 @@ import { isContactResponseCurrent, readContactIfAuthorized, reconcileAnswerDraft
 import './features/case/case.css';
 import { candidateNextStep, isProfileDiscoverable, pendingInvitationCount } from './features/journey';
 import { installPressMotion } from './features/motion/press-motion';
-import { useTheme } from './theme';
+import { ThemeToggle } from './theme';
 import { ResumeImportPanel } from './features/adoption/ResumeImportPanel';
 import { SalaryPreferenceEditor } from './features/adoption/SalaryPreferenceEditor';
 import { NeedInsightsPanel } from './features/adoption/NeedInsightsPanel';
@@ -97,12 +97,6 @@ function App() {
   return body;
 }
 
-function ThemeToggle() {
-  const { theme, toggle } = useTheme();
-  const dark = theme === 'dark';
-  return <button type="button" className="theme-toggle" onClick={toggle} aria-label={dark ? 'Включить светлую тему' : 'Включить тёмную тему'} title={dark ? 'Светлая тема' : 'Тёмная тема'}>{dark ? '☀' : '☾'}</button>;
-}
-
 function AuthPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -138,6 +132,7 @@ function AuthPage() {
     } catch (e) { setError(errorMessage(e)); }
   };
   return <main className="auth-page">
+    <ThemeToggle />
     <section className="auth-aside"><Brand variant="full" tone="light" /><div className="auth-pitch"><div className="eyebrow">ПЛАТФОРМА ПРОФЕССИОНАЛЬНОГО ПОДБОРА</div><h1>Работа начинается<br />с ясного совпадения.</h1><p>Профиль, проверка компетенций и понятные условия предложения — в одном рабочем пространстве.</p><div className="trust-row"><span>01 · Данные с происхождением</span><span>02 · Оценка по методике v1</span></div></div><div className="auth-foot">Демо использует синтетические данные</div></section>
     <section className="auth-main"><div className="auth-card"><div className="auth-card-top"><span className="eyebrow">{mode === 'login' ? 'С ВОЗВРАЩЕНИЕМ' : 'НОВЫЙ АККАУНТ'}</span><h2>{mode === 'login' ? 'Войти в кабинет' : 'Создать аккаунт'}</h2><p>{mode === 'login' ? 'Продолжите работу с подбором или профилем.' : 'Выберите роль. Её нельзя изменить после регистрации.'}</p></div>
       {error && <ErrorBlock error={error} />}{success && <Notice tone="success">{success}</Notice>}
@@ -154,13 +149,13 @@ function AuthPage() {
         <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted, #64748b)', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>БЫСТРЫЙ ВХОД ДЛЯ ЖЮРИ (1 КЛИК)</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
           <button type="button" className="button button-secondary button-small" onClick={() => void demoLogin('candidate@example.test')}>
-            👤 Кандидат
+            <NavIcon name="profile" /> Кандидат
           </button>
           <button type="button" className="button button-secondary button-small" onClick={() => void demoLogin('employer@example.test')}>
-            🏢 Работодатель 1
+            <NavIcon name="company" /> Работодатель 1
           </button>
           <button type="button" className="button button-secondary button-small" onClick={() => void demoLogin('other-employer@example.test')}>
-            🏢 Работодатель 2
+            <NavIcon name="company" /> Работодатель 2
           </button>
         </div>
         <div>
@@ -187,14 +182,14 @@ function ConfirmTokenPage({ authenticated }: { authenticated: boolean }) {
     }
     catch (e) { setError(errorMessage(e)); }
   };
-  return <main className="auth-page verify-layout"><section className="verify-card"><Brand to={authenticated ? '/' : '/login'} /><div className="auth-card-top"><span className="eyebrow">ПОДТВЕРЖДЕНИЕ EMAIL</span><h1>Подтвердите адрес</h1><p>Введите токен из письма или откройте ссылку подтверждения, чтобы завершить регистрацию.</p></div>{error && <ErrorBlock error={error} />}{success && <Notice tone="success">{success}</Notice>}<form className="form-stack" onSubmit={submit}><Field label="Токен подтверждения" name="token" required maxLength={256} defaultValue={initialToken} /><button className="button button-primary">Подтвердить email</button></form><Link className="inline-link resend" to={authenticated ? '/' : '/login'}>{authenticated ? 'Перейти в кабинет →' : 'Перейти ко входу →'}</Link></section></main>;
+  return <main className="auth-page verify-layout"><ThemeToggle /><section className="verify-card"><Brand to={authenticated ? '/' : '/login'} /><div className="auth-card-top"><span className="eyebrow">ПОДТВЕРЖДЕНИЕ EMAIL</span><h1>Подтвердите адрес</h1><p>Введите токен из письма или откройте ссылку подтверждения, чтобы завершить регистрацию.</p></div>{error && <ErrorBlock error={error} />}{success && <Notice tone="success">{success}</Notice>}<form className="form-stack" onSubmit={submit}><Field label="Токен подтверждения" name="token" required maxLength={256} defaultValue={initialToken} /><button className="button button-primary">Подтвердить email</button></form><Link className="inline-link resend" to={authenticated ? '/' : '/login'}>{authenticated ? 'Перейти в кабинет →' : 'Перейти ко входу →'}</Link></section></main>;
 }
 
 function VerifyPage({ user }: { user: User }) {
   const query = useQueryClient(); const navigate = useNavigate(); const [notice, setNotice] = useState(''); const [error, setError] = useState('');
   const resend = async () => { setError(''); try { await api.post('/auth/resend-confirmation', { email: user.email }); setNotice('Если адрес зарегистрирован, письмо отправлено.'); } catch (e) { setError(errorMessage(e)); } };
   const confirm = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const token = String(new FormData(event.currentTarget).get('token')); try { await api.post('/auth/confirm-email', { token }); rotateCsrf(); await query.invalidateQueries({ queryKey: ['me'] }); navigate('/'); } catch (e) { setError(errorMessage(e)); } };
-  return <main className="auth-page verify-layout"><section className="verify-card"><Brand /><div className="auth-card-top"><span className="eyebrow">ПОДТВЕРЖДЕНИЕ EMAIL</span><h1>Проверьте почту</h1><p>Для {user.email} ещё не подтверждён адрес. Откройте ссылку из письма или введите токен.</p></div>{error && <ErrorBlock error={error} />}{notice && <Notice tone="success">{notice}</Notice>}<form className="form-stack" onSubmit={confirm}><Field label="Токен подтверждения" name="token" required maxLength={256} /><button className="button button-primary">Подтвердить email</button></form><button className="text-button resend" onClick={resend}>Отправить письмо ещё раз</button><button className="text-button resend" onClick={async () => { await api.post('/auth/logout'); rotateCsrf(); await query.invalidateQueries({ queryKey: ['me'] }); }}>Выйти</button></section></main>;
+  return <main className="auth-page verify-layout"><ThemeToggle /><section className="verify-card"><Brand /><div className="auth-card-top"><span className="eyebrow">ПОДТВЕРЖДЕНИЕ EMAIL</span><h1>Проверьте почту</h1><p>Для {user.email} ещё не подтверждён адрес. Откройте ссылку из письма или введите токен.</p></div>{error && <ErrorBlock error={error} />}{notice && <Notice tone="success">{notice}</Notice>}<form className="form-stack" onSubmit={confirm}><Field label="Токен подтверждения" name="token" required maxLength={256} /><button className="button button-primary">Подтвердить email</button></form><button className="text-button resend" onClick={resend}>Отправить письмо ещё раз</button><button className="text-button resend" onClick={async () => { await api.post('/auth/logout'); rotateCsrf(); await query.invalidateQueries({ queryKey: ['me'] }); }}>Выйти</button></section></main>;
 }
 
 function Field({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
@@ -227,7 +222,7 @@ function Workspace({ user }: { user: User }) {
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
   const closeMobileMenu = () => { if (mobileMenuRef.current) { mobileMenuRef.current.open = false; mobileMenuRef.current.querySelector('summary')?.focus(); } };
   return <div className={`${layoutStyles.shell} workspace`}><aside className="sidebar"><Brand /><div className="sidebar-role">{candidate ? 'КАБИНЕТ КАНДИДАТА' : 'КАБИНЕТ РАБОТОДАТЕЛЯ'}</div><WorkspaceLinks links={links} /><div className="sidebar-bottom"><div className="profile-mini"><span className="avatar">{(candidate ? user.candidate_profile?.display_name : user.company?.name)?.slice(0, 1) ?? 'Ф'}</span><span className="profile-mini-copy"><strong>{candidate ? user.candidate_profile?.display_name : user.company?.name ?? user.email}</strong><small>{user.email}</small></span></div><button className="logout-link" onClick={logout}>Выйти <span aria-hidden="true">↗</span></button></div></aside>
-    <main className="main-area"><header className="topbar"><div className="mobile-brand"><Brand /></div><div className="topbar-context"><span className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="topbar-title">{candidate ? 'Кандидат' : 'Работодатель'} <span className="topbar-separator">/</span> {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</div></div><div className="topbar-right"><ThemeToggle /><span className="status-dot" />Аккаунт активен</div></header><details className="mobile-navigation" ref={mobileMenuRef}><summary><span className="nav-icon" aria-hidden="true"><NavIcon name="menu" /></span><span>Разделы кабинета</span></summary><WorkspaceLinks links={links} onNavigate={closeMobileMenu} /><button className="mobile-logout" onClick={() => { closeMobileMenu(); void logout(); }}><span className="nav-icon" aria-hidden="true"><NavIcon name="logout" /></span><span className="nav-label">Выйти из кабинета</span></button></details><div className="content"><Routes>
+    <main className="main-area"><header className="topbar"><div className="mobile-brand"><Brand /></div><div className="topbar-context"><span className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="topbar-title">{candidate ? 'Кандидат' : 'Работодатель'} <span className="topbar-separator">/</span> {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</div></div><div className="topbar-right"><span className="status-dot" />Аккаунт активен</div><ThemeToggle /></header><details className="mobile-navigation" ref={mobileMenuRef}><summary><span className="nav-icon" aria-hidden="true"><NavIcon name="menu" /></span><span>Разделы кабинета</span></summary><WorkspaceLinks links={links} onNavigate={closeMobileMenu} /><button className="mobile-logout" onClick={() => { closeMobileMenu(); void logout(); }}><span className="nav-icon" aria-hidden="true"><NavIcon name="logout" /></span><span className="nav-label">Выйти из кабинета</span></button></details><div className="content"><Routes>
       {candidate ? <>
         <Route path="/" element={<CandidateHome user={user} />} />
         <Route path="/profile" element={<CandidateProfilePage user={user} />} />

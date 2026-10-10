@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api, errorMessage, skillLabels, type Attempt, type CandidateProfile, type Schemas } from '../../api';
+import { ThemeToggle } from '../../theme';
 import './candidate.css';
 
 type ExperienceInput = Schemas['ExperienceEntryInput'];
@@ -57,6 +58,7 @@ const practiceQuestions = [
 export function PracticePage() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   return <main className="candidate-practice">
+    <ThemeToggle />
     <header className="candidate-feature-heading">
       <span className="candidate-eyebrow">ПОДГОТОВКА К ФОРМАТУ ОЦЕНКИ</span>
       <h1>Попробуйте тренировочные вопросы</h1>
