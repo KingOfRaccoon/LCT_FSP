@@ -226,7 +226,7 @@ export function AssessmentReviewDialog({ open, answered, total = 24, savedCount,
 }) {
   const dialog = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
-  const confirmedAllowed = !saving && !error && !hasUnsavedChanges && savedCount >= answered;
+  const confirmedAllowed = !saving;
   useEffect(() => {
     if (!open) {
       previouslyFocused.current?.focus(); previouslyFocused.current = null;
@@ -254,9 +254,9 @@ export function AssessmentReviewDialog({ open, answered, total = 24, savedCount,
       <p id="candidate-review-description">После отправки изменить эту попытку нельзя. Оценка будет рассчитана по сохранённым ответам.</p>
       <dl className="candidate-review-counts"><div><dt>Ответов дано</dt><dd>{answered} из {total}</dd></div><div><dt>Сохранено на сервере</dt><dd>{savedCount} из {total}</dd></div><div><dt>Срок попытки</dt><dd>{dateLabel(deadline)}</dd></div></dl>
       {total - answered > 0 && <p className="candidate-review-warning" role="note">Без ответа: {total - answered}. Такие пункты получат 0 баллов.</p>}
-      {saving && <p className="candidate-inline-info" role="status">Сохраняем последний черновик перед отправкой…</p>}
+      {(saving || hasUnsavedChanges) && <p className="candidate-inline-info" role="status">Сохраняем последний черновик перед отправкой…</p>}
       {error && <p className="candidate-inline-error" role="alert">{error}</p>}
-      <div className="candidate-dialog-actions"><button className="button button-secondary" type="button" onClick={onCancel}>Вернуться к ответам</button><button className="button button-primary" type="button" disabled={!confirmedAllowed} onClick={onConfirm}>{saving ? 'Сохраняем…' : 'Отправить ответы'}</button></div>
+      <div className="candidate-dialog-actions"><button className="button button-secondary" type="button" onClick={onCancel}>Вернуться к ответам</button><button className="button button-primary" type="button" disabled={!confirmedAllowed} onClick={onConfirm}>{saving ? 'Сохраняем…' : error ? 'Повторить отправку' : 'Отправить ответы'}</button></div>
     </div>
   </div>;
 }

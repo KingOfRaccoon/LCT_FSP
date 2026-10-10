@@ -23,6 +23,18 @@ import './features/case/case.css';
 import { candidateNextStep, isProfileDiscoverable, pendingInvitationCount } from './features/journey';
 import { installPressMotion } from './features/motion/press-motion';
 import { ThemeToggle } from './theme';
+import {
+  ProctoringQueuePage,
+  CandidateFraudStatusCard,
+  loadStoredProctoringReport,
+  getFraudStatusBadgeInfo,
+  ProctoringSetupModal,
+  ProctoringOverlay,
+  useProctoringMedia,
+  useFaceTracker,
+  useEventMonitor,
+  buildProctoringReport,
+} from './features/proctoring';
 import { ResumeImportPanel } from './features/adoption/ResumeImportPanel';
 import { SalaryPreferenceEditor } from './features/adoption/SalaryPreferenceEditor';
 import { NeedInsightsPanel } from './features/adoption/NeedInsightsPanel';
@@ -214,15 +226,15 @@ function Workspace({ user }: { user: User }) {
   const links: WorkspaceLink[] = candidate ? [
     { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/profile', label: 'Профиль', icon: 'profile' }, { to: '/vacancies', label: 'Вакансии и отклики', icon: 'matches' }, { to: '/consents', label: 'Согласия и видимость', icon: 'visibility' }, { to: '/assessment', label: 'Оценка', icon: 'assessment' }, { to: '/qualifications', label: 'Подтверждения', icon: 'credentials' }, { to: '/short-tasks', label: 'Задачи компаний', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' }, { to: '/contacts', label: 'Доступ к контактам', icon: 'contacts' },
   ] : [
-    { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/company', label: 'Компания', icon: 'company' }, { to: '/needs', label: 'Потребности', icon: 'needs' }, { to: '/employer-vacancies', label: 'Отклики на вакансии', icon: 'tasks' }, { to: '/matches', label: 'Подборка', icon: 'matches' }, { to: '/bank', label: 'Банк кандидатов', icon: 'bank' }, { to: '/shortlists', label: 'Шорт-листы', icon: 'shortlists' }, { to: '/recruiting', label: 'Работа с кандидатами', icon: 'recruiting' }, { to: '/short-tasks', label: 'Адресные задачи', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' },
+    { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/company', label: 'Компания', icon: 'company' }, { to: '/needs', label: 'Потребности', icon: 'needs' }, { to: '/employer-vacancies', label: 'Отклики на вакансии', icon: 'tasks' }, { to: '/matches', label: 'Подборка', icon: 'matches' }, { to: '/bank', label: 'Банк кандидатов', icon: 'bank' }, { to: '/shortlists', label: 'Шорт-листы', icon: 'shortlists' }, { to: '/recruiting', label: 'Работа с кандидатами', icon: 'recruiting' }, { to: '/proctoring', label: 'Проверка фрода', icon: 'assessment' }, { to: '/short-tasks', label: 'Адресные задачи', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' },
   ];
   if (user.methodist_access) links.push({ to: '/methodist', label: 'Мастерская методиста', icon: 'assessment' });
   const query = useQueryClient(); const navigate = useNavigate();
   const logout = async () => { try { await api.post('/auth/logout'); } finally { rotateCsrf(); await query.clear(); navigate('/login'); window.location.reload(); } };
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
   const closeMobileMenu = () => { if (mobileMenuRef.current) { mobileMenuRef.current.open = false; mobileMenuRef.current.querySelector('summary')?.focus(); } };
-  return <div className={`${layoutStyles.shell} workspace`}><aside className="sidebar"><Brand /><div className="sidebar-role">{candidate ? 'КАБИНЕТ КАНДИДАТА' : 'КАБИНЕТ РАБОТОДАТЕЛЯ'}</div><WorkspaceLinks links={links} /><div className="sidebar-bottom"><div className="profile-mini"><span className="avatar">{(candidate ? user.candidate_profile?.display_name : user.company?.name)?.slice(0, 1) ?? 'Ф'}</span><span className="profile-mini-copy"><strong>{candidate ? user.candidate_profile?.display_name : user.company?.name ?? user.email}</strong><small>{user.email}</small></span></div><button className="logout-link" onClick={logout}>Выйти <span aria-hidden="true">↗</span></button></div></aside>
-    <main className="main-area"><header className="topbar"><div className="mobile-brand"><Brand /></div><div className="topbar-context"><span className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="topbar-title">{candidate ? 'Кандидат' : 'Работодатель'} <span className="topbar-separator">/</span> {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</div></div><div className="topbar-right"><span className="status-dot" />Аккаунт активен</div><ThemeToggle /></header><details className="mobile-navigation" ref={mobileMenuRef}><summary><span className="nav-icon" aria-hidden="true"><NavIcon name="menu" /></span><span>Разделы кабинета</span></summary><WorkspaceLinks links={links} onNavigate={closeMobileMenu} /><button className="mobile-logout" onClick={() => { closeMobileMenu(); void logout(); }}><span className="nav-icon" aria-hidden="true"><NavIcon name="logout" /></span><span className="nav-label">Выйти из кабинета</span></button></details><div className="content"><Routes>
+  return <div className={`${layoutStyles.shell} workspace`}><aside className="sidebar"><Brand /><div className="sidebar-role">{candidate ? 'КАБИНЕТ КАНДИДАТА (СДАЮЩИЙ)' : 'КАБИНЕТ ЭКСПЕРТА / РАБОТОДАТЕЛЯ'}</div><WorkspaceLinks links={links} /><div className="sidebar-bottom"><div className="profile-mini"><span className="avatar">{(candidate ? user.candidate_profile?.display_name : user.company?.name)?.slice(0, 1) ?? 'Ф'}</span><span className="profile-mini-copy"><strong>{candidate ? user.candidate_profile?.display_name : user.company?.name ?? user.email}</strong><small>{user.email}</small></span></div><button className="logout-link" onClick={logout}>Выйти <span aria-hidden="true">↗</span></button></div></aside>
+    <main className="main-area"><header className="topbar"><div className="mobile-brand"><Brand /></div><div className="topbar-context"><span className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="topbar-title">{candidate ? 'Кандидат (сдающий)' : 'Эксперт платформы / Работодатель'} <span className="topbar-separator">/</span> {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</div></div><div className="topbar-right"><span className="status-dot" />Аккаунт активен<button type="button" className="button button-small button-secondary" style={{ marginLeft: '0.75rem', fontSize: '0.8rem', padding: '0.2rem 0.6rem' }} onClick={async () => { await api.post('/auth/switch-role', {}); await query.invalidateQueries({ queryKey: ['me'] }); }} title="Сменить роль: Кандидат (сдающий) ↔ Эксперт платформы">{candidate ? 'Сменить на: Эксперт →' : 'Сменить на: Сдающий →'}</button></div><ThemeToggle /></header><details className="mobile-navigation" ref={mobileMenuRef}><summary><span className="nav-icon" aria-hidden="true"><NavIcon name="menu" /></span><span>Разделы кабинета</span></summary><WorkspaceLinks links={links} onNavigate={closeMobileMenu} /><button className="mobile-logout" onClick={() => { closeMobileMenu(); void logout(); }}><span className="nav-icon" aria-hidden="true"><NavIcon name="logout" /></span><span className="nav-label">Выйти из кабинета</span></button></details><div className="content"><Routes>
       {candidate ? <>
         <Route path="/" element={<CandidateHome user={user} />} />
         <Route path="/profile" element={<CandidateProfilePage user={user} />} />
@@ -246,6 +258,7 @@ function Workspace({ user }: { user: User }) {
         <Route path="/compare" element={<CandidateComparisonPage />} />
         <Route path="/needs/:needId/candidate-review" element={<CandidateReviewRoute />} />
         <Route path="/recruiting" element={<RecruitingWorkspacePage />} />
+        <Route path="/proctoring" element={<ProctoringQueuePage />} />
         <Route path="/invitations" element={<EmployerInvitations user={user} />} />
         <Route path="/short-tasks" element={<AddressTasksPage role="employer" />} />
       </>}
@@ -263,7 +276,7 @@ function Card({ title, meta, children, className = '' }: { title?: string; meta?
   return <section className={`card ${className}`}>{(title || meta) && <div className="card-head">{title && <h2>{title}</h2>}{meta}</div>}{children}</section>;
 }
 
-function Badge({ children, tone = '' }: { children: ReactNode; tone?: string }) { return <span className={`badge ${tone ? `badge-${tone}` : ''}`}>{children}</span>; }
+function Badge({ children, tone = '', title }: { children: ReactNode; tone?: string; title?: string }) { return <span className={`badge ${tone ? `badge-${tone}` : ''}`} title={title}>{children}</span>; }
 
 function CandidateHome({ user }: { user: User }) {
   const profileQuery = useQuery({ queryKey: ['profile'], queryFn: () => api.get<CandidateProfile>('/me/profile') });
@@ -365,12 +378,14 @@ function FspLinkCard({ onChange }: { onChange: () => void }) {
   if (evidence.isPending) return <Loading />;
   if (evidence.isError) return <ErrorBlock error={evidence.error} retry={() => void evidence.refetch()} />;
   const history = evidence.data;
+  const bindingStatus = history?.binding_status ?? 'unlinked';
+  const achievements = history?.evidence ?? [];
   return <div className="fsp-panel">
     {error && <ErrorBlock error={error} />}{message && <Notice tone="success">{message}</Notice>}
-    {history.binding_status !== 'unlinked' ? <>
-      <Badge tone="warm">DEMO · {history.binding_status === 'linked_confirmed' ? 'Связь с тестовой записью' : 'Связь не подтверждена'}</Badge>
-      <p className="field-hint">Связанные достижения: {history.evidence.length}. Они не заменяют тест категории и не подтверждают профессиональный грейд.</p>
-      {history.evidence.map((entry, index) => <article className="candidate-entry-card" key={`${entry.event_name}-${index}`}>
+    {bindingStatus !== 'unlinked' ? <>
+      <Badge tone="warm">DEMO · {bindingStatus === 'linked_confirmed' ? 'Связь с тестовой записью' : 'Связь не подтверждена'}</Badge>
+      <p className="field-hint">Связанные достижения: {achievements.length}. Они не заменяют тест категории и не подтверждают профессиональный грейд.</p>
+      {achievements.map((entry, index) => <article className="candidate-entry-card" key={`${entry.event_name}-${index}`}>
         <h4>{entry.event_name}</h4>
         <dl className="candidate-qualification-facts">
           <div><dt>Дисциплина</dt><dd>{entry.discipline || 'Не указана источником'}</dd></div>
@@ -423,7 +438,11 @@ function AssessmentHome({ user }: { user: User }) {
     {demoReleaseNotice && <Notice>Текущий банк предназначен для демонстрации. Человеческая проверка квалификации ещё не проведена; результат демо-оценки не подтверждает профессиональный грейд.</Notice>}
     {error && <ErrorBlock error={error} />}
     <div className="assessment-layout"><Card title="Новая оценка" className="assessment-start">{!processingAccepted && <div className="notice notice-warm">Для новой оценки примите согласие на обработку данных. <Link to="/consents">Открыть условия →</Link></div>}<div className="assessment-callout"><span>30</span><div><strong>минут на прохождение</strong><small>12 заданий · 24 ответа · 4 блока</small></div></div><label className="field"><span>Уровень оценки</span><select value={grade} onChange={(e) => setGrade(e.target.value as Grade)}>{grades.map((g) => <option key={g} value={g}>{gradeName(g)}</option>)}</select></label><div className="eligibility"><div><span className="eligibility-indicator" /> {eligibility?.[grade].allowed ? 'Можно начать сейчас' : eligibility?.[grade].reason === 'attempt_active' ? 'Уже есть активная попытка' : 'Пока недоступно'}</div>{!eligibility?.[grade].allowed && eligibility?.[grade].eligible_at && <small>Повтор доступен {date(eligibility[grade].eligible_at)}.</small>}{processingAccepted && !eligibility?.[grade].allowed && eligibility?.[grade].reason === 'attempt_active' && profile?.active_attempt_id && <Link to={`/assessment/${profile.active_attempt_id}`}>Продолжить попытку →</Link>}</div><button className="button button-primary button-wide" onClick={() => void start()} disabled={busy || !processingAccepted || !profile?.profile_complete || !eligibility?.[grade].allowed}>{busy ? 'Подготавливаем…' : 'Начать оценку'} <span>→</span></button>{!profile?.profile_complete && <p className="field-hint">Сначала заполните обязательные поля профиля.</p>}<p className="field-hint">Если профиль синтетический, сервер отметит результат как demo. Порог v1: 18/24 и не менее 3/6 в каждом блоке.</p><p className="field-hint"><Link to="/practice">Сначала посмотреть формат на тренировочных вопросах →</Link></p></Card>
-      <div className="assessment-side"><Card title="Состав оценки"><div className="block-list">{(taxonomyQuery.data.skills.filter((s) => ['python-basics', 'http-api', 'sql-transactions', 'reliability'].includes(s.id))).map((skill, i) => <div className="block-row" key={skill.id}><span className="block-number">0{i + 1}</span><div><strong>{skillLabels[skill.id as keyof typeof skillLabels] ?? skill.id}</strong><small>3 задания · 6 баллов</small></div><Badge tone="neutral">Блок</Badge></div>)}</div></Card><Card title="История оценок" meta={<span className="card-index">{history.length}</span>}>{history.length ? <><div className="history-list">{history.map((item) => <div className="history-row" key={item.id}><div><strong>{gradeName(item.requested_grade)}</strong><small>{date(item.evaluated_at ?? item.deadline_at)}</small></div><span>{item.total_score ?? '—'} / 24</span><Badge tone={item.status === 'evaluated' ? (item.passed ? 'good' : 'warm') : item.status === 'in_progress' ? 'neutral' : ''}>{item.status === 'in_progress' ? 'Идёт' : item.status === 'evaluated' ? item.passed ? 'Пройдена' : 'Завершена' : item.status === 'submitted' ? 'На проверке' : 'Аннулирована'}</Badge><Link className="quiet-link" to={`/assessment/${encodeURIComponent(item.id)}`}>{item.status === 'in_progress' ? 'Продолжить →' : item.status === 'submitted' ? 'Открыть попытку →' : 'Посмотреть результат →'}</Link></div>)}</div>{attemptsQuery.hasNextPage && <button className="button button-secondary button-small load-more" onClick={() => void attemptsQuery.fetchNextPage()} disabled={attemptsQuery.isFetchingNextPage}>{attemptsQuery.isFetchingNextPage ? 'Загружаем…' : 'Показать ещё'}</button>}</> : <Empty title="История пока пуста" detail="Завершённые попытки появятся здесь." />}</Card></div>
+      <div className="assessment-side"><Card title="Состав оценки"><div className="block-list">{(taxonomyQuery.data.skills.filter((s) => ['python-basics', 'http-api', 'sql-transactions', 'reliability'].includes(s.id))).map((skill, i) => <div className="block-row" key={skill.id}><span className="block-number">0{i + 1}</span><div><strong>{skillLabels[skill.id as keyof typeof skillLabels] ?? skill.id}</strong><small>3 задания · 6 баллов</small></div><Badge tone="neutral">Блок</Badge></div>)}</div></Card><Card title="История оценок" meta={<span className="card-index">{history.length}</span>}>{history.length ? <><div className="history-list">{history.map((item) => {
+        const itemReport = loadStoredProctoringReport(item.id);
+        const fraudInfo = getFraudStatusBadgeInfo(itemReport?.review_status);
+        return <div className="history-row" key={item.id}><div><strong>{gradeName(item.requested_grade)}</strong><small>{date(item.evaluated_at ?? item.deadline_at)}</small></div><span>{item.total_score ?? '—'} / 24</span><Badge tone={item.status === 'evaluated' ? (item.passed ? 'good' : 'warm') : item.status === 'in_progress' ? 'neutral' : ''}>{item.status === 'in_progress' ? 'Идёт' : item.status === 'evaluated' ? item.passed ? 'Пройдена' : 'Завершена' : item.status === 'submitted' ? 'На проверке' : 'Аннулирована'}</Badge>{fraudInfo && <Badge tone={fraudInfo.tone} title="Статус проверки на фрод">{fraudInfo.label}</Badge>}<Link className="quiet-link" to={`/assessment/${encodeURIComponent(item.id)}`}>{item.status === 'in_progress' ? 'Продолжить →' : item.status === 'submitted' ? 'Открыть попытку →' : 'Посмотреть результат →'}</Link></div>;
+      })}</div>{attemptsQuery.hasNextPage && <button className="button button-secondary button-small load-more" onClick={() => void attemptsQuery.fetchNextPage()} disabled={attemptsQuery.isFetchingNextPage}>{attemptsQuery.isFetchingNextPage ? 'Загружаем…' : 'Показать ещё'}</button>}</> : <Empty title="История пока пуста" detail="Завершённые попытки появятся здесь." />}</Card></div>
     </div>
   </>;
 }
@@ -438,14 +457,52 @@ function AssessmentRun() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'dirty' | 'saving' | 'error'>('saved'); const [saveError, setSaveError] = useState(''); const [saveConflict, setSaveConflict] = useState(false); const [submitError, setSubmitError] = useState(''); const [submitting, setSubmitting] = useState(false);
   const [savedAck, setSavedAck] = useState<{ count: number; savedAt: string | null }>({ count: 0, savedAt: null });
   const version = useRef(0); const savedSnapshot = useRef(''); const failedSnapshot = useRef(''); const hydratedAttemptId = useRef(''); const savePromise = useRef<Promise<Attempt | null> | null>(null); const submittingRef = useRef(false); const attemptIdRef = useRef(attemptId); const mountedRef = useRef(true);
+
+  // Proctoring session state
+  const [proctoringActive, setProctoringActive] = useState(false);
+  const [showProctoringModal, setShowProctoringModal] = useState(false);
+  const [proctoringSessionId] = useState(() => `proc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`);
+  const sessionStartTimeRef = useRef(new Date().toISOString());
+
+  const {
+    cameraStream,
+    setCameraStream,
+    setScreenStream,
+    isRecording,
+    startRecording,
+    stopRecording,
+  } = useProctoringMedia();
+
+  const { events, emitEvent, lastWarning: eventWarning } = useEventMonitor({
+    active: proctoringActive && attempt?.status === 'in_progress',
+    sessionId: proctoringSessionId,
+  });
+
+  const { faceWarning } = useFaceTracker({
+    stream: cameraStream,
+    enabled: proctoringActive && attempt?.status === 'in_progress',
+    onEvent: (type, meta) => emitEvent(type, meta),
+  });
+
+  const handleProctoringReady = ({ cameraStream: cam, screenStream: scr }: { cameraStream: MediaStream; screenStream: MediaStream }) => {
+    setCameraStream(cam);
+    setScreenStream(scr);
+    setProctoringActive(true);
+    setShowProctoringModal(false);
+    sessionStartTimeRef.current = new Date().toISOString();
+    // Start recording immediately with the fresh active streams
+    startRecording(cam, scr);
+  };
   attemptIdRef.current = attemptId;
   useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
   const answerMap = (source: Attempt) => Object.fromEntries(source.saved_answers.filter((answer) => answer.selected_option_id).map((answer) => [`${answer.task_id}:${answer.subquestion_id}`, answer.selected_option_id as string]));
   const acknowledgement = (source: Attempt) => ({ count: selectedAnswerCount(source.saved_answers), savedAt: source.saved_answers.reduce<string | null>((latest, answer) => !latest || answer.saved_at > latest ? answer.saved_at : latest, null) });
+  const serializeAnswers = (source: Record<string, string>) =>
+    JSON.stringify(Object.fromEntries(Object.entries(source).sort(([a], [b]) => a.localeCompare(b))));
   useEffect(() => {
     if (!attemptQuery.data) return;
     const serverAnswers = answerMap(attemptQuery.data);
-    const serverSnapshot = JSON.stringify(serverAnswers);
+    const serverSnapshot = serializeAnswers(serverAnswers);
     const reconciled = reconcileAnswerDraft({
       initialized: hydratedAttemptId.current === attemptId,
       draft: answers,
@@ -467,12 +524,17 @@ function AssessmentRun() {
     }
   }, [attemptQuery.dataUpdatedAt]);
   const fullAnswers = useMemo(() => (attempt?.tasks ?? []).flatMap((task) => task.subquestions.map((q) => ({ task_id: task.task_id, subquestion_id: q.subquestion_id, selected_option_id: answers[`${task.task_id}:${q.subquestion_id}`] ?? null }))), [attempt, answers]);
-  const answerString = JSON.stringify(answers);
+  const answerString = serializeAnswers(answers);
   const latestAnswerString = useRef(answerString); const latestFullAnswers = useRef(fullAnswers);
   latestAnswerString.current = answerString; latestFullAnswers.current = fullAnswers;
   const performSave = async () => {
     if (savePromise.current) return savePromise.current;
-    if (!processingAccepted || !attempt || attempt.status !== 'in_progress' || latestAnswerString.current === savedSnapshot.current) return null;
+    if (!processingAccepted || !attempt || attempt.status !== 'in_progress') return null;
+    const isAlreadySaved = snapshotMatches(
+      JSON.parse(savedSnapshot.current || '{}'),
+      JSON.parse(latestAnswerString.current || '{}')
+    );
+    if (isAlreadySaved) return attempt;
     setSaveStatus('saving'); setSaveError('');
     const snapshot = latestAnswerString.current; const payload = latestFullAnswers.current; const requestAttemptId = attempt.id;
     const operation = (async () => {
@@ -487,7 +549,7 @@ function AssessmentRun() {
         if (!mountedRef.current || attemptIdRef.current !== requestAttemptId) return null;
         version.current = updated.version;
         const acknowledgedAnswers = answerMap(updated);
-        savedSnapshot.current = JSON.stringify(acknowledgedAnswers);
+        savedSnapshot.current = serializeAnswers(acknowledgedAnswers);
         failedSnapshot.current = ''; setSavedAck(acknowledgement(updated)); setAttempt(updated);
         const isCurrentDraft = snapshotMatches(acknowledgedAnswers, JSON.parse(latestAnswerString.current) as Record<string, string>);
         setSaveStatus(isCurrentDraft ? 'saved' : 'dirty'); setSaveError(''); setSaveConflict(false); return updated;
@@ -502,7 +564,7 @@ function AssessmentRun() {
   };
   const reloadServerDraft = async () => {
     if (!window.confirm('Заменить текущие ответы сохранённым серверным черновиком? Несохранённые изменения в этой вкладке будут потеряны.')) return;
-    try { const current = await api.get<Attempt>(`/attempts/${attemptId}`); if (attemptIdRef.current !== attemptId) return; const next = answerMap(current); version.current = current.version; savedSnapshot.current = JSON.stringify(next); setSavedAck(acknowledgement(current)); setAnswers(next); setAttempt(current); setSaveStatus('saved'); setSaveConflict(false); setSaveError(''); }
+    try { const current = await api.get<Attempt>(`/attempts/${attemptId}`); if (attemptIdRef.current !== attemptId) return; const next = answerMap(current); version.current = current.version; savedSnapshot.current = serializeAnswers(next); setSavedAck(acknowledgement(current)); setAnswers(next); setAttempt(current); setSaveStatus('saved'); setSaveConflict(false); setSaveError(''); }
     catch (e) { setSaveError(errorMessage(e)); }
   };
   useEffect(() => {
@@ -525,11 +587,16 @@ function AssessmentRun() {
     if (!processingAccepted || !attempt || submittingRef.current || attempt.status !== 'in_progress') return;
     submittingRef.current = true; setSubmitting(true); setSubmitError('');
     try {
-      while (savedSnapshot.current !== latestAnswerString.current) {
+      const isUnsaved = () => !snapshotMatches(
+        JSON.parse(savedSnapshot.current || '{}'),
+        JSON.parse(latestAnswerString.current || '{}')
+      );
+      while (isUnsaved()) {
         const saved = await performSave();
-        if (!saved || savedSnapshot.current !== latestAnswerString.current) return;
+        if (!saved) {
+          throw new Error('Не удалось сохранить ответы перед завершением. Попробуйте ещё раз.');
+        }
       }
-      if (savedSnapshot.current !== latestAnswerString.current) return;
       const current = await api.get<Attempt>(`/attempts/${attempt.id}`);
       if (attemptIdRef.current !== attempt.id) return;
       version.current = current.version; setSavedAck(acknowledgement(current)); setAttempt(current);
@@ -537,23 +604,129 @@ function AssessmentRun() {
       if (!snapshotMatches(answerMap(current), JSON.parse(latestAnswerString.current) as Record<string, string>)) {
         setSaveStatus('error'); setSaveConflict(true); setSaveError('Серверный черновик изменился. Загрузите его перед отправкой оценки.'); return;
       }
-      savedSnapshot.current = latestAnswerString.current;
-      const result = await api.post<Attempt>(`/attempts/${attempt.id}/submit`, { expected_version: version.current }); setAttempt(result); setSavedAck(acknowledgement(result)); setReviewOpen(false); await query.invalidateQueries({ queryKey: ['attempts'] }); await query.invalidateQueries({ queryKey: ['profile'] });
+      savedSnapshot.current = serializeAnswers(answerMap(current));
+
+      // Stop proctoring recording and compile fraud telemetry report
+      try {
+        const { cameraBlob, screenBlob } = await stopRecording();
+        setProctoringActive(false);
+
+        await buildProctoringReport({
+          sessionId: proctoringSessionId,
+          attemptId: attempt.id,
+          candidateName: resultProfileQuery.data?.display_name || 'Сдающий экзамен',
+          specializationId: special,
+          requestedGrade: attempt.requested_grade,
+          startedAt: sessionStartTimeRef.current,
+          completedAt: new Date().toISOString(),
+          events,
+          videoBlob: cameraBlob,
+          screenBlob,
+        });
+      } catch (procErr) {
+        console.error('Proctoring report creation error:', procErr);
+      }
+
+      const result = await api.post<Attempt>(`/attempts/${attempt.id}/submit`, { expected_version: version.current });
+      setAttempt(result);
+      setSavedAck(acknowledgement(result));
+      setReviewOpen(false);
+      await query.invalidateQueries({ queryKey: ['attempts'] });
+      await query.invalidateQueries({ queryKey: ['profile'] });
     } catch (e) {
       setSubmitError(errorMessage(e));
       try {
         const current = await api.get<Attempt>(`/attempts/${attempt.id}`);
-        if (attemptIdRef.current === attempt.id && current.status !== 'in_progress') { setAttempt(current); setSavedAck(acknowledgement(current)); setReviewOpen(false); setSubmitError(''); await query.invalidateQueries({ queryKey: ['attempts'] }); await query.invalidateQueries({ queryKey: ['profile'] }); }
+        if (attemptIdRef.current === attempt.id && current.status !== 'in_progress') {
+          setAttempt(current);
+          setSavedAck(acknowledgement(current));
+          setReviewOpen(false);
+          setSubmitError('');
+          await query.invalidateQueries({ queryKey: ['attempts'] });
+          await query.invalidateQueries({ queryKey: ['profile'] });
+        }
       } catch { /* Keep the submission error visible until the server can be reached. */ }
     }
-    finally { submittingRef.current = false; setSubmitting(false); }
+    finally {
+      submittingRef.current = false;
+      setSubmitting(false);
+    }
   };
   if (attemptQuery.isPending || !attempt || consentsQuery.isPending) return attemptQuery.isError ? <div><Link className="back-link" to="/assessment">← К оценке</Link><ErrorBlock error={attemptQuery.error} retry={() => void attemptQuery.refetch()} /></div> : <Loading label="Открываем сохранённую попытку" />;
   if (consentsQuery.isError) return <ErrorBlock error={consentsQuery.error} retry={() => void consentsQuery.refetch()} />;
   if (attempt.status === 'in_progress' && !processingAccepted) return <><PageHeader eyebrow="СОГЛАСИЕ ТРЕБУЕТСЯ" title="Оценка приостановлена" description="Чтобы продолжить и сохранить ответы, сначала примите согласие на обработку данных." /><Link className="button button-primary" to="/consents">Открыть условия →</Link></>;
   const minutes = Math.floor((remaining ?? attempt.remaining_seconds) / 60); const seconds = (remaining ?? attempt.remaining_seconds) % 60;
-  if (attempt.status !== 'in_progress') return <><PageHeader eyebrow="РЕЗУЛЬТАТ ОЦЕНКИ" title={attempt.result?.grade_awarded ? `Уровень ${gradeName(attempt.result.grade_awarded)}` : attempt.status === 'invalidated' ? 'Попытка аннулирована' : attempt.result ? 'Оценка завершена' : 'Оценка ожидает результата'} description={`Данные этой попытки · ${date(attempt.evaluated_at)}`} />{attempt.demo && <div className="demo-attempt-marker"><Badge tone="warm">DEMO · результат на тестовых данных</Badge></div>}<ResultCompetencyFeedback attempt={attempt} eligibility={resultProfileQuery.data?.assessment_eligibility} /><Link className="button button-primary" to="/assessment">История оценок →</Link></>;
-  return <div className="assessment-run"><div className="run-top"><div><Link className="back-link" to="/assessment">← Выйти к оценкам</Link><h1>Оценка · {gradeName(attempt.requested_grade)}</h1><p>Выберите один ответ в каждом пункте. Ответы сохраняются автоматически.</p></div><div className={`timer ${minutes < 5 ? 'timer-warning' : ''}`} aria-label="Оставшееся время"><small>ОСТАЛОСЬ</small><strong>{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}</strong></div></div>
+  if (attempt.status !== 'in_progress') {
+    const activeReport = loadStoredProctoringReport(attempt.id);
+    const isUnderReview = activeReport?.review_status === 'review_required';
+    const isFraudConfirmed = activeReport?.review_status === 'confirmed_fraud';
+
+    const headerEyebrow = isFraudConfirmed
+      ? 'ПОПЫТКА АННУЛИРОВАНА'
+      : isUnderReview
+      ? 'ПРОВЕРКА ЭКСПЕРТОМ'
+      : 'РЕЗУЛЬТАТ ОЦЕНКИ';
+
+    const headerTitle = isFraudConfirmed
+      ? 'Экзамен не зачтён: подтверждён фрод'
+      : isUnderReview
+      ? 'Оценка ожидает решения эксперта'
+      : attempt.result?.grade_awarded
+      ? `Уровень ${gradeName(attempt.result.grade_awarded)}`
+      : attempt.status === 'invalidated'
+      ? 'Попытка аннулирована'
+      : attempt.result
+      ? 'Оценка завершена'
+      : 'Оценка ожидает результата';
+
+    const headerDescription = isFraudConfirmed
+      ? 'Вы нечестно сдали экзамен. Прохождение тестов на данный грейд заблокировано на 30 дней.'
+      : isUnderReview
+      ? 'Есть подозрение, что вы нечестно сдали экзамен. Зафиксированы отклонения от регламента. Экзамен будет проверен экспертом.'
+      : `Данные этой попытки · ${date(attempt.evaluated_at)}`;
+
+    return <><PageHeader eyebrow={headerEyebrow} title={headerTitle} description={headerDescription} />{attempt.demo && <div className="demo-attempt-marker"><Badge tone="warm">DEMO · результат на тестовых данных</Badge></div>}{!isFraudConfirmed && <ResultCompetencyFeedback attempt={attempt} eligibility={resultProfileQuery.data?.assessment_eligibility} />}{activeReport && <CandidateFraudStatusCard report={activeReport} />}<Link className="button button-primary" to="/assessment">История оценок →</Link></>;
+  }
+
+  // Pre-test equipment verification check
+  if (!proctoringActive) {
+    return (
+      <div className="assessment-run">
+        <div className="run-top">
+          <div>
+            <Link className="back-link" to="/assessment">← Выйти к оценкам</Link>
+            <h1>Оценка · {gradeName(attempt.requested_grade)}</h1>
+            <p>Перед допуском к заданиям необходимо пройти обязательную проверку оборудования.</p>
+          </div>
+        </div>
+        <Card title="Обязательный регламент сдачи и прокторинг">
+          <p style={{ margin: '0 0 1rem', color: '#475569' }}>
+            Для подтверждения результатов оценки задействован непрерывный видеоконтроль: фиксация взгляда, проверка веб-камеры, захват экрана и протоколирование действий.
+          </p>
+          <button
+            type="button"
+            className="button button-primary"
+            onClick={() => setShowProctoringModal(true)}
+          >
+            Пройти проверку оборудования и начать тест →
+          </button>
+        </Card>
+        <ProctoringSetupModal
+          open={showProctoringModal}
+          onReady={handleProctoringReady}
+          onCancel={() => setShowProctoringModal(false)}
+        />
+      </div>
+    );
+  }
+
+  return <div className="assessment-run">
+    <ProctoringOverlay
+      cameraStream={cameraStream}
+      isRecording={isRecording}
+      warning={faceWarning || eventWarning}
+    />
+    <div className="run-top"><div><Link className="back-link" to="/assessment">← Выйти к оценкам</Link><h1>Оценка · {gradeName(attempt.requested_grade)}</h1><p>Выберите один ответ в каждом пункте. Ответы сохраняются автоматически.</p></div><div className={`timer ${minutes < 5 ? 'timer-warning' : ''}`} aria-label="Оставшееся время"><small>ОСТАЛОСЬ</small><strong>{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}</strong></div></div>
     {attempt.demo && <div className="demo-attempt-marker"><Badge tone="warm">DEMO · результат на тестовых данных</Badge></div>}
     <div className="save-line" aria-live="polite">{saveStatus === 'saved' ? '✓ Ответы сохранены' : saveStatus === 'saving' ? 'Сохраняем ответы…' : saveStatus === 'error' ? 'Не удалось сохранить ответы' : 'Есть несохранённые ответы'}{` · сервер подтвердил ${savedAck.count} из 24 · ${savedAck.savedAt ? date(savedAck.savedAt) : 'время пока не указано'}`}{saveStatus === 'error' && (saveConflict ? <button className="text-button" onClick={() => void reloadServerDraft()}>Загрузить серверный черновик</button> : <button className="text-button" onClick={() => void performSave()}>Повторить</button>)}</div>
     {saveError && <Notice tone="danger">{saveError}</Notice>}{submitError && <ErrorBlock error={submitError} />}
@@ -704,7 +877,7 @@ function MatchesPage() {
   if (needs.isPending) return <Loading />;
   if (needs.isError) return <ErrorBlock error={needs.error} retry={() => void needs.refetch()} />;
   const activeNeeds = needs.data.items.filter((n) => n.status === 'active');
-  return <><PageHeader eyebrow="ОБЪЯСНИМЫЙ ПОДБОР" title="Подборка специалистов" description="Порядок групп и основания рассчитывает сервер. Совпадение ФСП не заменяет требуемые подтверждённые навыки." />{error && <ErrorBlock error={error} />}{notice && <Notice tone="success">{notice}</Notice>}<Card title="Параметры поиска" className="search-controls"><div className="search-control-row"><label className="field"><span>Активная потребность</span><select value={needId} onChange={(e) => pickNeed(e.target.value)}><option value="">Выбрать потребность</option>{activeNeeds.map((need) => <option key={need.id} value={need.id}>{need.title} · {gradeName(need.target_grade)}</option>)}</select></label><label className="check-item strict-toggle"><input type="checkbox" checked={strict} onChange={(e) => toggleStrict(e.target.checked)} />Только подтверждённая группа</label><button className="button button-primary" onClick={() => void search()}>Найти кандидатов <span>→</span></button></div><p className="field-hint">Если обязательная компетенция не подтверждена, кандидат попадёт в группу уточнения или подтверждения — сервер не ослабляет требование.</p></Card>{!activeNeeds.length && <Empty title="Нет активных потребностей" detail="Создайте потребность и подтвердите компетенции, чтобы открыть поиск." action={<Link className="button button-secondary button-small" to="/needs">К потребностям</Link>} />}{result && <><div className="match-summary"><div><span className="eyebrow">РЕЗУЛЬТАТ ПОИСКА</span><p>{result.group_counts.confirmed} подтверждённых · {result.group_counts.needs_clarification} требуют уточнения · {result.group_counts.needs_confirmation} требуют подтверждения</p></div><div className="match-summary-actions"><button className="button button-secondary" disabled={!selected.length} onClick={() => void createShortlist()}>Сохранить выбранных · {selected.length}</button>{selected.length >= 2 && selected.length <= 3 && <Link className="button button-primary" to={`/compare?need_id=${encodeURIComponent(result.need_id)}&candidate_ids=${encodeURIComponent(selected.join(','))}`}>Сравнить · {selected.length} →</Link>}</div></div><div className="match-groups">{result.display_order.map((group) => { const title = group === 'confirmed' ? 'Подтверждённое соответствие' : group === 'needs_clarification' ? 'Нужно уточнение' : 'Нужно подтверждение'; const items = result.groups[group] as MatchCandidate[]; const count = result.group_counts[group]; return <section className="match-group" key={group}><div className="group-heading"><div><h2>{title}</h2><p>{group === 'confirmed' ? 'Обязательные компетенции подтверждены оценкой.' : group === 'needs_clarification' ? 'Есть данные, которые требуют обсуждения или проверки.' : 'Заявленных навыков недостаточно, чтобы считать требования подтверждёнными.'}</p></div><span>{count}</span></div>{items.length ? <div className="candidate-cards">{items.map((match) => <MatchCard key={match.candidate.id} match={match} selected={selected.includes(match.candidate.id)} onToggle={() => toggleSelected(match.candidate.id)} needId={result.need_id} />)}</div> : <div className="group-empty">В этой группе сейчас нет подходящих профилей.</div>}</section>; })}</div>{result.next_cursor && <button className="button button-secondary button-wide load-more" onClick={() => void search(result.need_id, result.strict_confirmed_only, result.next_cursor)}>Загрузить ещё</button>}</>}</>;
+  return <><PageHeader eyebrow="ОБЪЯСНИМЫЙ ПОДБОР" title="Подборка специалистов" description="Порядок групп и основания рассчитывает сервер. Совпадение ФСП не заменяет требуемые подтверждённые навыки." />{error && <ErrorBlock error={error} />}{notice && <Notice tone="success">{notice}</Notice>}<Card title="Параметры поиска" className="search-controls"><div className="search-control-row"><label className="field"><span>Активная потребность</span><select value={needId} onChange={(e) => pickNeed(e.target.value)}><option value="">Выбрать потребность</option>{activeNeeds.map((need) => <option key={need.id} value={need.id}>{need.title} · {gradeName(need.target_grade)}</option>)}</select></label><label className="check-item strict-toggle"><input type="checkbox" checked={strict} onChange={(e) => toggleStrict(e.target.checked)} />Только подтверждённая группа</label><button className="button button-primary" onClick={() => void search()}>Найти кандидатов <span>→</span></button></div><p className="field-hint">Если обязательная компетенция не подтверждена, кандидат попадёт в группу уточнения или подтверждения — сервер не ослабляет требование.</p></Card>{!activeNeeds.length && <Empty title="Нет активных потребностей" detail="Создайте потребность и подтвердите компетенции, чтобы открыть поиск." action={<Link className="button button-secondary button-small" to="/needs">К потребностям</Link>} />}{result && <><div className="match-summary"><div><span className="eyebrow">РЕЗУЛЬТАТ ПОИСКА</span><p>{result.group_counts?.confirmed ?? 0} подтверждённых · {result.group_counts?.needs_clarification ?? 0} требуют уточнения · {result.group_counts?.needs_confirmation ?? 0} требуют подтверждения</p></div><div className="match-summary-actions"><button className="button button-secondary" disabled={!selected.length} onClick={() => void createShortlist()}>Сохранить выбранных · {selected.length}</button>{selected.length >= 2 && selected.length <= 3 && <Link className="button button-primary" to={`/compare?need_id=${encodeURIComponent(result.need_id)}&candidate_ids=${encodeURIComponent(selected.join(','))}`}>Сравнить · {selected.length} →</Link>}</div></div><div className="match-groups">{(result.display_order || []).map((group) => { const title = group === 'confirmed' ? 'Подтверждённое соответствие' : group === 'needs_clarification' ? 'Нужно уточнение' : 'Нужно подтверждение'; const items = (result.groups?.[group] ?? []) as MatchCandidate[]; const count = result.group_counts?.[group] ?? items.length; return <section className="match-group" key={group}><div className="group-heading"><div><h2>{title}</h2><p>{group === 'confirmed' ? 'Обязательные компетенции подтверждены оценкой.' : group === 'needs_clarification' ? 'Есть данные, которые требуют обсуждения или проверки.' : 'Заявленных навыков недостаточно, чтобы считать требования подтверждёнными.'}</p></div><span>{count}</span></div>{items.length ? <div className="candidate-cards">{items.map((match) => <MatchCard key={match.candidate.id} match={match} selected={selected.includes(match.candidate.id)} onToggle={() => toggleSelected(match.candidate.id)} needId={result.need_id} />)}</div> : <div className="group-empty">В этой группе сейчас нет подходящих профилей.</div>}</section>; })}</div>{result.next_cursor && <button className="button button-secondary button-wide load-more" onClick={() => void search(result.need_id, result.strict_confirmed_only, result.next_cursor)}>Загрузить ещё</button>}</>}</>;
 }
 
 function MatchCard({ match, selected, onToggle, needId }: { match: MatchCandidate; selected: boolean; onToggle: () => void; needId: string }) {

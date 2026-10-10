@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEven
 import { Link, useLocation, useNavigate } from 'react-router';
 import { api, errorMessage, RequestError, skillLabels, type ApiPayload, type Schemas, type SkillId } from '../../api';
 import { summarizeDecision } from '../decision-brief';
+import { loadManagerReviewQueue, getFraudStatusBadgeInfo } from '../proctoring';
 import './employer.css';
 
 type Need = Schemas['Need'];
@@ -168,6 +169,19 @@ export function CandidateReviewPanel({ needId, candidateId, onTopicsSelected }: 
         <p className="employer-brief-line"><strong>Подтверждены тестом:</strong> {brief.confirmedSkills.length ? brief.confirmedSkills.map(({ skill_id }) => skillName(skill_id!)).join(', ') : 'нет подтверждённых навыков из требований'}</p>
         <p className="employer-brief-line"><strong>Условия по данным профиля:</strong> {brief.matchingConditions.length ? brief.matchingConditions.map((check) => fitCheckLabel(check.type)).join(', ') : 'совпадений нет'} <small>(заявленные предпочтения, не отдельная проверка)</small></p>
         <p className="employer-brief-line"><strong>Уровень:</strong> {brief.grade ? statusLabel[brief.grade.status] : 'не указан'} · <strong>Специализация:</strong> {brief.specialization ? brief.specialization.status === 'met' ? 'совпадает с потребностью' : statusLabel[brief.specialization.status] : 'не указана'}</p>
+        {(() => {
+          const candidateReport = loadManagerReviewQueue().find((r) => r.candidate_id === candidateId || r.attempt_id === candidateId);
+          const fraudBadge = getFraudStatusBadgeInfo(candidateReport?.review_status);
+          return (
+            <p className="employer-brief-line" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <strong>Статус фрода и видео:</strong>
+              <Badge tone={fraudBadge.tone}>{fraudBadge.label}</Badge>
+              <Link to="/proctoring" className="quiet-link" style={{ marginLeft: 'auto' }}>
+                Смотреть видеозапись и протокол →
+              </Link>
+            </p>
+          );
+        })()}
         {unresolved.length > 0 && <BriefGroup title="Нужно уточнить" items={renderChecks(unresolved, 'condition')} />}
         {brief.mismatches.length > 0 && <BriefGroup title="Не совпадает" items={renderChecks(brief.mismatches, 'mismatch')} tone="danger" />}
         {brief.preferredTopics.length > 0 && <details className="employer-preferred-topics"><summary>Желательные темы · {brief.preferredTopics.length}</summary><ul>{brief.preferredTopics.map((check, index) => <li key={`${check.skill_id}-${index}`}><strong>{skillName(check.skill_id!)}</strong><small>{check.status === 'declared' ? 'Навык заявлен кандидатом, без тестового подтверждения' : 'Сведений о навыке нет'}</small></li>)}</ul></details>}
