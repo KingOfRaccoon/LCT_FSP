@@ -1,0 +1,31 @@
+rule_files:
+  - alerts.yml
+
+evaluation_interval: 1m
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'fsp_database_available{job="fsp-api"}'
+        values: 'NaN NaN NaN'
+      - series: 'fsp_outbox_worker_last_tick_timestamp_seconds{job="fsp-api"}'
+        values: 'NaN NaN NaN'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: FspDatabaseUnavailable
+        exp_alerts:
+          - exp_labels:
+              job: fsp-api
+              severity: critical
+            exp_annotations:
+              summary: FSP database snapshot is unavailable
+              description: The API could not read its database health snapshot.
+      - eval_time: 2m
+        alertname: FspOutboxWorkerHeartbeatMissing
+        exp_alerts:
+          - exp_labels:
+              job: fsp-api
+              severity: critical
+            exp_annotations:
+              summary: FSP outbox worker has not published a heartbeat
+              description: The shared database has no readable heartbeat for the headless worker.

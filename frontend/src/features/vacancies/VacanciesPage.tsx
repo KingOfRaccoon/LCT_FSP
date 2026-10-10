@@ -1,3 +1,4 @@
+import { CompanyVerificationBadge } from '../company-ops';
 import { useState, type FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, buildVacancyApplicationPayload, errorMessage, type CandidateApplication, type OwnContacts, type PublicVacancy } from '../../api';
@@ -127,7 +128,7 @@ export function VacanciesPage() {
                 <article key={v.id} className="card" style={{ padding: '24px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div>
-                      <div className="eyebrow">{v.company_name} {v.company_industry ? `· ${v.company_industry}` : ''}</div>
+                      <div className="eyebrow">{v.company_name} {v.company_industry ? `· ${v.company_industry}` : ''}</div><CompanyVerificationBadge summary={v.company_verification} />
                       <h2 style={{ margin: '4px 0 8px 0', fontSize: '20px' }}>{v.title}</h2>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         <span className="badge badge-good">{gradeLabel(v.target_grade)}</span>

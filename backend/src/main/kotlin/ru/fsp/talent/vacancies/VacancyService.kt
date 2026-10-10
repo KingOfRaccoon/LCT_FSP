@@ -11,7 +11,7 @@ import ru.fsp.talent.invitations.objectValue
 import java.util.UUID
 
 @Service
-class VacancyService(private val store: Store, private val consents: ConsentService) {
+class VacancyService(private val store: Store, private val consents: ConsentService, private val companyVerification: ru.fsp.talent.companyverification.CompanyVerificationService) {
 
     fun listVacancies(
         specializationId: String?,
@@ -545,6 +545,7 @@ class VacancyService(private val store: Store, private val consents: ConsentServ
             "company_id" to row["company_id"].toString(),
             "company_name" to (row["company_name"] ?: "Компания"),
             "company_industry" to row["company_industry"],
+            "company_verification" to companyVerification.getPublicSummary(row["company_id"].toString()),
             "title" to row["title"],
             "description" to row["description"],
             "specialization_id" to row["specialization_id"],

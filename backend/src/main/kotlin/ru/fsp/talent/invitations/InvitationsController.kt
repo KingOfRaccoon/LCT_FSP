@@ -25,6 +25,7 @@ class InvitationsController(
     private val mutations: MutationService,
     private val store: Store,
     private val matching: MatchingService,
+    private val companyVerification: ru.fsp.talent.companyverification.CompanyVerificationService,
 ) {
     @PostMapping("/invitations")
     fun create(
@@ -81,7 +82,7 @@ class InvitationsController(
                 comment = body["company_comment"],
                 topics = stringList(body["discussion_topics"]),
                 companyName = store.objectValue(company["data"])["name"]?.toString().orEmpty(),
-                companyDetails = store.objectValue(company["data"]),
+                companyDetails = store.objectValue(company["data"]) + ("verification" to companyVerification.getPublicSummary(companyId)),
                 hiringPlan = validatedHiringPlan(body["hiring_plan"]),
             )
             val id = store.id()
@@ -251,6 +252,7 @@ class InvitationsController(
                 topics = stringList(body["discussion_topics"]),
                 companyName = oldSnapshot["company_name"]?.toString().orEmpty(),
                 companyDetails = mapOf(
+                    "verification" to oldSnapshot["company_verification"],
                     "industry" to oldSnapshot["company_industry"],
                     "contact_email" to oldSnapshot["company_contact_email"],
                     "contact_phone" to oldSnapshot["company_contact_phone"],
@@ -436,6 +438,7 @@ class InvitationsController(
         "company_comment" to comment,
         "discussion_topics" to topics,
         "company_name" to companyName,
+        "company_verification" to companyDetails["verification"],
         "company_industry" to companyDetails["industry"],
         "company_contact_email" to companyDetails["contact_email"],
         "company_contact_phone" to companyDetails["contact_phone"],
@@ -541,6 +544,7 @@ class InvitationsController(
             "expires_at" to row["expires_at"].asInstant().toString(),
             "updated_at" to row["updated_at"].asInstant().toString(),
             "company_name" to snapshot["company_name"],
+            "company_verification" to snapshot["company_verification"],
             "company_industry" to snapshot["company_industry"],
             "company_contact_email" to snapshot["company_contact_email"],
             "company_contact_phone" to snapshot["company_contact_phone"],

@@ -44,6 +44,12 @@
     },
     {
       "name": "Vacancies"
+    },
+    {
+      "name": "Company verification"
+    },
+    {
+      "name": "Operations"
     }
   ],
   "paths": {
@@ -11720,6 +11726,725 @@
           }
         ]
       }
+    },
+    "/me/company/verification": {
+      "get": {
+        "operationId": "get_my_company_verification",
+        "summary": "Get own company verification status",
+        "tags": [
+          "Company"
+        ],
+        "description": "Returns the public verification summary plus private details for the authenticated company owner. INN, owner email, and captured criteria appear only in the owner history.",
+        "responses": {
+          "200": {
+            "description": "Current public status and owner-only request history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompanyVerificationView"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or precondition failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/me/company/verification/requests": {
+      "post": {
+        "operationId": "request_company_verification",
+        "summary": "Request company verification",
+        "tags": [
+          "Company"
+        ],
+        "description": "Requires the current company version, valid INN and legal name, a verified owner email, and processing consent. Requests are idempotently reused for unchanged criteria.",
+        "requestBody": {
+          "required": true,
+          "description": "Request body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyVerificationRequestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Verification request queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompanyVerificationSubmitResult"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or precondition failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/me/company/verification/requests/{request_id}/registry-check": {
+      "post": {
+        "operationId": "check_company_registry",
+        "summary": "Check company details against the configured registry provider",
+        "tags": [
+          "Company"
+        ],
+        "description": "Optional server-configured provider check. The request version is required. Missing provider credentials produce an unavailable result; callers do not supply a URL or token.",
+        "requestBody": {
+          "required": true,
+          "description": "Request body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyVerificationRegistryCheckBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registry result recorded, or provider marked unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompanyVerificationSubmitResult"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or precondition failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ]
+      }
+    },
+    "/operations/company-verifications": {
+      "get": {
+        "operationId": "list_company_verification_queue",
+        "summary": "List company verification requests",
+        "tags": [
+          "Operations"
+        ],
+        "description": "Requires the company_review operational permission.",
+        "responses": {
+          "200": {
+            "description": "Requests available to an authorized company reviewer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompanyVerificationQueue"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/operations/company-verifications/{request_id}/review": {
+      "post": {
+        "operationId": "review_company_verification",
+        "summary": "Record an operator decision for a company",
+        "tags": [
+          "Operations"
+        ],
+        "description": "Requires company_review. Approval requires matching active registry evidence and explicit representative review. Operators cannot review their own company.",
+        "requestBody": {
+          "required": true,
+          "description": "Request body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyVerificationReviewBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review decision recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompanyVerificationReviewResult"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or precondition failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ]
+      }
+    },
+    "/operations/summary": {
+      "get": {
+        "operationId": "get_operations_summary",
+        "summary": "Get operational monitoring summary",
+        "tags": [
+          "Operations"
+        ],
+        "description": "Requires the monitor_read operational permission. Database-derived values are null when the snapshot cannot be read.",
+        "responses": {
+          "200": {
+            "description": "Process, HTTP, database, and outbox summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/OperationsSummary"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/operations/metrics": {
+      "get": {
+        "operationId": "get_operations_prometheus_metrics",
+        "summary": "Get Prometheus metrics",
+        "tags": [
+          "Operations"
+        ],
+        "description": "Requires monitor_read session access or a configured machine bearer token. Metrics labels use bounded route templates and fixed enums.",
+        "responses": {
+          "200": {
+            "description": "Prometheus text exposition format 0.0.4",
+            "content": {
+              "text/plain; version=0.0.4; charset=utf-8": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing monitoring credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Monitoring permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          },
+          {
+            "scrape_bearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -11728,6 +12453,11 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "fsp_session"
+      },
+      "scrape_bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "opaque configured token"
       }
     },
     "schemas": {
@@ -12496,6 +13226,17 @@
           },
           "methodist_access": {
             "type": "boolean"
+          },
+          "operations_permissions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "company_review",
+                "monitor_read"
+              ]
+            },
+            "uniqueItems": true
           }
         },
         "required": [
@@ -12584,6 +13325,32 @@
                 "type": "null"
               }
             ]
+          },
+          "inn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{10}(?:\\d{2})?$",
+                "maxLength": 12
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "legal_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verification": {
+            "$ref": "#/components/schemas/PublicCompanyVerificationSummary"
           }
         },
         "required": [
@@ -13921,6 +14688,16 @@
                 "type": "null"
               }
             ]
+          },
+          "company_verification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicCompanyVerificationSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -14450,6 +15227,29 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "inn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{10}(?:\\d{2})?$",
+                "maxLength": 12
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "legal_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
               },
               {
                 "type": "null"
@@ -19912,6 +20712,747 @@
         "required": [
           "data"
         ]
+      },
+      "PublicCompanyVerificationSummary": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "unverified",
+              "pending",
+              "registry_confirmed",
+              "reviewed",
+              "needs_changes",
+              "rejected",
+              "unavailable",
+              "expired",
+              "superseded",
+              "demo"
+            ]
+          },
+          "demo": {
+            "type": "boolean"
+          },
+          "checked_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "enum": [
+                    "registry",
+                    "legal_name",
+                    "corporate_email",
+                    "representative"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "passed",
+                    "failed",
+                    "unknown"
+                  ]
+                }
+              },
+              "required": [
+                "code",
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 3,
+            "maxItems": 4
+          },
+          "claims_legal_authority": {
+            "const": false
+          }
+        },
+        "required": [
+          "status",
+          "demo",
+          "checked_at",
+          "expires_at",
+          "company_version",
+          "checks",
+          "claims_legal_authority"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationSnapshot": {
+        "type": "object",
+        "properties": {
+          "inn": {
+            "type": "string",
+            "pattern": "^\\d{10}(?:\\d{2})?$",
+            "maxLength": 12
+          },
+          "legal_name": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "contact_email": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "owner_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "owner_email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "owner_email_verified": {
+            "type": "boolean"
+          },
+          "owner_processing_consent": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "inn",
+          "legal_name",
+          "website",
+          "contact_email",
+          "owner_id",
+          "owner_email",
+          "owner_email_verified",
+          "owner_processing_consent"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "company_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "company_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "criteria_current": {
+            "type": "boolean"
+          },
+          "criteria_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "registry_confirmed",
+              "reviewed",
+              "needs_changes",
+              "rejected",
+              "unavailable",
+              "superseded"
+            ]
+          },
+          "demo": {
+            "type": "boolean"
+          },
+          "inn": {
+            "type": "string",
+            "pattern": "^\\d{10}(?:\\d{2})?$",
+            "maxLength": 12
+          },
+          "legal_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/CompanyVerificationSnapshot"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checked_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "review_notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "company_id",
+          "company_version",
+          "criteria_current",
+          "criteria_hash",
+          "status",
+          "demo",
+          "inn",
+          "legal_name",
+          "snapshot",
+          "provider",
+          "source_type",
+          "source_label",
+          "source_reference",
+          "checked_at",
+          "expires_at",
+          "review_notes",
+          "created_at"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationOwnerSummary": {
+        "type": "object",
+        "properties": {
+          "company_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "current_status": {
+            "type": "string",
+            "enum": [
+              "unverified",
+              "pending",
+              "registry_confirmed",
+              "reviewed",
+              "needs_changes",
+              "rejected",
+              "unavailable",
+              "superseded"
+            ]
+          },
+          "criteria_current": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "company_version",
+          "current_status",
+          "criteria_current"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationOwnerView": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/CompanyVerificationOwnerSummary"
+          },
+          "current_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompanyVerificationRequest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanyVerificationRequest"
+            },
+            "maxItems": 20
+          }
+        },
+        "required": [
+          "summary",
+          "current_request",
+          "history"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationView": {
+        "type": "object",
+        "properties": {
+          "public": {
+            "$ref": "#/components/schemas/PublicCompanyVerificationSummary"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/CompanyVerificationOwnerView"
+          }
+        },
+        "required": [
+          "public",
+          "owner"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationSubmitResult": {
+        "type": "object",
+        "properties": {
+          "public": {
+            "$ref": "#/components/schemas/PublicCompanyVerificationSummary"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/CompanyVerificationOwnerView"
+          },
+          "current_request": {
+            "$ref": "#/components/schemas/CompanyVerificationRequest"
+          }
+        },
+        "required": [
+          "public",
+          "owner",
+          "current_request"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationReviewResult": {
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/CompanyVerificationRequest"
+          },
+          "public": {
+            "$ref": "#/components/schemas/PublicCompanyVerificationSummary"
+          }
+        },
+        "required": [
+          "request",
+          "public"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationQueue": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanyVerificationRequest"
+            },
+            "maxItems": 200
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationRequestBody": {
+        "type": "object",
+        "properties": {
+          "expected_company_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "expected_company_version"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationRegistryCheckBody": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationReviewBody": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "request_changes",
+              "reject"
+            ]
+          },
+          "evidence_reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "registry_inn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{10}(?:\\d{2})?$",
+                "maxLength": 12
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "registry_legal_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "registry_status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "LIQUIDATING",
+              "TERMINATED",
+              "UNKNOWN"
+            ]
+          },
+          "representative_reviewed": {
+            "type": "boolean"
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "expected_version",
+          "outcome",
+          "evidence_reference",
+          "registry_inn",
+          "registry_legal_name",
+          "registry_status",
+          "representative_reviewed",
+          "comment"
+        ],
+        "additionalProperties": false
+      },
+      "OperationsCountSnapshot": {
+        "type": "object",
+        "properties": {
+          "pending": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "delivered": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "failed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "discarded": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "pending",
+          "delivered",
+          "failed",
+          "discarded"
+        ],
+        "additionalProperties": false
+      },
+      "OperationsSummary": {
+        "type": "object",
+        "properties": {
+          "generated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "process": {
+            "type": "object",
+            "properties": {
+              "uptime_seconds": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "heap_used_bytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "heap_max_bytes": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "uptime_seconds",
+              "heap_used_bytes",
+              "heap_max_bytes"
+            ],
+            "additionalProperties": false
+          },
+          "database": {
+            "type": "object",
+            "properties": {
+              "available": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "available"
+            ],
+            "additionalProperties": false
+          },
+          "http": {
+            "type": "object",
+            "properties": {
+              "requests_total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "server_errors_total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "average_duration_seconds": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "requests_total",
+              "server_errors_total",
+              "average_duration_seconds"
+            ],
+            "additionalProperties": false
+          },
+          "outbox": {
+            "type": "object",
+            "properties": {
+              "worker_enabled": {
+                "type": "boolean"
+              },
+              "worker_last_tick_at": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Timestamp"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "counts": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/OperationsCountSnapshot"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "oldest_due_age_seconds": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "worker_enabled",
+              "worker_last_tick_at",
+              "counts",
+              "oldest_due_age_seconds"
+            ],
+            "additionalProperties": false
+          },
+          "upstream": {
+            "type": "object",
+            "properties": {
+              "dadata": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "timeout": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "error": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "success",
+                  "timeout",
+                  "error"
+                ],
+                "additionalProperties": false
+              },
+              "smtp": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "timeout": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "error": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "success",
+                      "timeout",
+                      "error"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "dadata",
+              "smtp"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "generated_at",
+          "process",
+          "database",
+          "http",
+          "outbox",
+          "upstream"
+        ],
+        "additionalProperties": false
       }
     }
   }

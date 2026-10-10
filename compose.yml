@@ -23,6 +23,8 @@ services:
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8080}
       SESSION_SECRET: ${SESSION_SECRET:-local-demo-session-secret-change-before-deploy-2026}
       FSP_DEMO_MODE: "true"
+      COMPANY_VERIFICATION_PROVIDER: ${COMPANY_VERIFICATION_PROVIDER:-manual}
+      DADATA_TOKEN: ${DADATA_TOKEN:-}
       SMTP_HOST: mailpit
       SMTP_PORT: "1025"
     command: ["java", "-jar", "/app/app.jar", "--fsp.seed-demo=true"]
