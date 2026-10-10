@@ -58,6 +58,7 @@ class ProfileService(
             "cities" to data.list("cities"),
             "desired_hours_per_week" to data["desired_hours_per_week"],
             "max_weekly_hours" to data["max_weekly_hours"],
+            "expected_salary" to data["expected_salary"],
             "skills" to skills,
             "experience_entries" to CandidateProfileEntries.experience(data),
             "project_entries" to CandidateProfileEntries.projects(data),
@@ -79,6 +80,7 @@ class ProfileService(
         }
         return mutations.run(request, "candidate:${actor.id}", body) {
             consents.requireProcessing(actor.id)
+            validateSalaryPreference(patch)
             validateProfileEntries(patch)
             updateProfile(actor.id, expected, patch)
             privateProfile(actor.id)
@@ -166,6 +168,18 @@ class ProfileService(
             if (end.isNotEmpty() && YearMonth.parse(start).isAfter(YearMonth.parse(end))) {
                 invalidEntries("Experience start_month must not follow end_month", "experience_entries")
             }
+        }
+    }
+
+    private fun validateSalaryPreference(patch: Map<String, Any?>) {
+        val salary = patch["expected_salary"] as? Map<*, *> ?: return
+        val minimum = (salary["min_kopecks"] as? Number)?.toLong()
+        val maximum = (salary["max_kopecks"] as? Number)?.toLong()
+        val hours = (salary["hours_per_week"] as? Number)?.toInt()
+        val fullTime = salary["workload_type"] == "full_time"
+        if (minimum == null || maximum == null || minimum <= 0 || maximum < minimum ||
+            hours == null || (fullTime && hours != 40) || (!fullTime && hours !in 1..39)) {
+            throw ApiException(400, "VALIDATION_ERROR", "Salary expectations must have an ordered positive monthly range and matching workload", "expected_salary")
         }
     }
 

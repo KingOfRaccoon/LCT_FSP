@@ -208,6 +208,8 @@ class IdentityService(
             "candidate_profile" to candidateProfile,
             "company" to company,
             "membership_role" to if (candidate) null else "owner",
+            "methodist_access" to ((user["email_verified_at"] != null) &&
+                (store.one("SELECT active FROM assessment_methodists WHERE user_id = :id", mapOf("id" to userId))?.get("active") == true)),
         )
     }
 

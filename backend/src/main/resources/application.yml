@@ -5,6 +5,10 @@ server:
     include-message: never
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 6MB
+      max-request-size: 7MB
   application:
     name: fsp-talent-backend
   datasource:

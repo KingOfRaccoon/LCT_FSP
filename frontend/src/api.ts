@@ -15,7 +15,7 @@ export type OwnContacts = Schemas['OwnContacts'];
 export type ContactBundle = Schemas['ContactBundle'];
 export type Grade = 'junior' | 'middle';
 export type SkillId = 'python-basics' | 'http-api' | 'sql-transactions' | 'reliability' | 'postgres' | 'docker' | 'fastapi';
-export type ApiPayload = Schemas['RegisterRequest'] | Schemas['ConfirmEmailRequest'] | Schemas['ResendConfirmationRequest'] | Schemas['LoginRequest'] | Schemas['CandidateProfilePatch'] | Schemas['VisibilityRequest'] | Schemas['OwnContactsPatch'] | Schemas['CompanyPatch'] | Schemas['FspLinkRequest'] | Schemas['CreateAttemptRequest'] | Schemas['AnswerRequest'] | Schemas['NeedCreateRequest'] | Schemas['NeedPatchRequest'] | Schemas['ConfirmCompetenciesRequest'] | Schemas['SearchRequest'] | Schemas['ShortlistCreateRequest'] | Schemas['ShortlistPatchRequest'] | Schemas['InvitationCreateRequest'] | Schemas['InvitationDecisionRequest'] | Schemas['InvitationSupersedeRequest'] | Schemas['CandidateComparisonRequest'] | Schemas['RecruitingRecordPutRequest'] | Schemas["CandidateBankSearchRequest"] | Schemas["ConsentMutationRequest"] | Schemas['InvitationMessageCreateRequest'] | Schemas['ShortTaskCreateRequest'] | Schemas['ShortTaskTransitionRequest'] | Schemas['ShortTaskAcceptRequest'] | Schemas['ShortTaskSubmissionRequest'] | Schemas['ShortTaskReviewRequest'] | Schemas['InvitationNextStepPutRequest'] | { expected_version: number };
+export type ApiPayload = Schemas['RegisterRequest'] | Schemas['ConfirmEmailRequest'] | Schemas['ResendConfirmationRequest'] | Schemas['LoginRequest'] | Schemas['CandidateProfilePatch'] | Schemas['VisibilityRequest'] | Schemas['OwnContactsPatch'] | Schemas['CompanyPatch'] | Schemas['FspLinkRequest'] | Schemas['CreateAttemptRequest'] | Schemas['AnswerRequest'] | Schemas['NeedCreateRequest'] | Schemas['NeedPatchRequest'] | Schemas['ConfirmCompetenciesRequest'] | Schemas['SearchRequest'] | Schemas['ShortlistCreateRequest'] | Schemas['ShortlistPatchRequest'] | Schemas['InvitationCreateRequest'] | Schemas['InvitationDecisionRequest'] | Schemas['InvitationSupersedeRequest'] | Schemas['CandidateComparisonRequest'] | Schemas['RecruitingRecordPutRequest'] | Schemas["CandidateBankSearchRequest"] | Schemas["ConsentMutationRequest"] | Schemas['InvitationMessageCreateRequest'] | Schemas['ShortTaskCreateRequest'] | Schemas['ShortTaskTransitionRequest'] | Schemas['ShortTaskAcceptRequest'] | Schemas['ShortTaskSubmissionRequest'] | Schemas['ShortTaskReviewRequest'] | Schemas['InvitationNextStepPutRequest'] | Schemas['MethodistDraftRequest'] | Schemas['MethodistDraftPatchRequest'] | Schemas['MethodistReviewRequest'] | Schemas['MethodistPilotRequest'] | { expected_version: number };
 
 type Envelope<T> = { data: T };
 type ApiError = { error?: { code?: string; message?: string; field?: string; retryable?: boolean; eligible_at?: string | null; active_attempt_id?: string | null } };
@@ -94,8 +94,9 @@ export function rotateCsrf(): void {
   csrfPromise = undefined;
 }
 
-async function send<T>(path: string, method: string, payload?: ApiPayload, idempotencyKey?: string): Promise<T> {
+async function send<T>(path: string, method: string, payload?: ApiPayload | FormData, idempotencyKey?: string): Promise<T> {
   const mutating = !['GET', 'HEAD'].includes(method);
+    const multipart = payload instanceof FormData;
   const key = mutating ? (idempotencyKey ?? generateUUID()) : undefined;
   let attempts = 0;
   while (true) {
@@ -106,11 +107,11 @@ async function send<T>(path: string, method: string, payload?: ApiPayload, idemp
         credentials: 'include',
         headers: {
           Accept: 'application/json',
-          ...(payload === undefined ? {} : { 'Content-Type': 'application/json' }),
+          ...(payload === undefined || multipart ? {} : { 'Content-Type': 'application/json' }),
           ...(token ? { 'X-CSRF-Token': token } : {}),
           ...(key ? { 'Idempotency-Key': key } : {}),
         },
-        ...(payload === undefined ? {} : { body: JSON.stringify(payload) }),
+        ...(payload === undefined ? {} : { body: multipart ? payload : JSON.stringify(payload) }),
       });
       if (response.status === 204) return undefined as T;
       const body = (await response.json()) as Envelope<T> | ApiError;
@@ -143,6 +144,7 @@ async function send<T>(path: string, method: string, payload?: ApiPayload, idemp
 }
 
 export const api = {
+  upload: <T>(path: string, body: FormData, idempotencyKey?: string) => send<T>(path, 'POST', body, idempotencyKey),
   get: <T>(path: string) => send<T>(path, 'GET'),
   post: <T>(path: string, body?: ApiPayload, idempotencyKey?: string) => send<T>(path, 'POST', body, idempotencyKey),
   put: <T>(path: string, body: ApiPayload, idempotencyKey?: string) => send<T>(path, 'PUT', body, idempotencyKey),

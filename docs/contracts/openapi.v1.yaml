@@ -9131,6 +9131,1470 @@
           }
         ]
       }
+    },
+    "/me/resume/import": {
+      "post": {
+        "tags": [
+          "Adoption"
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ResumeImportDraft"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Resume PDF exceeds the permitted size",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "post_me_resume_import",
+        "summary": "post me resume import",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Text PDF <=5 MiB, <=20 pages; encrypted/scanned files rejected, never persisted."
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/needs/{need_id}/insights": {
+      "get": {
+        "tags": [
+          "Adoption"
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NeedInsights"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "get_needs_need_id_insights",
+        "summary": "get needs need id insights",
+        "parameters": [
+          {
+            "name": "need_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "expected_version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/methodist/drafts": {
+      "get": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistDraftList"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "get_methodist_drafts",
+        "summary": "get methodist drafts",
+        "parameters": []
+      },
+      "post": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistDraft"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "post_methodist_drafts",
+        "summary": "post methodist drafts",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 16
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodistDraftRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/methodist/drafts/{draft_id}": {
+      "patch": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistDraft"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "patch_methodist_drafts_draft_id",
+        "summary": "patch methodist drafts draft id",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 16
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodistDraftPatchRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/methodist/drafts/{draft_id}/review": {
+      "post": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistDraft"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "post_methodist_drafts_draft_id_review",
+        "summary": "post methodist drafts draft id review",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 16
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodistReviewRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/methodist/drafts/{draft_id}/pilot": {
+      "post": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistPilotReceipt"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "post_methodist_drafts_draft_id_pilot",
+        "summary": "post methodist drafts draft id pilot",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 16
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodistPilotRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/methodist/drafts/{draft_id}/pilot-report": {
+      "get": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistPilotReport"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "get_methodist_drafts_draft_id_pilot_report",
+        "summary": "get methodist drafts draft id pilot report",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ]
+      }
+    },
+    "/methodist/drafts/{draft_id}/export": {
+      "get": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistDraftExport"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "get_methodist_drafts_draft_id_export",
+        "summary": "get methodist drafts draft id export",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ]
+      }
+    },
+    "/methodist/bank/monitor": {
+      "get": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistBankMonitor"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "get_methodist_bank_monitor",
+        "summary": "get methodist bank monitor",
+        "parameters": []
+      }
     }
   },
   "components": {
@@ -9537,6 +11001,16 @@
             },
             "maxItems": 10,
             "uniqueItems": true
+          },
+          "expected_salary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MoneyRange"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -9888,6 +11362,9 @@
                 "type": "null"
               }
             ]
+          },
+          "methodist_access": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -9897,7 +11374,8 @@
           "account_type",
           "candidate_profile",
           "company",
-          "membership_role"
+          "membership_role",
+          "methodist_access"
         ],
         "additionalProperties": false
       },
@@ -11695,6 +13173,16 @@
             },
             "maxItems": 10,
             "uniqueItems": true
+          },
+          "expected_salary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MoneyRange"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -15071,6 +16559,1265 @@
         },
         "required": [
           "data"
+        ],
+        "additionalProperties": false
+      },
+      "ResumeCandidatePatch": {
+        "type": "object",
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "headline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "minItems": 0,
+            "maxItems": 30
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "python-basics",
+                "http-api",
+                "sql-transactions",
+                "reliability",
+                "postgres",
+                "docker",
+                "fastapi"
+              ]
+            },
+            "minItems": 0,
+            "maxItems": 20
+          },
+          "experience_entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExperienceEntryInput"
+            },
+            "minItems": 0,
+            "maxItems": 10
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "ResumeImportDraft": {
+        "type": "object",
+        "properties": {
+          "candidate_patch": {
+            "$ref": "#/components/schemas/ResumeCandidatePatch"
+          },
+          "suggestions": {
+            "type": "object",
+            "properties": {
+              "contacts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "email",
+                        "phone"
+                      ]
+                    },
+                    "value": {
+                      "type": "string",
+                      "maxLength": 254
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 20
+              }
+            },
+            "required": [
+              "contacts"
+            ],
+            "additionalProperties": false
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "maxItems": 30
+          },
+          "needs_review": {
+            "const": true
+          }
+        },
+        "required": [
+          "candidate_patch",
+          "suggestions",
+          "warnings",
+          "needs_review"
+        ],
+        "additionalProperties": false
+      },
+      "NeedInsights": {
+        "type": "object",
+        "properties": {
+          "need_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "need_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "generated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "policy_version": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "scope": {
+            "const": "current_visible_platform_profiles"
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "profile_pool": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "confirmed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "needs_clarification": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "needs_confirmation": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "excluded": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "demo": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "profile_pool",
+              "confirmed",
+              "needs_clarification",
+              "needs_confirmation",
+              "excluded",
+              "demo"
+            ],
+            "additionalProperties": false
+          },
+          "mandatory_requirements": {
+            "type": "object",
+            "properties": {
+              "unknown_test_evidence_pairs": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "blocked_by_matching_policy_count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "unknown_test_evidence_pairs",
+              "blocked_by_matching_policy_count"
+            ],
+            "additionalProperties": false
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "skill_id": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "importance": {
+                  "type": "string",
+                  "enum": [
+                    "required",
+                    "preferred"
+                  ]
+                },
+                "test_confirmed_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "declared_only_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "no_skill_signal_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "additional_confirmed_matches_if_relaxed": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "skill_id",
+                "importance",
+                "test_confirmed_count",
+                "declared_only_count",
+                "no_skill_signal_count",
+                "additional_confirmed_matches_if_relaxed"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "salary": {
+            "type": "object",
+            "properties": {
+              "known_count": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "compatible_count": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "unknown_count": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "incompatible_count": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "within_range_count": {
+                "type": "null"
+              },
+              "median_min_kopecks": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "median_max_kopecks": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "low_sample": {
+                "type": "boolean"
+              },
+              "scope": {
+                "const": "fixed_visible_specialization_grade_cohort"
+              },
+              "summary_available": {
+                "type": "boolean"
+              },
+              "range_count_available": {
+                "const": false
+              },
+              "range_count_suppression_reason": {
+                "const": "privacy_protected"
+              }
+            },
+            "required": [
+              "known_count",
+              "compatible_count",
+              "unknown_count",
+              "incompatible_count",
+              "within_range_count",
+              "median_min_kopecks",
+              "median_max_kopecks",
+              "low_sample",
+              "scope",
+              "summary_available",
+              "range_count_available",
+              "range_count_suppression_reason"
+            ],
+            "additionalProperties": false,
+            "description": "Fixed visible specialization/grade cohort, independent of employer-selected skills/location/mode. No count for arbitrary salary ranges. Summary null below five compatible declarations; medians rounded to 10,000 RUB."
+          }
+        },
+        "required": [
+          "need_id",
+          "need_version",
+          "generated_at",
+          "policy_version",
+          "scope",
+          "counts",
+          "mandatory_requirements",
+          "requirements",
+          "salary"
+        ],
+        "additionalProperties": false,
+        "description": "Aggregate of current visible profiles in target specialization/category. Counterfactual counts newly confirmed-fit matches after relaxing one requirement, not newly awarded qualifications. Salary summaries cover matching-eligible profiles only, comparable currency/period/basis/workload, medians null for n<5."
+      },
+      "MethodistDraftRequest": {
+        "type": "object",
+        "properties": {
+          "source_title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "source_reference": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1
+          },
+          "source_excerpt": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "competency_id": {
+            "type": "string",
+            "enum": [
+              "python-basics",
+              "http-api",
+              "sql-transactions",
+              "reliability"
+            ]
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 1000,
+              "minLength": 1
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "uniqueItems": true
+          },
+          "correct_option": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "rubric": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "source_title",
+          "source_reference",
+          "source_excerpt",
+          "competency_id",
+          "grade",
+          "question",
+          "options",
+          "correct_option",
+          "rubric"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistDraftPatchRequest": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "source_title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "source_reference": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1
+          },
+          "source_excerpt": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "competency_id": {
+            "type": "string",
+            "enum": [
+              "python-basics",
+              "http-api",
+              "sql-transactions",
+              "reliability"
+            ]
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 1000,
+              "minLength": 1
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "uniqueItems": true
+          },
+          "correct_option": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "rubric": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_version",
+          "source_title",
+          "source_reference",
+          "source_excerpt",
+          "competency_id",
+          "grade",
+          "question",
+          "options",
+          "correct_option",
+          "rubric"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistReviewRequest": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "changes_requested",
+              "rejected"
+            ]
+          },
+          "marks": {
+            "type": "object",
+            "properties": {
+              "relevance": {
+                "type": "boolean"
+              },
+              "level": {
+                "type": "boolean"
+              },
+              "clarity": {
+                "type": "boolean"
+              },
+              "correctness": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "relevance",
+              "level",
+              "clarity",
+              "correctness"
+            ],
+            "additionalProperties": false
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "expected_version",
+          "outcome",
+          "marks",
+          "comment"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistPilotRequest": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "observations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string",
+                  "enum": [
+                    "synthetic",
+                    "pilot_record"
+                  ]
+                },
+                "correct": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "source",
+                "correct"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 500,
+            "minItems": 1
+          }
+        },
+        "required": [
+          "expected_version",
+          "observations"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistDraft": {
+        "type": "object",
+        "properties": {
+          "source_title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "source_reference": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1
+          },
+          "source_excerpt": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "competency_id": {
+            "type": "string",
+            "enum": [
+              "python-basics",
+              "http-api",
+              "sql-transactions",
+              "reliability"
+            ]
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 1000,
+              "minLength": 1
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "uniqueItems": true
+          },
+          "correct_option": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "rubric": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1
+          },
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "approved",
+              "changes_requested",
+              "rejected"
+            ]
+          },
+          "review": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "actor_id": {
+                    "$ref": "#/components/schemas/UUID"
+                  },
+                  "outcome": {
+                    "type": "string",
+                    "enum": [
+                      "approved",
+                      "changes_requested",
+                      "rejected"
+                    ]
+                  },
+                  "marks": {
+                    "type": "object",
+                    "properties": {
+                      "relevance": {
+                        "type": "boolean"
+                      },
+                      "level": {
+                        "type": "boolean"
+                      },
+                      "clarity": {
+                        "type": "boolean"
+                      },
+                      "correctness": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "relevance",
+                      "level",
+                      "clarity",
+                      "correctness"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "comment": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "reviewed_at": {
+                    "$ref": "#/components/schemas/Timestamp"
+                  }
+                },
+                "required": [
+                  "actor_id",
+                  "outcome",
+                  "marks",
+                  "comment",
+                  "reviewed_at"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "source_title",
+          "source_reference",
+          "source_excerpt",
+          "competency_id",
+          "grade",
+          "question",
+          "options",
+          "correct_option",
+          "rubric",
+          "id",
+          "version",
+          "status",
+          "review"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistDraftList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MethodistDraft"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistPilotReceipt": {
+        "type": "object",
+        "properties": {
+          "draft_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "accepted_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "draft_id",
+          "version",
+          "accepted_count"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistPilotReport": {
+        "type": "object",
+        "properties": {
+          "draft_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "approved",
+              "changes_requested",
+              "rejected"
+            ]
+          },
+          "source_title": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "sample_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "correct_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_counts": {
+            "type": "object",
+            "properties": {
+              "synthetic": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "pilot_record": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "synthetic",
+              "pilot_record"
+            ],
+            "additionalProperties": false
+          },
+          "accuracy_by_source": {
+            "type": "object",
+            "properties": {
+              "synthetic": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "pilot_record": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "synthetic",
+              "pilot_record"
+            ],
+            "additionalProperties": false
+          },
+          "minimum_sample_for_statistics": {
+            "const": 10
+          },
+          "evidence_sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "synthetic",
+                "pilot_record"
+              ]
+            }
+          },
+          "human_results_claimed": {
+            "const": false
+          }
+        },
+        "required": [
+          "draft_id",
+          "version",
+          "status",
+          "source_title",
+          "sample_count",
+          "correct_count",
+          "accuracy",
+          "source_counts",
+          "accuracy_by_source",
+          "minimum_sample_for_statistics",
+          "evidence_sources",
+          "human_results_claimed"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistDraftExport": {
+        "type": "object",
+        "properties": {
+          "draft_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "candidate_form": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "const": "draft-v1"
+              },
+              "source": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 2048
+                  }
+                },
+                "required": [
+                  "title",
+                  "reference"
+                ],
+                "additionalProperties": false
+              },
+              "competency_id": {
+                "type": "string",
+                "enum": [
+                  "python-basics",
+                  "http-api",
+                  "sql-transactions",
+                  "reliability"
+                ]
+              },
+              "grade": {
+                "type": "string",
+                "enum": [
+                  "junior",
+                  "middle"
+                ]
+              },
+              "question": {
+                "type": "string",
+                "maxLength": 5000,
+                "minLength": 1
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 1000,
+                  "minLength": 1
+                },
+                "maxItems": 4,
+                "minItems": 4,
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "format",
+              "source",
+              "competency_id",
+              "grade",
+              "question",
+              "options"
+            ],
+            "additionalProperties": false
+          },
+          "private_answer_key": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "const": "draft-v1"
+              },
+              "draft_id": {
+                "$ref": "#/components/schemas/UUID"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "correct_option": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 3
+              },
+              "source_excerpt": {
+                "type": "string",
+                "maxLength": 5000
+              },
+              "rubric": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "required": [
+              "format",
+              "draft_id",
+              "version",
+              "correct_option",
+              "source_excerpt",
+              "rubric"
+            ],
+            "additionalProperties": false
+          },
+          "live_bank_published": {
+            "const": false
+          }
+        },
+        "required": [
+          "draft_id",
+          "version",
+          "candidate_form",
+          "private_answer_key",
+          "live_bank_published"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistBankMonitor": {
+        "type": "object",
+        "properties": {
+          "bank_version": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "families_total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "coverage": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "grade": {
+                  "type": "string",
+                  "enum": [
+                    "junior",
+                    "middle"
+                  ]
+                },
+                "competency_id": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "families_total": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "families_exposed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "exposure_count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "grade",
+                "competency_id",
+                "families_total",
+                "families_exposed",
+                "exposure_count"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "repeated_use": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "grade": {
+                  "type": "string",
+                  "enum": [
+                    "junior",
+                    "middle"
+                  ]
+                },
+                "competency_id": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "family_id": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "exposure_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "variant_exposures": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "variant_id": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "exposure_count": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "variant_id",
+                      "exposure_count"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "repeated_use": {
+                  "type": "boolean"
+                },
+                "review_required": {
+                  "type": "boolean"
+                },
+                "review_signal": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "grade",
+                "competency_id",
+                "family_id",
+                "exposure_count",
+                "variant_exposures",
+                "repeated_use",
+                "review_required",
+                "review_signal"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "difficulty_windows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "window": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "grade": {
+                  "type": "string",
+                  "enum": [
+                    "junior",
+                    "middle"
+                  ]
+                },
+                "sample_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "mean_total_score": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "mean_block_scores": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "review_required": {
+                  "type": "boolean"
+                },
+                "review_signal": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "interpretation": {
+                  "type": "string",
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "window",
+                "grade",
+                "sample_count",
+                "mean_total_score",
+                "mean_block_scores",
+                "review_required",
+                "review_signal",
+                "interpretation"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "answer_keys_included": {
+            "const": false
+          },
+          "person_or_attempt_data_included": {
+            "const": false
+          }
+        },
+        "required": [
+          "bank_version",
+          "families_total",
+          "coverage",
+          "repeated_use",
+          "difficulty_windows",
+          "answer_keys_included",
+          "person_or_attempt_data_included"
         ],
         "additionalProperties": false
       }

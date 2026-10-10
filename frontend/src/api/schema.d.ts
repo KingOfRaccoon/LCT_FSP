@@ -1106,6 +1106,160 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/resume/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** post me resume import */
+        post: operations["post_me_resume_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/needs/{need_id}/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get needs need id insights */
+        get: operations["get_needs_need_id_insights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/methodist/drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get methodist drafts */
+        get: operations["get_methodist_drafts"];
+        put?: never;
+        /** post methodist drafts */
+        post: operations["post_methodist_drafts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/methodist/drafts/{draft_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** patch methodist drafts draft id */
+        patch: operations["patch_methodist_drafts_draft_id"];
+        trace?: never;
+    };
+    "/methodist/drafts/{draft_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** post methodist drafts draft id review */
+        post: operations["post_methodist_drafts_draft_id_review"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/methodist/drafts/{draft_id}/pilot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** post methodist drafts draft id pilot */
+        post: operations["post_methodist_drafts_draft_id_pilot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/methodist/drafts/{draft_id}/pilot-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get methodist drafts draft id pilot report */
+        get: operations["get_methodist_drafts_draft_id_pilot_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/methodist/drafts/{draft_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get methodist drafts draft id export */
+        get: operations["get_methodist_drafts_draft_id_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/methodist/bank/monitor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get methodist bank monitor */
+        get: operations["get_methodist_bank_monitor"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1174,6 +1328,7 @@ export interface components {
             industry?: string | null;
             role_preferences?: string[];
             soft_skills?: string[];
+            expected_salary?: components["schemas"]["MoneyRange"] | null;
         };
         CandidatePublic: {
             id: components["schemas"]["UUID"];
@@ -1225,6 +1380,7 @@ export interface components {
             candidate_profile: components["schemas"]["CandidatePrivate"] | null;
             company: components["schemas"]["Company"] | null;
             membership_role: "owner" | null;
+            methodist_access: boolean;
         };
         Company: {
             id: components["schemas"]["UUID"];
@@ -1576,6 +1732,7 @@ export interface components {
             industry?: string | null;
             role_preferences?: string[];
             soft_skills?: string[];
+            expected_salary?: components["schemas"]["MoneyRange"] | null;
         };
         VisibilityRequest: {
             expected_version: number;
@@ -2231,6 +2388,254 @@ export interface components {
         };
         NextStepQueuePageEnvelope: {
             data: components["schemas"]["NextStepQueuePage"];
+        };
+        ResumeCandidatePatch: {
+            display_name?: string;
+            headline?: string | null;
+            cities?: string[];
+            skills?: ("python-basics" | "http-api" | "sql-transactions" | "reliability" | "postgres" | "docker" | "fastapi")[];
+            experience_entries?: components["schemas"]["ExperienceEntryInput"][];
+        };
+        ResumeImportDraft: {
+            candidate_patch: components["schemas"]["ResumeCandidatePatch"];
+            suggestions: {
+                contacts: {
+                    /** @enum {string} */
+                    type: "email" | "phone";
+                    value: string;
+                }[];
+            };
+            warnings: string[];
+            /** @constant */
+            needs_review: true;
+        };
+        /** @description Aggregate of current visible profiles in target specialization/category. Counterfactual counts newly confirmed-fit matches after relaxing one requirement, not newly awarded qualifications. Salary summaries cover matching-eligible profiles only, comparable currency/period/basis/workload, medians null for n<5. */
+        NeedInsights: {
+            need_id: components["schemas"]["UUID"];
+            need_version: number;
+            generated_at: components["schemas"]["Timestamp"];
+            policy_version: string;
+            /** @constant */
+            scope: "current_visible_platform_profiles";
+            counts: {
+                profile_pool: number;
+                confirmed: number;
+                needs_clarification: number;
+                needs_confirmation: number;
+                excluded: number;
+                demo: number;
+            };
+            mandatory_requirements: {
+                unknown_test_evidence_pairs: number;
+                blocked_by_matching_policy_count: number;
+            };
+            requirements: {
+                skill_id: string;
+                /** @enum {string} */
+                importance: "required" | "preferred";
+                test_confirmed_count: number;
+                declared_only_count: number;
+                no_skill_signal_count: number;
+                additional_confirmed_matches_if_relaxed: number;
+            }[];
+            /** @description Fixed visible specialization/grade cohort, independent of employer-selected skills/location/mode. No count for arbitrary salary ranges. Summary null below five compatible declarations; medians rounded to 10,000 RUB. */
+            salary: {
+                known_count: number | null;
+                compatible_count: number | null;
+                unknown_count: number | null;
+                incompatible_count: number | null;
+                within_range_count: null;
+                median_min_kopecks: number | null;
+                median_max_kopecks: number | null;
+                low_sample: boolean;
+                /** @constant */
+                scope: "fixed_visible_specialization_grade_cohort";
+                summary_available: boolean;
+                /** @constant */
+                range_count_available: false;
+                /** @constant */
+                range_count_suppression_reason: "privacy_protected";
+            };
+        };
+        MethodistDraftRequest: {
+            source_title: string;
+            source_reference: string;
+            source_excerpt: string;
+            /** @enum {string} */
+            competency_id: "python-basics" | "http-api" | "sql-transactions" | "reliability";
+            /** @enum {string} */
+            grade: "junior" | "middle";
+            question: string;
+            options: string[];
+            correct_option: number;
+            rubric: string;
+        };
+        MethodistDraftPatchRequest: {
+            expected_version: number;
+            source_title: string;
+            source_reference: string;
+            source_excerpt: string;
+            /** @enum {string} */
+            competency_id: "python-basics" | "http-api" | "sql-transactions" | "reliability";
+            /** @enum {string} */
+            grade: "junior" | "middle";
+            question: string;
+            options: string[];
+            correct_option: number;
+            rubric: string;
+        };
+        MethodistReviewRequest: {
+            expected_version: number;
+            /** @enum {string} */
+            outcome: "approved" | "changes_requested" | "rejected";
+            marks: {
+                relevance: boolean;
+                level: boolean;
+                clarity: boolean;
+                correctness: boolean;
+            };
+            comment: string;
+        };
+        MethodistPilotRequest: {
+            expected_version: number;
+            observations: {
+                /** @enum {string} */
+                source: "synthetic" | "pilot_record";
+                correct: boolean;
+            }[];
+        };
+        MethodistDraft: {
+            source_title: string;
+            source_reference: string;
+            source_excerpt: string;
+            /** @enum {string} */
+            competency_id: "python-basics" | "http-api" | "sql-transactions" | "reliability";
+            /** @enum {string} */
+            grade: "junior" | "middle";
+            question: string;
+            options: string[];
+            correct_option: number;
+            rubric: string;
+            id: components["schemas"]["UUID"];
+            version: number;
+            /** @enum {string} */
+            status: "draft" | "approved" | "changes_requested" | "rejected";
+            review: {
+                actor_id: components["schemas"]["UUID"];
+                /** @enum {string} */
+                outcome: "approved" | "changes_requested" | "rejected";
+                marks: {
+                    relevance: boolean;
+                    level: boolean;
+                    clarity: boolean;
+                    correctness: boolean;
+                };
+                comment: string;
+                reviewed_at: components["schemas"]["Timestamp"];
+            } | null;
+        };
+        MethodistDraftList: {
+            items: components["schemas"]["MethodistDraft"][];
+        };
+        MethodistPilotReceipt: {
+            draft_id: components["schemas"]["UUID"];
+            version: number;
+            accepted_count: number;
+        };
+        MethodistPilotReport: {
+            draft_id: components["schemas"]["UUID"];
+            version: number;
+            /** @enum {string} */
+            status: "draft" | "approved" | "changes_requested" | "rejected";
+            source_title: string;
+            sample_count: number;
+            correct_count: number;
+            accuracy: number | null;
+            source_counts: {
+                synthetic: number;
+                pilot_record: number;
+            };
+            accuracy_by_source: {
+                synthetic: number | null;
+                pilot_record: number | null;
+            };
+            /** @constant */
+            minimum_sample_for_statistics: 10;
+            evidence_sources: ("synthetic" | "pilot_record")[];
+            /** @constant */
+            human_results_claimed: false;
+        };
+        MethodistDraftExport: {
+            draft_id: components["schemas"]["UUID"];
+            version: number;
+            candidate_form: {
+                /** @constant */
+                format: "draft-v1";
+                source: {
+                    title: string;
+                    reference: string;
+                };
+                /** @enum {string} */
+                competency_id: "python-basics" | "http-api" | "sql-transactions" | "reliability";
+                /** @enum {string} */
+                grade: "junior" | "middle";
+                question: string;
+                options: string[];
+            };
+            private_answer_key: {
+                /** @constant */
+                format: "draft-v1";
+                draft_id: components["schemas"]["UUID"];
+                version: number;
+                correct_option: number;
+                source_excerpt: string;
+                rubric: string;
+            };
+            /** @constant */
+            live_bank_published: false;
+        };
+        MethodistBankMonitor: {
+            bank_version: string;
+            families_total: number;
+            coverage: {
+                /** @enum {string} */
+                grade: "junior" | "middle";
+                competency_id: string;
+                families_total: number;
+                families_exposed: number;
+                exposure_count: number;
+            }[];
+            repeated_use: {
+                /** @enum {string} */
+                grade: "junior" | "middle";
+                competency_id: string;
+                family_id: string;
+                exposure_count: number;
+                variant_exposures: {
+                    variant_id: string;
+                    exposure_count: number;
+                }[];
+                repeated_use: boolean;
+                review_required: boolean;
+                review_signal: string | null;
+            }[];
+            difficulty_windows: {
+                window: string;
+                /** @enum {string} */
+                grade: "junior" | "middle";
+                sample_count: number;
+                mean_total_score: number | null;
+                mean_block_scores: {
+                    [key: string]: number | null;
+                };
+                review_required: boolean;
+                review_signal: string | null;
+                interpretation: string;
+            }[];
+            /** @constant */
+            answer_keys_included: false;
+            /** @constant */
+            person_or_attempt_data_included: false;
         };
     };
     responses: never;
@@ -8577,6 +8982,1029 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    post_me_resume_import: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Text PDF <=5 MiB, <=20 pages; encrypted/scanned files rejected, never persisted.
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ResumeImportDraft"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Resume PDF exceeds the permitted size */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or email-verification precondition */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    /** @description Seconds until the caller may retry. */
+                    "Retry-After"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_needs_need_id_insights: {
+        parameters: {
+            query?: {
+                expected_version?: number;
+            };
+            header?: never;
+            path: {
+                need_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["NeedInsights"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or email-verification precondition */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    /** @description Seconds until the caller may retry. */
+                    "Retry-After"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_methodist_drafts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MethodistDraftList"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or email-verification precondition */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    /** @description Seconds until the caller may retry. */
+                    "Retry-After"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    post_methodist_drafts: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MethodistDraftRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MethodistDraft"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or email-verification precondition */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    /** @description Seconds until the caller may retry. */
+                    "Retry-After"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    patch_methodist_drafts_draft_id: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": string;
+            };
+            path: {
+                draft_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MethodistDraftPatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MethodistDraft"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or email-verification precondition */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    /** @description Seconds until the caller may retry. */
+                    "Retry-After"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    post_methodist_drafts_draft_id_review: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": string;
+            };
+            path: {
+                draft_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MethodistReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MethodistDraft"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or email-verification precondition */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    /** @description Seconds until the caller may retry. */
+                    "Retry-After"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    post_methodist_drafts_draft_id_pilot: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": string;
+            };
+            path: {
+                draft_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MethodistPilotRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MethodistPilotReceipt"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or email-verification precondition */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    /** @description Seconds until the caller may retry. */
+                    "Retry-After"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_methodist_drafts_draft_id_pilot_report: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MethodistPilotReport"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or email-verification precondition */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    /** @description Seconds until the caller may retry. */
+                    "Retry-After"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_methodist_drafts_draft_id_export: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MethodistDraftExport"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or email-verification precondition */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    /** @description Seconds until the caller may retry. */
+                    "Retry-After"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_methodist_bank_monitor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MethodistBankMonitor"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or email-verification precondition */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    /** @description Seconds until the caller may retry. */
+                    "Retry-After"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
             };
         };
     };
