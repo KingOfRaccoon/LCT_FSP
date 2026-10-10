@@ -101,7 +101,7 @@ class OutboxDeliveryIntegrationTest : DbTestBase() {
         sender.failAll = true
 
         repeat(5) { attempt ->
-            if (attempt > 0) jdbc.update("UPDATE outbox_events SET next_attempt_at=now() WHERE id::text=?", jobId)
+            if (attempt > 0) jdbc.update("UPDATE outbox_events SET next_attempt_at=now() - interval '5 seconds' WHERE id::text=?", jobId)
             assertTrue(worker.deliverOne())
         }
 
@@ -132,7 +132,7 @@ class OutboxDeliveryIntegrationTest : DbTestBase() {
             verificationId, userId, email, SessionSupport.digest(token), if (used) java.sql.Timestamp.from(Instant.now()) else null,
         )
         jdbc.update(
-            "INSERT INTO outbox_events(id, type, payload) VALUES (?::uuid, 'email_verification', ?::jsonb)",
+            "INSERT INTO outbox_events(id, type, payload, next_attempt_at) VALUES (?::uuid, 'email_verification', ?::jsonb, now() - interval '5 seconds')",
             jobId, objectMapper.writeValueAsString(mapOf("verification_id" to verificationId)),
         )
         return verificationId to jobId

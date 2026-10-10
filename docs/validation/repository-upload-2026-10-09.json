@@ -1,12 +1,12 @@
 {
   "backend": {
-    "tests": 140,
+    "tests": 156,
     "failures": 0,
     "errors": 0,
     "skipped": 0
   },
   "frontend": {
-    "tests": 38,
+    "tests": 87,
     "failures": 0
   },
   "frontend_build": "passed",
