@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { api, errorMessage, RequestError, type ApiPayload, type Candidate, type Need, type Schemas } from '../../api';
 import { canReviewShortTask, canRevokeTaskSharing, canShowTaskResults, createPendingRequest, flattenMatchCandidates, taskValidationErrors } from './task-helpers';
+import { CodeSandboxModal } from './CodeSandboxModal';
 import './extensions.css';
 
 type Role = 'candidate' | 'employer';
@@ -57,6 +58,7 @@ export function AddressTasksPage({ role }: { role: Role }) {
   const [reviewScores, setReviewScores] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState('');
   const [candidateFilter, setCandidateFilter] = useState('');
+  const [sandboxOpen, setSandboxOpen] = useState(false);
   const prefilledCandidateId = useRef(searchParams.get('candidate_id') ?? '');
   const matchRequestGeneration = useRef(0);
   const candidateRequestGeneration = useRef(0);
@@ -282,7 +284,27 @@ export function AddressTasksPage({ role }: { role: Role }) {
         {role === 'employer' && selectedTask.solution && <section className="extension-task-solution"><h3>Решение кандидата</h3><p>{selectedTask.solution}</p><small>Текст отображается с серверной фильтрацией контактных данных.</small></section>}
         {role === 'candidate' && selectedTask.solution && <section className="extension-task-solution"><h3>Ваше отправленное решение</h3><p>{selectedTask.solution}</p></section>}
         {role === 'candidate' && selectedTask.status === 'offered' && <div className="extension-task-actions"><button type="button" className="button button-secondary" disabled={saving} onClick={() => decline(selectedTask)}>Отказаться</button><button type="button" className="button button-primary" disabled={saving} onClick={() => accept(selectedTask)}>Принимаю задачу и уведомление</button></div>}
-        {role === 'candidate' && selectedTask.status === 'accepted' && !selectedTask.sharing_revoked_at && <form className="extension-submit-solution" onSubmit={submitSolution}><label className="field"><span>Ваш ответ</span><textarea value={solution} onChange={(event) => setSolution(event.target.value)} maxLength={20000} rows={7} required aria-describedby={'solution-hint-' + selectedTask.id} /><small id={'solution-hint-' + selectedTask.id}>До 20&nbsp;000 символов. Не включайте контакты или персональные данные.</small></label><label className="extension-consent"><input type="checkbox" checked={confirmReadyToSubmit} onChange={(event) => setConfirmReadyToSubmit(event.target.checked)} /><span>Я проверил решение и готов отправить его по ранее принятым условиям передачи</span></label><button type="submit" className="button button-primary" disabled={saving || !confirmReadyToSubmit || !solution.trim()}>{saving ? 'Отправляем…' : 'Отправить решение'}</button></form>}
+        {role === 'candidate' && selectedTask.status === 'accepted' && !selectedTask.sharing_revoked_at && <>
+          <div style={{ marginBottom: '1rem', padding: '0.85rem', background: 'var(--surface-subtle, rgba(255,255,255,0.03))', borderRadius: '8px', border: '1px solid var(--border-subtle, rgba(255,255,255,0.08))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+            <div>
+              <strong style={{ display: 'block', fontSize: '0.95rem' }}>Интерактивная песочница (Code Sandbox)</strong>
+              <small style={{ color: 'var(--muted, #888)' }}>Напишите код на Python и запустите автоматические тесты перед отправкой решения компании.</small>
+            </div>
+            <button type="button" className="button button-secondary" onClick={() => setSandboxOpen(true)}>
+              💻 Запустить песочницу и тесты
+            </button>
+          </div>
+          {sandboxOpen && <CodeSandboxModal
+            taskTitle={selectedTask.title}
+            taskDescription={selectedTask.instructions}
+            onClose={() => setSandboxOpen(false)}
+            onSubmitSolution={(code) => {
+              setSolution(code);
+              setNotice('Код из песочницы перенесён в форму ответа. Проверьте его и подтвердите отправку.');
+            }}
+          />}
+          <form className="extension-submit-solution" onSubmit={submitSolution}><label className="field"><span>Ваш ответ</span><textarea value={solution} onChange={(event) => setSolution(event.target.value)} maxLength={20000} rows={7} required aria-describedby={'solution-hint-' + selectedTask.id} /><small id={'solution-hint-' + selectedTask.id}>До 20&nbsp;000 символов. Не включайте контакты или персональные данные.</small></label><label className="extension-consent"><input type="checkbox" checked={confirmReadyToSubmit} onChange={(event) => setConfirmReadyToSubmit(event.target.checked)} /><span>Я проверил решение и готов отправить его по ранее принятым условиям передачи</span></label><button type="submit" className="button button-primary" disabled={saving || !confirmReadyToSubmit || !solution.trim()}>{saving ? 'Отправляем…' : 'Отправить решение'}</button></form>
+        </>}
         {role === 'candidate' && selectedTask.status === 'accepted' && <p className="extension-sharing-hint">Согласие на доступ к решению уже записано при принятии этой версии уведомления. Отправка решения — отдельное действие.</p>}
         {role === 'candidate' && canRevokeTaskSharing(selectedTask.status, selectedTask.accepted_at, selectedTask.sharing_revoked_at) && <button type="button" className="button button-secondary extension-revoke-button" disabled={saving} onClick={() => revokeSharing(selectedTask)}>Отозвать доступ компании к решению</button>}
         {role === 'employer' && ['offered', 'accepted'].includes(selectedTask.status) && <button type="button" className="button button-secondary extension-revoke-button" disabled={saving} onClick={() => withdraw(selectedTask)}>Отозвать предложение</button>}

@@ -64,6 +64,69 @@ export type CandidateApplication = {
   created_at: string;
 };
 
+export type CompetencyRadarData = {
+  candidate_id: string;
+  display_name: string;
+  verified_grade: string | null;
+  declared_grade: string;
+  irt_ability: {
+    latent_theta: number;
+    percentile_rank: number;
+    sem: number;
+    discrimination: string;
+    confidence_interval: [number, number];
+  };
+  radar_axes: Array<{
+    key: string;
+    label: string;
+    verified: number;
+    declared: number;
+    target: number;
+  }>;
+  gaps: Array<{
+    competency: string;
+    label: string;
+    target_score: number;
+    candidate_score: number;
+    gap_delta: number;
+    severity: 'critical' | 'moderate';
+    interview_questions: Array<{ question: string; rubric: string }>;
+  }>;
+  passport_seal: {
+    verification_id: string;
+    issued_at: string;
+    sha256_seal: string;
+    status: string;
+  };
+};
+
+export type ValidationMetrics = {
+  model: string;
+  framework_version: string;
+  reliability_metrics: {
+    test_retest_pearson_r: number;
+    test_retest_description: string;
+    cronbach_alpha: number;
+    cronbach_description: string;
+    cohens_kappa: number;
+    cohens_description: string;
+    standard_error_of_measurement: number;
+    leakage_resistance_index: number;
+    leakage_resistance_mechanism: string;
+  };
+  discrimination_parameters: Array<{
+    family_id: string;
+    competency: string;
+    discrimination_alpha: number;
+    difficulty_b: number;
+    grade: string;
+  }>;
+  anti_cheating_telemetry: {
+    supported_signals: string[];
+    integrity_index_enabled: boolean;
+  };
+};
+
 type Envelope<T> = { data: T };
 type ApiError = { error?: { code?: string; message?: string; field?: string; retryable?: boolean; eligible_at?: string | null; active_attempt_id?: string | null } };
 

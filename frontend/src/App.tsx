@@ -6,7 +6,8 @@ import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate, usePa
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, errorMessage, RequestError, rotateCsrf, skillLabels, type Attempt, type Candidate, type CandidateProfile, type Company, type ContactBundle, type Grade, type Invitation, type MatchCandidate, type Need, type OwnContacts, type ParsedResumeData, type Schemas, type Shortlist, type SkillId, type Taxonomy, type User } from './api';
 import layoutStyles from './App.module.css';
-import { ContactAccessJournal, PracticePage, ProfileEvidenceEditor, PublicProfilePreview, ResultCompetencyFeedback, AssessmentReviewDialog } from './features/candidate';
+import { ContactAccessJournal, PracticePage, ProfileEvidenceEditor, PublicProfilePreview, ResultCompetencyFeedback, AssessmentReviewDialog, CompetencyRadarChart, DigitalPassportModal, ValidationMetricsModal } from './features/candidate';
+import { BlindHiringToggle, maskName } from './features/employer/BlindHiringToggle';
 import { CandidateComparisonPage, CandidateReviewPanel, RecruitingRecordEditor, RecruitingWorkspacePage, RoleTaskEditor, ShortlistManager } from './features/employer/EmployerWorkflow';
 import { VacanciesPage, EmployerApplicationsPanel } from './features/vacancies';
 import { NeedRoleTasksPanel } from './features/employer/NeedRoleTasksPanel';
@@ -295,6 +296,7 @@ function CandidateProfilePage({ user }: { user: User }) {
   const contactsQuery = useQuery({ queryKey: ['ownContacts'], queryFn: () => api.get<OwnContacts>('/me/contacts') });
   const consentsQuery = useQuery({ queryKey: ['consents'], queryFn: () => api.get<ConsentState>('/me/consents') });
   const [error, setError] = useState(''); const [saved, setSaved] = useState('');
+  const [passportOpen, setPassportOpen] = useState(false); const [validationOpen, setValidationOpen] = useState(false);
   const [uploadingResume, setUploadingResume] = useState(false);
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const profile = profileQuery.data ?? user.candidate_profile;
@@ -370,7 +372,7 @@ function CandidateProfilePage({ user }: { user: User }) {
   if (profileQuery.isPending || contactsQuery.isPending) return <Loading />;
   if (!profile) return <ErrorBlock error={profileQuery.error ?? 'Профиль не найден'} retry={() => void profileQuery.refetch()} />;
   const contacts = contactsQuery.data;
-  return <><PageHeader eyebrow="ПРОФИЛЬ КАНДИДАТА" title="Ваш профессиональный профиль" description="Заявленные навыки и результат оценки показываются раздельно. Контакты открываются только после принятия приглашения." action={<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}><input type="file" ref={resumeInputRef} accept=".pdf,application/pdf" style={{ display: 'none' }} onChange={(e) => void onResumeFileSelected(e)} /><button className="button button-primary" onClick={() => resumeInputRef.current?.click()} disabled={uploadingResume}>{uploadingResume ? 'Распознаём PDF…' : '📄 Загрузить резюме (PDF)'}</button><button className="button button-secondary" onClick={() => void api.download('/me/profile.pdf')}>Скачать PDF ↓</button></div>} />
+  return <><PageHeader eyebrow="ПРОФИЛЬ КАНДИДАТА" title="Ваш профессиональный профиль" description="Заявленные навыки и результат оценки показываются раздельно. Контакты открываются только после принятия приглашения." action={<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}><button className="button button-primary" onClick={() => setPassportOpen(true)}>🛡️ Цифровой паспорт</button><button className="button button-secondary" onClick={() => setValidationOpen(true)}>📊 Валидация (IRT)</button><input type="file" ref={resumeInputRef} accept=".pdf,application/pdf" style={{ display: 'none' }} onChange={(e) => void onResumeFileSelected(e)} /><button className="button button-secondary" onClick={() => resumeInputRef.current?.click()} disabled={uploadingResume}>{uploadingResume ? 'Распознаём PDF…' : '📄 Резюме (PDF)'}</button><button className="button button-secondary" onClick={() => void api.download('/me/profile.pdf')}>Скачать PDF ↓</button></div>} />
     {error && <ErrorBlock error={error} />}{saved && <Notice tone="success">{saved}</Notice>}
     <Card title="Согласия и управление видимостью"><ConsentPanel onChanged={() => { void profileQuery.refetch(); }} /></Card>
     <div className="profile-layout"><div className="profile-column"><Card title="Основная информация"><form className="form-grid" onSubmit={saveProfile}><fieldset className="case-gated-fields" disabled={!processingAccepted}>
@@ -393,6 +395,8 @@ function CandidateProfilePage({ user }: { user: User }) {
       <Card title="Свидетельства опыта">{processingAccepted ? <ProfileEvidenceEditor profile={profile} onChanged={(updated) => { query.setQueryData(['profile'], updated); void query.invalidateQueries({ queryKey: ['profile'] }); void query.invalidateQueries({ queryKey: ['me'] }); setSaved('Свидетельства обновлены. Они помечены как заявленные кандидатом.'); }} /> : <p className="field-hint">Примите согласие на обработку, чтобы добавлять свидетельства опыта.</p>}</Card>
       <Card title="Демонстрационные данные"><p className="field-hint">Связь с ФСП в MVP является тестовым сценарием. Она не меняет оценку и не гарантирует точность внешних сведений.</p>{processingAccepted ? <FspLinkCard onChange={() => void query.invalidateQueries({ queryKey: ['profile'] })} /> : <p className="field-hint">Примите согласие на обработку, чтобы изменить связь.</p>}</Card></aside>
     </div>
+    {passportOpen && <DigitalPassportModal isOpen={passportOpen} onClose={() => setPassportOpen(false)} candidateId={profile.id} candidateName={profile.display_name} verifiedGrade={profile.verified_grade} />}
+    {validationOpen && <ValidationMetricsModal isOpen={validationOpen} onClose={() => setValidationOpen(false)} />}
   </>;
 }
 
@@ -477,8 +481,32 @@ function AssessmentRun() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'dirty' | 'saving' | 'error'>('saved'); const [saveError, setSaveError] = useState(''); const [saveConflict, setSaveConflict] = useState(false); const [submitError, setSubmitError] = useState(''); const [submitting, setSubmitting] = useState(false);
   const [savedAck, setSavedAck] = useState<{ count: number; savedAt: string | null }>({ count: 0, savedAt: null });
   const version = useRef(0); const savedSnapshot = useRef(''); const failedSnapshot = useRef(''); const hydratedAttemptId = useRef(''); const savePromise = useRef<Promise<Attempt | null> | null>(null); const submittingRef = useRef(false); const attemptIdRef = useRef(attemptId); const mountedRef = useRef(true);
+  const tabSwitchesRef = useRef(0); const pasteCountRef = useRef(0);
   attemptIdRef.current = attemptId;
   useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
+  useEffect(() => {
+    if (!attempt || attempt.status !== 'in_progress') return;
+    const onBlur = () => {
+      tabSwitchesRef.current += 1;
+      void api.post(`/attempts/${attempt.id}/telemetry`, {
+        tab_switches: tabSwitchesRef.current,
+        paste_count: pasteCountRef.current,
+      }).catch(() => {});
+    };
+    const onPaste = () => {
+      pasteCountRef.current += 1;
+      void api.post(`/attempts/${attempt.id}/telemetry`, {
+        tab_switches: tabSwitchesRef.current,
+        paste_count: pasteCountRef.current,
+      }).catch(() => {});
+    };
+    window.addEventListener('blur', onBlur);
+    document.addEventListener('paste', onPaste);
+    return () => {
+      window.removeEventListener('blur', onBlur);
+      document.removeEventListener('paste', onPaste);
+    };
+  }, [attempt?.id, attempt?.status]);
   const answerMap = (source: Attempt) => Object.fromEntries(source.saved_answers.filter((answer) => answer.selected_option_id).map((answer) => [`${answer.task_id}:${answer.subquestion_id}`, answer.selected_option_id as string]));
   const acknowledgement = (source: Attempt) => ({ count: selectedAnswerCount(source.saved_answers), savedAt: source.saved_answers.reduce<string | null>((latest, answer) => !latest || answer.saved_at > latest ? answer.saved_at : latest, null) });
   useEffect(() => {
@@ -718,6 +746,7 @@ function MatchesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const needs = useQuery({ queryKey: ['needs'], queryFn: () => api.get<Group<Need>>('/needs') });
   const [result, setResult] = useState<MatchResult | undefined>(); const [selected, setSelected] = useState<string[]>([]); const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [strict, setStrict] = useState(searchParams.get('strict') === 'true');
+  const [blindMode, setBlindMode] = useState(false);
   const needId = searchParams.get('need') ?? '';
   const search = async (id = needId, strictOnly = strict, cursor?: string | null) => { if (!id) { setError('Сначала выберите потребность.'); return; } setError(''); setNotice(''); try { const response = await api.post<MatchResult>('/matches/search', { need_id: id, limit: 20, cursor: cursor ?? null, strict_confirmed_only: strictOnly }); setResult(response); if (!cursor) setSelected([]); } catch (e) { setError(errorMessage(e)); } };
   const pickNeed = (id: string) => { setSearchParams((old) => { const next = new URLSearchParams(old); if (id) next.set('need', id); else next.delete('need'); return next; }); };
@@ -732,18 +761,20 @@ function MatchesPage() {
   if (needs.isPending) return <Loading />;
   if (needs.isError) return <ErrorBlock error={needs.error} retry={() => void needs.refetch()} />;
   const activeNeeds = needs.data.items.filter((n) => n.status === 'active');
-  return <><PageHeader eyebrow="ОБЪЯСНИМЫЙ ПОДБОР" title="Подборка специалистов" description="Порядок групп и основания рассчитывает сервер. Совпадение ФСП не заменяет требуемые подтверждённые навыки." />{error && <ErrorBlock error={error} />}{notice && <Notice tone="success">{notice}</Notice>}<Card title="Параметры поиска" className="search-controls"><div className="search-control-row"><label className="field"><span>Активная потребность</span><select value={needId} onChange={(e) => pickNeed(e.target.value)}><option value="">Выбрать потребность</option>{activeNeeds.map((need) => <option key={need.id} value={need.id}>{need.title} · {gradeName(need.target_grade)}</option>)}</select></label><label className="check-item strict-toggle"><input type="checkbox" checked={strict} onChange={(e) => toggleStrict(e.target.checked)} />Только подтверждённая группа</label><button className="button button-primary" onClick={() => void search()}>Найти кандидатов <span>→</span></button></div><p className="field-hint">Если обязательная компетенция не подтверждена, кандидат попадёт в группу уточнения или подтверждения — сервер не ослабляет требование.</p></Card>{!activeNeeds.length && <Empty title="Нет активных потребностей" detail="Создайте потребность и подтвердите компетенции, чтобы открыть поиск." action={<Link className="button button-secondary button-small" to="/needs">К потребностям</Link>} />}{result && <><div className="match-summary"><div><span className="eyebrow">РЕЗУЛЬТАТ ПОИСКА</span><p>{result.group_counts.confirmed} подтверждённых · {result.group_counts.needs_clarification} требуют уточнения · {result.group_counts.needs_confirmation} требуют подтверждения</p></div><div className="match-summary-actions"><button className="button button-secondary" disabled={!selected.length} onClick={() => void createShortlist()}>Сохранить выбранных · {selected.length}</button>{selected.length >= 2 && selected.length <= 3 && <Link className="button button-primary" to={`/compare?need_id=${encodeURIComponent(result.need_id)}&candidate_ids=${encodeURIComponent(selected.join(','))}`}>Сравнить · {selected.length} →</Link>}</div></div><div className="match-groups">{result.display_order.map((group) => { const title = group === 'confirmed' ? 'Подтверждённое соответствие' : group === 'needs_clarification' ? 'Нужно уточнение' : 'Нужно подтверждение'; const items = result.groups[group] as MatchCandidate[]; const count = result.group_counts[group]; return <section className="match-group" key={group}><div className="group-heading"><div><h2>{title}</h2><p>{group === 'confirmed' ? 'Обязательные компетенции подтверждены оценкой.' : group === 'needs_clarification' ? 'Есть данные, которые требуют обсуждения или проверки.' : 'Заявленных навыков недостаточно, чтобы считать требования подтверждёнными.'}</p></div><span>{count}</span></div>{items.length ? <div className="candidate-cards">{items.map((match) => <MatchCard key={match.candidate.id} match={match} selected={selected.includes(match.candidate.id)} onToggle={() => toggleSelected(match.candidate.id)} needId={result.need_id} />)}</div> : <div className="group-empty">В этой группе сейчас нет подходящих профилей.</div>}</section>; })}</div>{result.next_cursor && <button className="button button-secondary button-wide load-more" onClick={() => void search(result.need_id, result.strict_confirmed_only, result.next_cursor)}>Загрузить ещё</button>}</>}</>;
+  return <><PageHeader eyebrow="ОБЪЯСНИМЫЙ ПОДБОР" title="Подборка специалистов" description="Порядок групп и основания рассчитывает сервер. Совпадение ФСП не заменяет требуемые подтверждённые навыки." />{error && <ErrorBlock error={error} />}{notice && <Notice tone="success">{notice}</Notice>}<Card title="Параметры поиска" className="search-controls"><div className="search-control-row"><label className="field"><span>Активная потребность</span><select value={needId} onChange={(e) => pickNeed(e.target.value)}><option value="">Выбрать потребность</option>{activeNeeds.map((need) => <option key={need.id} value={need.id}>{need.title} · {gradeName(need.target_grade)}</option>)}</select></label><label className="check-item strict-toggle"><input type="checkbox" checked={strict} onChange={(e) => toggleStrict(e.target.checked)} />Только подтверждённая группа</label><BlindHiringToggle enabled={blindMode} onToggle={setBlindMode} /><button className="button button-primary" onClick={() => void search()}>Найти кандидатов <span>→</span></button></div><p className="field-hint">Если обязательная компетенция не подтверждена, кандидат попадёт в группу уточнения или подтверждения — сервер не ослабляет требование.</p></Card>{!activeNeeds.length && <Empty title="Нет активных потребностей" detail="Создайте потребность и подтвердите компетенции, чтобы открыть поиск." action={<Link className="button button-secondary button-small" to="/needs">К потребностям</Link>} />}{result && <><div className="match-summary"><div><span className="eyebrow">РЕЗУЛЬТАТ ПОИСКА</span><p>{result.group_counts.confirmed} подтверждённых · {result.group_counts.needs_clarification} требуют уточнения · {result.group_counts.needs_confirmation} требуют подтверждения</p></div><div className="match-summary-actions"><button className="button button-secondary" disabled={!selected.length} onClick={() => void createShortlist()}>Сохранить выбранных · {selected.length}</button>{selected.length >= 2 && selected.length <= 3 && <Link className="button button-primary" to={`/compare?need_id=${encodeURIComponent(result.need_id)}&candidate_ids=${encodeURIComponent(selected.join(','))}`}>Сравнить · {selected.length} →</Link>}</div></div><div className="match-groups">{result.display_order.map((group) => { const title = group === 'confirmed' ? 'Подтверждённое соответствие' : group === 'needs_clarification' ? 'Нужно уточнение' : 'Нужно подтверждение'; const items = result.groups[group] as MatchCandidate[]; const count = result.group_counts[group]; return <section className="match-group" key={group}><div className="group-heading"><div><h2>{title}</h2><p>{group === 'confirmed' ? 'Обязательные компетенции подтверждены оценкой.' : group === 'needs_clarification' ? 'Есть данные, которые требуют обсуждения или проверки.' : 'Заявленных навыков недостаточно, чтобы считать требования подтверждёнными.'}</p></div><span>{count}</span></div>{items.length ? <div className="candidate-cards">{items.map((match) => <MatchCard key={match.candidate.id} match={match} selected={selected.includes(match.candidate.id)} onToggle={() => toggleSelected(match.candidate.id)} needId={result.need_id} blindMode={blindMode} />)}</div> : <div className="group-empty">В этой группе сейчас нет подходящих профилей.</div>}</section>; })}</div>{result.next_cursor && <button className="button button-secondary button-wide load-more" onClick={() => void search(result.need_id, result.strict_confirmed_only, result.next_cursor)}>Загрузить ещё</button>}</>}</>;
 }
 
-function MatchCard({ match, selected, onToggle, needId }: { match: MatchCandidate; selected: boolean; onToggle: () => void; needId: string }) {
+function MatchCard({ match, selected, onToggle, needId, blindMode = false }: { match: MatchCandidate; selected: boolean; onToggle: () => void; needId: string; blindMode?: boolean }) {
   const candidate = match.candidate;
   const needQuery = useQuery({ queryKey: ['need', needId], queryFn: () => api.get<Need>(`/needs/${needId}`), enabled: Boolean(needId) });
   const [showInvite, setShowInvite] = useState(false);
   const [showPipeline, setShowPipeline] = useState(false);
+  const [showRadar, setShowRadar] = useState(false);
   const [sent, setSent] = useState('');
+  const displayName = maskName(candidate.display_name, candidate.id, blindMode);
   const pdf = () => window.open(candidate.profile_pdf_url, '_blank', 'noopener');
   return <Card className={`candidate-card ${match.state === 'confirmed' ? 'candidate-confirmed' : ''}`}>
-    <div className="candidate-card-head"><label className="candidate-select" aria-label={`Выбрать ${candidate.display_name}`}><input type="checkbox" checked={selected} onChange={onToggle} /></label><div className="candidate-avatar">{candidate.display_name.slice(0, 1)}</div><div className="candidate-identity"><h3>{candidate.display_name}</h3><p>{candidate.headline ?? 'Backend Python'} · {gradeName(candidate.verified_grade ?? candidate.declared_grade)}</p></div><Badge tone={match.state === 'confirmed' ? 'good' : match.state === 'needs_confirmation' ? 'warm' : 'neutral'}>{match.state === 'confirmed' ? 'Подтверждён' : match.state === 'needs_confirmation' ? 'Нужно подтвердить' : 'Нужно уточнить'}</Badge></div>
+    <div className="candidate-card-head"><label className="candidate-select" aria-label={`Выбрать ${displayName}`}><input type="checkbox" checked={selected} onChange={onToggle} /></label><div className="candidate-avatar">{blindMode ? '🕶️' : candidate.display_name.slice(0, 1)}</div><div className="candidate-identity"><h3>{displayName}</h3><p>{candidate.headline ?? 'Backend Python'} · {gradeName(candidate.verified_grade ?? candidate.declared_grade)}</p></div><Badge tone={match.state === 'confirmed' ? 'good' : match.state === 'needs_confirmation' ? 'warm' : 'neutral'}>{match.state === 'confirmed' ? 'Подтверждён' : match.state === 'needs_confirmation' ? 'Нужно подтвердить' : 'Нужно уточнить'}</Badge></div>
     {candidate.summary && <p className="candidate-summary">{candidate.summary}</p>}
     <div className="candidate-meta"><span>{candidate.allowed_work_modes.map(workModeName).join(', ')}</span><span>{candidate.cities.join(', ') || 'Город не указан'}</span><span>{candidate.max_weekly_hours} ч/нед максимум</span></div>
     <div className="candidate-evidence">{candidate.competency_evidence.map((e) => <div className="evidence-row" key={e.skill_id}><span>{skillLabels[e.skill_id as keyof typeof skillLabels] ?? e.skill_id}</span><Badge tone={e.status === 'test_verified' ? 'good' : e.status === 'candidate_declared' ? 'warm' : 'neutral'}>{e.status === 'test_verified' ? 'Подтверждено тестом' : e.status === 'candidate_declared' ? 'Заявлено кандидатом' : 'Нет данных ФСП'}</Badge></div>)}</div>
@@ -753,7 +784,28 @@ function MatchCard({ match, selected, onToggle, needId }: { match: MatchCandidat
     {sent && <Notice tone="success">{sent}</Notice>}
     {showInvite && <InvitationComposer candidate={candidate} needId={needId} need={needQuery.data} onSent={(message) => { setSent(message); setShowInvite(false); }} />}
     {showPipeline && <RecruitingRecordEditor candidateId={candidate.id} needId={needId} onSaved={() => setShowPipeline(false)} onCancel={() => setShowPipeline(false)} />}
-    <div className="candidate-actions"><Link className="button button-secondary button-small" to={`/needs/${encodeURIComponent(needId)}/candidate-review?candidate_id=${encodeURIComponent(candidate.id)}`}>Разобрать профиль</Link><Link className="button button-secondary button-small" to={`/short-tasks?need_id=${encodeURIComponent(needId)}&candidate_id=${encodeURIComponent(candidate.id)}`}>Предложить задачу</Link><button className="button button-secondary button-small" onClick={() => setShowPipeline(true)}>В рабочую воронку</button><button className="button button-secondary button-small" onClick={pdf}>Профиль PDF ↗</button><button className="button button-primary button-small" onClick={() => setShowInvite(!showInvite)}>{showInvite ? 'Закрыть' : 'Пригласить'}</button></div>
+    <div className="candidate-actions">
+      <Link className="button button-secondary button-small" to={`/needs/${encodeURIComponent(needId)}/candidate-review?candidate_id=${encodeURIComponent(candidate.id)}`}>Разобрать профиль</Link>
+      <button className="button button-secondary button-small" onClick={() => setShowRadar(true)}>Радар компетенций 📊</button>
+      <Link className="button button-secondary button-small" to={`/short-tasks?need_id=${encodeURIComponent(needId)}&candidate_id=${encodeURIComponent(candidate.id)}`}>Предложить задачу</Link>
+      <button className="button button-secondary button-small" onClick={() => setShowPipeline(true)}>В рабочую воронку</button>
+      {!blindMode && <button className="button button-secondary button-small" onClick={pdf}>Профиль PDF ↗</button>}
+      <button className="button button-primary button-small" onClick={() => setShowInvite(!showInvite)}>{showInvite ? 'Закрыть' : 'Пригласить'}</button>
+    </div>
+    {showRadar && (
+      <div className="employer-modal-backdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowRadar(false); }}>
+        <div className="card" style={{ maxWidth: '850px', width: '92%', maxHeight: '90vh', overflowY: 'auto', padding: '1.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <div>
+              <span className="candidate-eyebrow">ОЦЕНКА И АНАЛИЗ РАЗРЫВОВ</span>
+              <h2 style={{ margin: 0 }}>Радар компетенций: {displayName}</h2>
+            </div>
+            <button type="button" className="button button-secondary button-small" onClick={() => setShowRadar(false)}>✕ Закрыть</button>
+          </div>
+          <CompetencyRadarChart candidateId={candidate.id} needId={needId} />
+        </div>
+      </div>
+    )}
   </Card>;
 }
 
