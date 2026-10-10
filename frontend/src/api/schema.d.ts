@@ -1106,6 +1106,204 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/resume/parse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Parse a candidate-provided PDF into reviewable suggestions
+         * @description Candidate-provided PDF only. Requires current processing consent. Returns nullable suggestions; the client must show them and require explicit confirmation before saving. Parsed declared_grade never sets the test-confirmed grade. Maximum file size is 15 MB.
+         */
+        post: operations["parse_resume_suggestions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recruiting/export/ats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download a JSON export of candidates with active contact grants
+         * @description Plain JSON export only; this is not an ATS provider integration. Includes only active grants with current processing consent and explicitly enabled contact channels. The account email is not a fallback.
+         */
+        get: operations["export_recruiting_json"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vacancies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active public vacancies */
+        get: operations["list_vacancies"];
+        put?: never;
+        /**
+         * Publish a vacancy from an owned active need
+         * @description The full need snapshot is required. Fields and salary must match the current active need owned by this company; otherwise the server returns 409 VERSION_CONFLICT. Salary is a required RUB/month range with no default.
+         */
+        post: operations["publish_vacancy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vacancies/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a public vacancy */
+        get: operations["get_vacancy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vacancies/{id}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit a direct application and choose contact channels for this vacancy employer
+         * @description Requires current processing consent. The contact list may be empty; requested channels must be enabled. Grant is scoped to the company that owns this vacancy and does not require an accepted invitation.
+         */
+        post: operations["apply_to_vacancy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the current candidate’s direct applications
+         * @description When processing consent is inactive, each item contains only id, status, created_at, contact_access_revoked, and has_selected_contacts.
+         */
+        get: operations["list_my_vacancy_applications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vacancies/company/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List applications to vacancies owned by the current company
+         * @description Candidate profile/application details are returned only while current processing consent is active. Otherwise only id, status, created_at, candidate_processing_active=false, contact_access_revoked, and has_selected_contacts are returned.
+         */
+        get: operations["list_company_vacancy_applications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vacancies/applications/{id}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read contact channels explicitly allowed in a direct application
+         * @description Only candidate-selected channels that remain enabled are returned. If permission remains active but no selected channel is currently enabled, channels is an empty array. Foreign company, revoked permission, or inactive processing consent returns 404. Response is private and non-cacheable.
+         */
+        get: operations["get_application_contacts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/applications/{id}/contact-access/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke contact access granted by a direct application
+         * @description Separate from public-profile visibility and processing consent; the application remains. Mutation requires an Idempotency-Key.
+         */
+        post: operations["revoke_application_contact_access"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vacancies/applications/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update status of an application to the current company’s vacancy
+         * @description Allowed statuses are reviewed, accepted, and declined. Mutation requires an Idempotency-Key.
+         */
+        patch: operations["update_vacancy_application_status"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1116,7 +1314,7 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {string} */
-            code: "VALIDATION_ERROR" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "VERSION_CONFLICT" | "IDEMPOTENCY_CONFLICT" | "INVALID_STATE" | "EMAIL_UNCONFIRMED" | "POLICY_BLOCKED" | "ACTIVE_ATTEMPT_EXISTS" | "RATE_LIMITED" | "DEPENDENCY_UNAVAILABLE" | "ATTEMPT_DEADLINE_REACHED" | "BANK_UNAVAILABLE" | "CSRF_INVALID" | "CSRF_ORIGIN_INVALID" | "EMAIL_ALREADY_EXISTS" | "PROFILE_INCOMPLETE" | "INTERNAL_ERROR" | "INVITATION_COOLDOWN";
+            code: "VALIDATION_ERROR" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "VERSION_CONFLICT" | "IDEMPOTENCY_CONFLICT" | "INVALID_STATE" | "EMAIL_UNCONFIRMED" | "POLICY_BLOCKED" | "ACTIVE_ATTEMPT_EXISTS" | "RATE_LIMITED" | "DEPENDENCY_UNAVAILABLE" | "ATTEMPT_DEADLINE_REACHED" | "BANK_UNAVAILABLE" | "CSRF_INVALID" | "CSRF_ORIGIN_INVALID" | "EMAIL_ALREADY_EXISTS" | "PROFILE_INCOMPLETE" | "INTERNAL_ERROR" | "INVITATION_COOLDOWN" | "CONSENT_REQUIRED" | "INVALID_UUID" | "INVALID_FILE" | "FILE_TOO_LARGE" | "ALREADY_APPLIED" | "INVALID_STATUS";
             message: string;
             field?: string | null;
             retryable: boolean;
@@ -2231,6 +2429,204 @@ export interface components {
         };
         NextStepQueuePageEnvelope: {
             data: components["schemas"]["NextStepQueuePage"];
+        };
+        /** @description Extracted values are suggestions only. The candidate must review and confirm before saving; parsed grade never sets the test-confirmed grade. */
+        ResumeSuggestions: {
+            display_name: string | null;
+            email: string | null;
+            phone: string | null;
+            headline: string | null;
+            summary: string | null;
+            declared_grade: ("junior" | "middle") | null;
+            skills: string[];
+            soft_skills: string[];
+            role_preferences: string[];
+            cities: string[];
+            raw_preview: string;
+        };
+        ResumeSuggestionsEnvelope: {
+            data: components["schemas"]["ResumeSuggestions"];
+        };
+        VacancySalary: {
+            min_kopecks: number;
+            max_kopecks: number;
+            /** @constant */
+            currency: "RUB";
+            /** @enum {string} */
+            basis: "gross" | "net";
+        };
+        Vacancy: {
+            id: components["schemas"]["UUID"];
+            need_id: components["schemas"]["UUID"] | null;
+            company_id: components["schemas"]["UUID"];
+            company_name: string;
+            company_industry: string | null;
+            title: string;
+            description: string;
+            specialization_id: string;
+            /** @enum {string} */
+            target_grade: "junior" | "middle" | "senior";
+            /** @enum {string} */
+            work_mode: "remote" | "hybrid" | "office";
+            city: string | null;
+            workload_hours_per_week: number;
+            salary: components["schemas"]["VacancySalary"];
+            /** @enum {string} */
+            status: "active" | "archived";
+            created_at: components["schemas"]["Timestamp"];
+        };
+        VacancyEnvelope: {
+            data: components["schemas"]["Vacancy"];
+        };
+        VacancyList: {
+            items: components["schemas"]["Vacancy"][];
+        };
+        VacancyListEnvelope: {
+            data: components["schemas"]["VacancyList"];
+        };
+        /** @description All fields must match the active need owned by the current company. Salary is a mandatory RUB/month range in kopecks; no default is applied. */
+        VacancyPublishRequest: {
+            need_id: components["schemas"]["UUID"];
+            title: string;
+            description: string;
+            /** @constant */
+            specialization_id: "backend-python-v1";
+            /** @enum {string} */
+            target_grade: "junior" | "middle" | "senior";
+            /** @enum {string} */
+            work_mode: "remote" | "hybrid" | "office";
+            city: string | null;
+            workload_hours_per_week: number;
+            salary_min_kopecks: number;
+            salary_max_kopecks: number;
+            /** @enum {string} */
+            salary_basis: "gross" | "net";
+        };
+        VacancyApplicationRequest: {
+            cover_letter?: string | null;
+            contact_channel_types: ("email" | "phone" | "website")[];
+        };
+        VacancyApplication: {
+            id: components["schemas"]["UUID"];
+            vacancy_id: components["schemas"]["UUID"];
+            /** @enum {string} */
+            status: "submitted" | "reviewed" | "accepted" | "declined";
+            created_at: components["schemas"]["Timestamp"];
+            contact_access_revoked: boolean;
+        };
+        VacancyApplicationEnvelope: {
+            data: components["schemas"]["VacancyApplication"];
+        };
+        /** @description When processing consent is inactive, only id, status, created_at, contact_access_revoked, and has_selected_contacts remain. Missing/revoked permission yields contact_access_revoked=true and has_selected_contacts=false; an active permission with an empty channel selection yields false for both flags. */
+        CandidateApplication: {
+            id: components["schemas"]["UUID"];
+            vacancy_id?: components["schemas"]["UUID"];
+            vacancy_title?: string;
+            company_name?: string;
+            specialization_id?: string;
+            target_grade?: string;
+            work_mode?: string;
+            salary?: {
+                min_kopecks: number;
+                max_kopecks: number;
+            };
+            /** @enum {string} */
+            status: "submitted" | "reviewed" | "accepted" | "declined";
+            cover_letter?: string | null;
+            created_at: components["schemas"]["Timestamp"];
+            contact_access_revoked: boolean;
+            has_selected_contacts: boolean;
+        };
+        CandidateApplicationList: {
+            items: components["schemas"]["CandidateApplication"][];
+        };
+        CandidateApplicationListEnvelope: {
+            data: components["schemas"]["CandidateApplicationList"];
+        };
+        /** @description When processing consent is inactive, profile and application details are omitted; id, status, created_at, candidate_processing_active, contact_access_revoked, and has_selected_contacts remain. Missing/revoked permission yields contact_access_revoked=true and has_selected_contacts=false; an active permission with an empty channel selection yields false for both flags. */
+        CompanyApplication: {
+            id: components["schemas"]["UUID"];
+            vacancy_id?: components["schemas"]["UUID"];
+            vacancy_title?: string;
+            candidate_id?: components["schemas"]["UUID"];
+            candidate_name?: string;
+            candidate_headline?: string | null;
+            declared_grade?: string | null;
+            verified_grade?: string | null;
+            cover_letter?: string | null;
+            /** @enum {string} */
+            status: "submitted" | "reviewed" | "accepted" | "declined";
+            created_at: components["schemas"]["Timestamp"];
+            candidate_processing_active: boolean;
+            contact_access_revoked: boolean;
+            has_selected_contacts: boolean;
+        };
+        CompanyApplicationList: {
+            items: components["schemas"]["CompanyApplication"][];
+        };
+        CompanyApplicationListEnvelope: {
+            data: components["schemas"]["CompanyApplicationList"];
+        };
+        ApplicationContactChannel: {
+            /** @enum {string} */
+            type: "email" | "phone" | "website";
+            value: string;
+        };
+        ApplicationContacts: {
+            application_id: components["schemas"]["UUID"];
+            channels: components["schemas"]["ApplicationContactChannel"][];
+        };
+        ApplicationContactsEnvelope: {
+            data: components["schemas"]["ApplicationContacts"];
+        };
+        ApplicationContactRevoke: {
+            /** @constant */
+            revoked: true;
+            /** @constant */
+            contact_access_revoked: true;
+            revoked_at: components["schemas"]["Timestamp"];
+        };
+        ApplicationContactRevokeEnvelope: {
+            data: components["schemas"]["ApplicationContactRevoke"];
+        };
+        ApplicationStatusRequest: {
+            /** @enum {string} */
+            status: "reviewed" | "accepted" | "declined";
+        };
+        ApplicationStatus: {
+            id: components["schemas"]["UUID"];
+            /** @enum {string} */
+            status: "reviewed" | "accepted" | "declined";
+        };
+        ApplicationStatusEnvelope: {
+            data: components["schemas"]["ApplicationStatus"];
+        };
+        /** @description Contact properties are included only for explicitly enabled channels. Account email is never substituted. */
+        AtsExportCandidate: {
+            external_id: components["schemas"]["UUID"];
+            first_name: string | null;
+            last_name: string | null;
+            position?: string;
+            verified_grade: string | null;
+            declared_grade: string | null;
+            /** Format: email */
+            email?: string;
+            phone?: string;
+            contacts: components["schemas"]["ApplicationContactChannel"][];
+            skills: string[] | null;
+            /** @constant */
+            source: "FSP_Talent_Platform";
+            granted_at: components["schemas"]["Timestamp"];
+        };
+        AtsExport: {
+            /** @constant */
+            format: "json";
+            export_version: string;
+            total_candidates: number;
+            candidates: components["schemas"]["AtsExportCandidate"][];
+        };
+        AtsExportEnvelope: {
+            data: components["schemas"]["AtsExport"];
         };
     };
     responses: never;
@@ -8577,6 +8973,745 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    parse_resume_suggestions: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Suggestions extracted; no profile fields are written. */
+            200: {
+                headers: {
+                    /** @description Dynamic personal or session data is not stored in shared caches. */
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumeSuggestionsEnvelope"];
+                };
+            };
+            /** @description INVALID_FILE for an empty or unreadable PDF, or FILE_TOO_LARGE for a file above 15 MB. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN for wrong role or CONSENT_REQUIRED when current processing consent is absent. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Email verification is required. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    export_recruiting_json: {
+        parameters: {
+            query?: {
+                format?: "json";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description JSON export file. */
+            200: {
+                headers: {
+                    /** @description Dynamic personal or session data is not stored in shared caches. */
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsExportEnvelope"];
+                };
+            };
+            /** @description Only format=json is supported. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Employer role required. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Email verification is required. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_vacancies: {
+        parameters: {
+            query?: {
+                specialization_id?: string;
+                grade?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Vacancy list. */
+            200: {
+                headers: {
+                    /** @description Dynamic personal or session data is not stored in shared caches. */
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VacancyListEnvelope"];
+                };
+            };
+            /** @description Invalid query parameter. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    publish_vacancy: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VacancyPublishRequest"];
+            };
+        };
+        responses: {
+            /** @description Vacancy published. */
+            200: {
+                headers: {
+                    /** @description Dynamic personal or session data is not stored in shared caches. */
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VacancyEnvelope"];
+                };
+            };
+            /** @description Invalid request, mutation header, or payload. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN when the requester is not an authorized employer. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description The active need is not found or not owned by this company. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Idempotency conflict or VERSION_CONFLICT because submitted fields no longer match the current active need. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Email verification is required. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_vacancy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Vacancy. */
+            200: {
+                headers: {
+                    /** @description Dynamic personal or session data is not stored in shared caches. */
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VacancyEnvelope"];
+                };
+            };
+            /** @description Malformed UUID. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Vacancy not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    apply_to_vacancy: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VacancyApplicationRequest"];
+            };
+        };
+        responses: {
+            /** @description Application submitted. */
+            200: {
+                headers: {
+                    /** @description Dynamic personal or session data is not stored in shared caches. */
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VacancyApplicationEnvelope"];
+                };
+            };
+            /** @description Invalid payload or requested channel is not enabled. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN for wrong role or CONSENT_REQUIRED when current processing consent is absent. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Vacancy or candidate profile not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Application already exists or idempotency conflict. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Email verification is required. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_my_vacancy_applications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Application list. */
+            200: {
+                headers: {
+                    /** @description Dynamic personal or session data is not stored in shared caches. */
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateApplicationListEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Candidate role required. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Email verification is required. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_company_vacancy_applications: {
+        parameters: {
+            query?: {
+                vacancy_id?: components["schemas"]["UUID"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Application list. */
+            200: {
+                headers: {
+                    /** @description Dynamic personal or session data is not stored in shared caches. */
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyApplicationListEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Employer role required. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Email verification is required. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_application_contacts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Selected enabled contact channels. */
+            200: {
+                headers: {
+                    /** @description Dynamic personal or session data is not stored in shared caches. */
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationContactsEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Employer role required. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Foreign company, revoked application permission, or inactive processing consent. An active permission with no currently enabled selected channels returns 200 with an empty channels array. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Email verification is required. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    revoke_application_contact_access: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Contact access revoked. */
+            200: {
+                headers: {
+                    /** @description Dynamic personal or session data is not stored in shared caches. */
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationContactRevokeEnvelope"];
+                };
+            };
+            /** @description Invalid request, mutation header, or payload. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN when the requester is not the candidate. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Application or permission not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Idempotency key or operation state conflict. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Email verification is required. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    update_vacancy_application_status: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description Application status updated. */
+            200: {
+                headers: {
+                    /** @description Dynamic personal or session data is not stored in shared caches. */
+                    "Cache-Control"?: "private, no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationStatusEnvelope"];
+                };
+            };
+            /** @description Unsupported status. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN for wrong role or an application owned by a different company. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Application not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Idempotency key or operation state conflict. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Email verification is required. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable; retry only when retryable is true. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
             };
         };
     };

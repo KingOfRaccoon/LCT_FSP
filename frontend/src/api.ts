@@ -32,6 +32,43 @@ export type ParsedResumeData = {
   raw_preview: string;
 };
 
+export function buildResumeProfilePatch(profile: CandidateProfile, parsed: ParsedResumeData): Schemas['CandidateProfilePatch'] {
+  const extended = profile as CandidateProfile & { industry?: string | null; role_preferences?: string[]; soft_skills?: string[] };
+  return {
+    expected_version: profile.version,
+    display_name: parsed.display_name?.trim() || profile.display_name,
+    headline: parsed.headline?.trim() || profile.headline,
+    summary: parsed.summary?.trim() || profile.summary,
+    declared_grade: parsed.declared_grade ?? profile.declared_grade,
+    allowed_work_modes: profile.allowed_work_modes,
+    cities: [...new Set([...profile.cities, ...parsed.cities.map((city) => city.trim()).filter(Boolean)])],
+    ...(profile.desired_hours_per_week === null ? {} : { desired_hours_per_week: profile.desired_hours_per_week }),
+    ...(profile.max_weekly_hours === null ? {} : { max_weekly_hours: profile.max_weekly_hours }),
+    skills: [...new Set([...profile.skills.map((skill) => skill.skill_id), ...parsed.skills])],
+    industry: parsed.industry?.trim() || extended.industry || null,
+    role_preferences: [...new Set([...(extended.role_preferences ?? []), ...parsed.role_preferences.map((role) => role.trim()).filter(Boolean)])],
+    soft_skills: [...new Set([...(extended.soft_skills ?? []), ...parsed.soft_skills.map((skill) => skill.trim()).filter(Boolean)])],
+  };
+}
+
+export function buildResumeContacts(contacts: OwnContacts, parsed: Pick<ParsedResumeData, 'email' | 'phone'>): Schemas['OwnContactsPatch'] {
+  const channels = [...contacts.channels];
+  for (const suggestion of [
+    parsed.email?.trim() ? { type: 'email' as const, value: parsed.email.trim() } : null,
+    parsed.phone?.trim() ? { type: 'phone' as const, value: parsed.phone.trim() } : null,
+  ]) {
+    if (suggestion && !channels.some((channel) => channel.type === suggestion.type)) {
+      channels.push({ ...suggestion, enabled: false });
+    }
+  }
+  return { expected_version: contacts.version, channels };
+}
+
+export function sanitizeResumePreview(value: string): string {
+  const safe = value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
+  return safe.length > 1000 ? `${safe.slice(0, 1000)}…` : safe;
+}
+
 export type PublicVacancy = {
   id: string;
   need_id: string | null;
@@ -52,17 +89,91 @@ export type PublicVacancy = {
 
 export type CandidateApplication = {
   id: string;
-  vacancy_id: string;
-  vacancy_title: string;
-  company_name: string;
-  specialization_id: string;
-  target_grade: string;
-  work_mode: string;
-  salary: { min_kopecks: number; max_kopecks: number };
+  vacancy_id?: string;
+  vacancy_title?: string;
+  company_name?: string;
+  specialization_id?: string;
+  target_grade?: string;
+  work_mode?: string;
+  salary?: { min_kopecks: number; max_kopecks: number };
   status: 'submitted' | 'reviewed' | 'accepted' | 'declined';
   cover_letter?: string | null;
   created_at: string;
+  contact_access_revoked: boolean;
+  has_selected_contacts: boolean;
 };
+
+export function isApplicationContactRequestCurrent(requestId: number, currentRequestId: number, accessAvailable: boolean): boolean {
+  return accessAvailable && requestId === currentRequestId;
+}
+
+export type VacancyPublishPayload = {
+  need_id: string;
+  title: string;
+  description: string;
+  specialization_id: string;
+  target_grade: Grade;
+  work_mode: 'remote' | 'hybrid' | 'office';
+  city: string | null;
+  workload_hours_per_week: number;
+  salary_min_kopecks: number;
+  salary_max_kopecks: number;
+  salary_basis: 'gross' | 'net';
+};
+
+export function buildVacancyPublishPayload(need: Need): VacancyPublishPayload {
+  return {
+    need_id: need.id,
+    title: need.title,
+    description: need.description,
+    specialization_id: need.specialization_id,
+    target_grade: need.target_grade,
+    work_mode: need.work_mode,
+    city: need.city,
+    workload_hours_per_week: need.workload_hours_per_week,
+    salary_min_kopecks: need.salary.min_kopecks,
+    salary_max_kopecks: need.salary.max_kopecks,
+    salary_basis: need.salary.basis,
+  };
+}
+
+export function nextVacancyPublishIdempotencyKey(
+  intents: Map<string, { fingerprint: string; key: string }>,
+  needId: string,
+  payload: VacancyPublishPayload,
+  createKey: () => string = generateUUID,
+): string {
+  const fingerprint = JSON.stringify(payload);
+  const current = intents.get(needId);
+  if (current?.fingerprint === fingerprint) return current.key;
+  const key = createKey();
+  intents.set(needId, { fingerprint, key });
+  return key;
+}
+
+export function clearVacancyPublishIntent(intents: Map<string, { fingerprint: string; key: string }>, needId: string, key: string): void {
+  if (intents.get(needId)?.key === key) intents.delete(needId);
+}
+
+export function claimVacancyPublish(inFlight: Set<string>, needId: string): boolean {
+  if (inFlight.has(needId)) return false;
+  inFlight.add(needId);
+  return true;
+}
+
+export function releaseVacancyPublish(inFlight: Set<string>, needId: string): void {
+  inFlight.delete(needId);
+}
+
+export function buildVacancyApplicationPayload(
+  coverLetter: string,
+  selectedTypes: string[],
+  channels: OwnContacts['channels'],
+): { cover_letter: string | null; contact_channel_types: OwnContacts['channels'][number]['type'][] } {
+  const enabled = new Set(channels.filter((channel) => channel.enabled).map((channel) => channel.type));
+  const contact_channel_types = [...new Set(selectedTypes.filter((type): type is OwnContacts['channels'][number]['type'] => enabled.has(type as OwnContacts['channels'][number]['type'])))];
+  return { cover_letter: coverLetter.trim() || null, contact_channel_types };
+}
 
 type Envelope<T> = { data: T };
 type ApiError = { error?: { code?: string; message?: string; field?: string; retryable?: boolean; eligible_at?: string | null; active_attempt_id?: string | null } };

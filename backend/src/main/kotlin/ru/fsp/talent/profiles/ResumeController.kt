@@ -9,11 +9,15 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import ru.fsp.talent.core.ApiException
 import ru.fsp.talent.core.AuthAccess
+import ru.fsp.talent.core.Store
+import ru.fsp.talent.consents.ConsentService
 
 @RestController
 class ResumeController(
     private val auth: AuthAccess,
-    private val parserService: ResumeParserService
+    private val parserService: ResumeParserService,
+    private val consents: ConsentService,
+    private val store: Store,
 ) {
 
     @PostMapping("/api/v1/me/resume/parse", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
@@ -21,7 +25,7 @@ class ResumeController(
         request: HttpServletRequest,
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<Map<String, Any?>> {
-        auth.verified(auth.candidate(request))
+        val actor = auth.verified(auth.candidate(request))
         if (file.isEmpty) {
             throw ApiException(400, "INVALID_FILE", "Файл резюме не должен быть пустым", "file")
         }
@@ -29,7 +33,10 @@ class ResumeController(
             throw ApiException(400, "FILE_TOO_LARGE", "Размер файла не должен превышать 15 МБ", "file")
         }
 
-        val parsed = parserService.parse(file.bytes)
+        val parsed = store.tx.execute {
+            consents.requireProcessing(actor.id)
+            parserService.parse(file.bytes)
+        }!!
         return ResponseEntity.ok(
             mapOf(
                 "data" to mapOf(

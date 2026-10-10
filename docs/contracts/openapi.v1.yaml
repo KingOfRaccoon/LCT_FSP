@@ -41,6 +41,9 @@
     },
     {
       "name": "Contacts"
+    },
+    {
+      "name": "Vacancies"
     }
   ],
   "paths": {
@@ -9131,6 +9134,1128 @@
           }
         ]
       }
+    },
+    "/me/resume/parse": {
+      "post": {
+        "operationId": "parse_resume_suggestions",
+        "summary": "Parse a candidate-provided PDF into reviewable suggestions",
+        "tags": [
+          "Candidate"
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggestions extracted; no profile fields are written.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeSuggestionsEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_FILE for an empty or unreadable PDF, or FILE_TOO_LARGE for a file above 15 MB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN for wrong role or CONSENT_REQUIRED when current processing consent is absent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Candidate-provided PDF only. Requires current processing consent. Returns nullable suggestions; the client must show them and require explicit confirmation before saving. Parsed declared_grade never sets the test-confirmed grade. Maximum file size is 15 MB.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/recruiting/export/ats": {
+      "get": {
+        "operationId": "export_recruiting_json",
+        "summary": "Download a JSON export of candidates with active contact grants",
+        "tags": [
+          "Company"
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON export file.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AtsExportEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Only format=json is supported.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Employer role required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Plain JSON export only; this is not an ATS provider integration. Includes only active grants with current processing consent and explicitly enabled contact channels. The account email is not a fallback.",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json"
+              ],
+              "default": "json"
+            }
+          }
+        ],
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/vacancies": {
+      "get": {
+        "operationId": "list_vacancies",
+        "summary": "List active public vacancies",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Vacancy list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyListEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "specialization_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "grade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "publish_vacancy",
+        "summary": "Publish a vacancy from an owned active need",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Vacancy published.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, mutation header, or payload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN when the requester is not an authorized employer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The active need is not found or not owned by this company.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency conflict or VERSION_CONFLICT because submitted fields no longer match the current active need.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "The full need snapshot is required. Fields and salary must match the current active need owned by this company; otherwise the server returns 409 VERSION_CONFLICT. Salary is a required RUB/month range with no default.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VacancyPublishRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/vacancies/{id}": {
+      "get": {
+        "operationId": "get_vacancy",
+        "summary": "Get a public vacancy",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Vacancy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed UUID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vacancy not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ]
+      }
+    },
+    "/vacancies/{id}/apply": {
+      "post": {
+        "operationId": "apply_to_vacancy",
+        "summary": "Submit a direct application and choose contact channels for this vacancy employer",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Application submitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyApplicationEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload or requested channel is not enabled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN for wrong role or CONSENT_REQUIRED when current processing consent is absent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vacancy or candidate profile not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Application already exists or idempotency conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires current processing consent. The contact list may be empty; requested channels must be enabled. Grant is scoped to the company that owns this vacancy and does not require an accepted invitation.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VacancyApplicationRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/me/applications": {
+      "get": {
+        "operationId": "list_my_vacancy_applications",
+        "summary": "List the current candidate’s direct applications",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Application list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateApplicationListEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Candidate role required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "When processing consent is inactive, each item contains only id, status, created_at, contact_access_revoked, and has_selected_contacts.",
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/vacancies/company/applications": {
+      "get": {
+        "operationId": "list_company_vacancy_applications",
+        "summary": "List applications to vacancies owned by the current company",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Application list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyApplicationListEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Employer role required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Candidate profile/application details are returned only while current processing consent is active. Otherwise only id, status, created_at, candidate_processing_active=false, contact_access_revoked, and has_selected_contacts are returned.",
+        "parameters": [
+          {
+            "name": "vacancy_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/vacancies/applications/{id}/contacts": {
+      "get": {
+        "operationId": "get_application_contacts",
+        "summary": "Read contact channels explicitly allowed in a direct application",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Selected enabled contact channels.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationContactsEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Employer role required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Foreign company, revoked application permission, or inactive processing consent. An active permission with no currently enabled selected channels returns 200 with an empty channels array.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Only candidate-selected channels that remain enabled are returned. If permission remains active but no selected channel is currently enabled, channels is an empty array. Foreign company, revoked permission, or inactive processing consent returns 404. Response is private and non-cacheable.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/me/applications/{id}/contact-access/revoke": {
+      "post": {
+        "operationId": "revoke_application_contact_access",
+        "summary": "Revoke contact access granted by a direct application",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact access revoked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationContactRevokeEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, mutation header, or payload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN when the requester is not the candidate.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application or permission not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency key or operation state conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Separate from public-profile visibility and processing consent; the application remains. Mutation requires an Idempotency-Key.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/vacancies/applications/{id}/status": {
+      "patch": {
+        "operationId": "update_vacancy_application_status",
+        "summary": "Update status of an application to the current company’s vacancy",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Application status updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationStatusEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unsupported status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN for wrong role or an application owned by a different company.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency key or operation state conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Allowed statuses are reviewed, accepted, and declined. Mutation requires an Idempotency-Key.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationStatusRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -9175,7 +10300,13 @@
               "EMAIL_ALREADY_EXISTS",
               "PROFILE_INCOMPLETE",
               "INTERNAL_ERROR",
-              "INVITATION_COOLDOWN"
+              "INVITATION_COOLDOWN",
+              "CONSENT_REQUIRED",
+              "INVALID_UUID",
+              "INVALID_FILE",
+              "FILE_TOO_LARGE",
+              "ALREADY_APPLIED",
+              "INVALID_STATUS"
             ],
             "maxLength": 64
           },
@@ -15073,6 +16204,967 @@
           "data"
         ],
         "additionalProperties": false
+      },
+      "ResumeSuggestions": {
+        "type": "object",
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "headline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "declared_grade": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "junior",
+                  "middle"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "soft_skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "role_preferences": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "raw_preview": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "display_name",
+          "email",
+          "phone",
+          "headline",
+          "summary",
+          "declared_grade",
+          "skills",
+          "soft_skills",
+          "role_preferences",
+          "cities",
+          "raw_preview"
+        ],
+        "description": "Extracted values are suggestions only. The candidate must review and confirm before saving; parsed grade never sets the test-confirmed grade."
+      },
+      "ResumeSuggestionsEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ResumeSuggestions"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "VacancySalary": {
+        "type": "object",
+        "properties": {
+          "min_kopecks": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "max_kopecks": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "currency": {
+            "const": "RUB"
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "gross",
+              "net"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "min_kopecks",
+          "max_kopecks",
+          "currency",
+          "basis"
+        ]
+      },
+      "Vacancy": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "need_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UUID"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "company_name": {
+            "type": "string"
+          },
+          "company_industry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "specialization_id": {
+            "type": "string"
+          },
+          "target_grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle",
+              "senior"
+            ]
+          },
+          "work_mode": {
+            "type": "string",
+            "enum": [
+              "remote",
+              "hybrid",
+              "office"
+            ]
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "workload_hours_per_week": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 40
+          },
+          "salary": {
+            "$ref": "#/components/schemas/VacancySalary"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "archived"
+            ]
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "need_id",
+          "company_id",
+          "company_name",
+          "company_industry",
+          "title",
+          "description",
+          "specialization_id",
+          "target_grade",
+          "work_mode",
+          "city",
+          "workload_hours_per_week",
+          "salary",
+          "status",
+          "created_at"
+        ]
+      },
+      "VacancyEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Vacancy"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "VacancyList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Vacancy"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "items"
+        ]
+      },
+      "VacancyListEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/VacancyList"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "VacancyPublishRequest": {
+        "type": "object",
+        "properties": {
+          "need_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000
+          },
+          "specialization_id": {
+            "const": "backend-python-v1"
+          },
+          "target_grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle",
+              "senior"
+            ]
+          },
+          "work_mode": {
+            "type": "string",
+            "enum": [
+              "remote",
+              "hybrid",
+              "office"
+            ]
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "workload_hours_per_week": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 40
+          },
+          "salary_min_kopecks": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000000
+          },
+          "salary_max_kopecks": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000000
+          },
+          "salary_basis": {
+            "type": "string",
+            "enum": [
+              "gross",
+              "net"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "need_id",
+          "title",
+          "description",
+          "specialization_id",
+          "target_grade",
+          "work_mode",
+          "city",
+          "workload_hours_per_week",
+          "salary_min_kopecks",
+          "salary_max_kopecks",
+          "salary_basis"
+        ],
+        "description": "All fields must match the active need owned by the current company. Salary is a mandatory RUB/month range in kopecks; no default is applied."
+      },
+      "VacancyApplicationRequest": {
+        "type": "object",
+        "properties": {
+          "cover_letter": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contact_channel_types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "email",
+                "phone",
+                "website"
+              ]
+            },
+            "uniqueItems": true,
+            "minItems": 0,
+            "maxItems": 3
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "contact_channel_types"
+        ]
+      },
+      "VacancyApplication": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "vacancy_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "submitted",
+              "reviewed",
+              "accepted",
+              "declined"
+            ]
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "contact_access_revoked": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "vacancy_id",
+          "status",
+          "created_at",
+          "contact_access_revoked"
+        ]
+      },
+      "VacancyApplicationEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/VacancyApplication"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "CandidateApplication": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "vacancy_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "vacancy_title": {
+            "type": "string"
+          },
+          "company_name": {
+            "type": "string"
+          },
+          "specialization_id": {
+            "type": "string"
+          },
+          "target_grade": {
+            "type": "string"
+          },
+          "work_mode": {
+            "type": "string"
+          },
+          "salary": {
+            "type": "object",
+            "properties": {
+              "min_kopecks": {
+                "type": "integer"
+              },
+              "max_kopecks": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "min_kopecks",
+              "max_kopecks"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "submitted",
+              "reviewed",
+              "accepted",
+              "declined"
+            ]
+          },
+          "cover_letter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "contact_access_revoked": {
+            "type": "boolean"
+          },
+          "has_selected_contacts": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "created_at",
+          "contact_access_revoked",
+          "has_selected_contacts"
+        ],
+        "description": "When processing consent is inactive, only id, status, created_at, contact_access_revoked, and has_selected_contacts remain. Missing/revoked permission yields contact_access_revoked=true and has_selected_contacts=false; an active permission with an empty channel selection yields false for both flags."
+      },
+      "CandidateApplicationList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CandidateApplication"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "items"
+        ]
+      },
+      "CandidateApplicationListEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CandidateApplicationList"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "CompanyApplication": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "vacancy_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "vacancy_title": {
+            "type": "string"
+          },
+          "candidate_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "candidate_name": {
+            "type": "string"
+          },
+          "candidate_headline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "declared_grade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verified_grade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cover_letter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "submitted",
+              "reviewed",
+              "accepted",
+              "declined"
+            ]
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "candidate_processing_active": {
+            "type": "boolean"
+          },
+          "contact_access_revoked": {
+            "type": "boolean"
+          },
+          "has_selected_contacts": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "created_at",
+          "candidate_processing_active",
+          "contact_access_revoked",
+          "has_selected_contacts"
+        ],
+        "description": "When processing consent is inactive, profile and application details are omitted; id, status, created_at, candidate_processing_active, contact_access_revoked, and has_selected_contacts remain. Missing/revoked permission yields contact_access_revoked=true and has_selected_contacts=false; an active permission with an empty channel selection yields false for both flags."
+      },
+      "CompanyApplicationList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanyApplication"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "items"
+        ]
+      },
+      "CompanyApplicationListEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CompanyApplicationList"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "ApplicationContactChannel": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "email",
+              "phone",
+              "website"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "value"
+        ]
+      },
+      "ApplicationContacts": {
+        "type": "object",
+        "properties": {
+          "application_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationContactChannel"
+            },
+            "minItems": 0,
+            "maxItems": 3
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "application_id",
+          "channels"
+        ]
+      },
+      "ApplicationContactsEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ApplicationContacts"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "ApplicationContactRevoke": {
+        "type": "object",
+        "properties": {
+          "revoked": {
+            "const": true
+          },
+          "contact_access_revoked": {
+            "const": true
+          },
+          "revoked_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "revoked",
+          "contact_access_revoked",
+          "revoked_at"
+        ]
+      },
+      "ApplicationContactRevokeEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ApplicationContactRevoke"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "ApplicationStatusRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "reviewed",
+              "accepted",
+              "declined"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ]
+      },
+      "ApplicationStatus": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "reviewed",
+              "accepted",
+              "declined"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status"
+        ]
+      },
+      "ApplicationStatusEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ApplicationStatus"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "AtsExportCandidate": {
+        "type": "object",
+        "properties": {
+          "external_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "position": {
+            "type": "string"
+          },
+          "verified_grade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "declared_grade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationContactChannel"
+            }
+          },
+          "skills": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "const": "FSP_Talent_Platform"
+          },
+          "granted_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "external_id",
+          "first_name",
+          "last_name",
+          "contacts",
+          "verified_grade",
+          "declared_grade",
+          "skills",
+          "source",
+          "granted_at"
+        ],
+        "description": "Contact properties are included only for explicitly enabled channels. Account email is never substituted."
+      },
+      "AtsExport": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "const": "json"
+          },
+          "export_version": {
+            "type": "string"
+          },
+          "total_candidates": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AtsExportCandidate"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "format",
+          "export_version",
+          "total_candidates",
+          "candidates"
+        ]
+      },
+      "AtsExportEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AtsExport"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
       }
     }
   }

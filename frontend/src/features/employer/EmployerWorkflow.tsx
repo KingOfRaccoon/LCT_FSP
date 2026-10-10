@@ -206,14 +206,11 @@ export function RecruitingWorkspacePage() {
   return <div className="employer-page"><PageHeader title="Рабочая воронка" description="Приватные заметки и этапы вашей компании. Они не влияют на оценку кандидата и не означают, что приглашение принято или контакт открыт." />
     <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-        <button type="button" className="button button-secondary button-small" onClick={() => void api.download('/recruiting/export/ats?format=huntflow', 'fsp-huntflow-export.json')}>
-          📥 Экспорт в Huntflow (JSON)
-        </button>
-        <button type="button" className="button button-secondary button-small" onClick={() => void api.download('/recruiting/export/ats?format=json', 'fsp-ats-export.json')}>
-          📥 Выгрузка ATS (JSON)
+        <button type="button" className="button button-secondary button-small" onClick={() => void api.download('/recruiting/export/ats?format=json', 'fsp-records-export.json')}>
+          📥 Экспорт профилей (JSON)
         </button>
       </div>
-      <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>В выгрузку попадают кандидаты с открытыми контактами</span>
+      <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>В выгрузку попадают профили по действующим разрешениям после принятия приглашений</span>
     </div>
     <form className="card employer-record-filters" onSubmit={submitFilter}><label className="field"><span>ID кандидата</span><input value={candidateFilter} onChange={(event) => setCandidateFilter(event.target.value)} placeholder="UUID кандидата" /></label><label className="field"><span>ID потребности</span><input value={needFilter} onChange={(event) => setNeedFilter(event.target.value)} placeholder="UUID потребности" /></label><button className="button button-secondary">Применить фильтры</button><button type="button" className="button button-primary" onClick={() => setEditing({ candidateId: '', needId: applied.need || null })}>＋ Новая запись</button></form>
     {error && <ErrorMessage message={error} retry={() => setRevision((value) => value + 1)} />}

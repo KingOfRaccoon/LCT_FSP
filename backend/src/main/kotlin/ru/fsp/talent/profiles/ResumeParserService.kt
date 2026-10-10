@@ -3,6 +3,8 @@ package ru.fsp.talent.profiles
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.text.PDFTextStripper
 import org.springframework.stereotype.Service
+import ru.fsp.talent.core.ApiException
+import java.io.IOException
 import java.util.regex.Pattern
 
 data class ParsedResume(
@@ -30,8 +32,10 @@ class ResumeParserService {
             Loader.loadPDF(pdfBytes).use { document ->
                 PDFTextStripper().getText(document)
             }
-        } catch (e: Exception) {
-            throw IllegalArgumentException("Не удалось прочитать PDF файл: ${e.message}", e)
+        } catch (error: IOException) {
+            throw ApiException(400, "INVALID_FILE", "Не удалось прочитать PDF-файл", "file").also {
+                it.initCause(error)
+            }
         }
 
         val lines = fullText.lines().map { it.trim() }.filter { it.isNotEmpty() }
@@ -109,15 +113,19 @@ class ResumeParserService {
                 return line
             }
         }
-        return "Backend Python разработчик"
+        return null
     }
 
-    private fun estimateGrade(text: String): String {
+    private fun estimateGrade(text: String): String? {
         return when {
-            text.contains("senior") || text.contains("сеньор") || text.contains("тимлид") || text.contains("ведущий") -> "middle" // max MVP grade is middle
-            text.contains("middle") || text.contains("мидл") || text.contains("3 года") || text.contains("4 года") || text.contains("5 лет") -> "middle"
-            else -> "junior"
+            text.hasGrade("junior", "джун", "младший") -> "junior"
+            text.hasGrade("middle", "мидл", "средний") -> "middle"
+            else -> null
         }
+    }
+
+    private fun String.hasGrade(vararg labels: String): Boolean = labels.any { label ->
+        Regex("(?<![\\p{L}\\p{N}])${Regex.escape(label)}(?![\\p{L}\\p{N}])").containsMatchIn(this)
     }
 
     private fun extractSkills(text: String): List<String> {
@@ -151,7 +159,6 @@ class ResumeParserService {
         if (text.contains("backend") || text.contains("бэкенд")) detected.add("Backend-разработчик")
         if (text.contains("python")) detected.add("Python-инженер")
         if (text.contains("платформ") || text.contains("platform")) detected.add("Инженер платформы")
-        if (detected.isEmpty()) detected.add("Backend Python разработчик")
         return detected.distinct()
     }
 
