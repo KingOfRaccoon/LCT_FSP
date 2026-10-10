@@ -22,6 +22,7 @@ import { isContactResponseCurrent, readContactIfAuthorized, reconcileAnswerDraft
 import './features/case/case.css';
 import { candidateNextStep, isProfileDiscoverable, pendingInvitationCount } from './features/journey';
 import { installPressMotion } from './features/motion/press-motion';
+import { useTheme } from './theme';
 import { ResumeImportPanel } from './features/adoption/ResumeImportPanel';
 import { SalaryPreferenceEditor } from './features/adoption/SalaryPreferenceEditor';
 import { NeedInsightsPanel } from './features/adoption/NeedInsightsPanel';
@@ -79,18 +80,27 @@ function App() {
   const location = useLocation();
   const isPractice = location.pathname === '/practice';
   const me = useQuery({ queryKey: ['me'], queryFn: () => api.get<User>('/auth/me'), enabled: !isPractice });
-  if (isPractice) return <PracticePage />;
-  if (me.isPending) return <div className="center-screen"><Loading /></div>;
-  if (location.pathname === '/confirm-email' && (!me.isError || (me.error instanceof RequestError && me.error.status === 401))) {
-    return <ConfirmTokenPage authenticated={me.isSuccess} />;
-  }
-  const unauthenticated = me.isError;
-  if (unauthenticated) {
-    if (!(me.error instanceof RequestError) || me.error.status !== 401) return <div className="center-screen"><div className="auth-card"><PageHeader eyebrow="СВЯЗЬ С СЕРВЕРОМ" title="Кабинет временно недоступен" description={errorMessage(me.error)} /><button className="button button-primary" onClick={() => void me.refetch()}>Повторить запрос</button></div></div>;
-    return <AuthPage />;
-  }
-  if (!me.data.email_verified) return <VerifyPage user={me.data} />;
-  return <Workspace user={me.data} />;
+  const body = (() => {
+    if (isPractice) return <PracticePage />;
+    if (me.isPending) return <div className="center-screen"><Loading /></div>;
+    if (location.pathname === '/confirm-email' && (!me.isError || (me.error instanceof RequestError && me.error.status === 401))) {
+      return <ConfirmTokenPage authenticated={me.isSuccess} />;
+    }
+    const unauthenticated = me.isError;
+    if (unauthenticated) {
+      if (!(me.error instanceof RequestError) || me.error.status !== 401) return <div className="center-screen"><div className="auth-card"><PageHeader eyebrow="СВЯЗЬ С СЕРВЕРОМ" title="Кабинет временно недоступен" description={errorMessage(me.error)} /><button className="button button-primary" onClick={() => void me.refetch()}>Повторить запрос</button></div></div>;
+      return <AuthPage />;
+    }
+    if (!me.data.email_verified) return <VerifyPage user={me.data} />;
+    return <Workspace user={me.data} />;
+  })();
+  return body;
+}
+
+function ThemeToggle() {
+  const { theme, toggle } = useTheme();
+  const dark = theme === 'dark';
+  return <button type="button" className="theme-toggle" onClick={toggle} aria-label={dark ? 'Включить светлую тему' : 'Включить тёмную тему'} title={dark ? 'Светлая тема' : 'Тёмная тема'}>{dark ? '☀' : '☾'}</button>;
 }
 
 function AuthPage() {
@@ -217,7 +227,7 @@ function Workspace({ user }: { user: User }) {
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
   const closeMobileMenu = () => { if (mobileMenuRef.current) { mobileMenuRef.current.open = false; mobileMenuRef.current.querySelector('summary')?.focus(); } };
   return <div className={`${layoutStyles.shell} workspace`}><aside className="sidebar"><Brand /><div className="sidebar-role">{candidate ? 'КАБИНЕТ КАНДИДАТА' : 'КАБИНЕТ РАБОТОДАТЕЛЯ'}</div><WorkspaceLinks links={links} /><div className="sidebar-bottom"><div className="profile-mini"><span className="avatar">{(candidate ? user.candidate_profile?.display_name : user.company?.name)?.slice(0, 1) ?? 'Ф'}</span><span className="profile-mini-copy"><strong>{candidate ? user.candidate_profile?.display_name : user.company?.name ?? user.email}</strong><small>{user.email}</small></span></div><button className="logout-link" onClick={logout}>Выйти <span aria-hidden="true">↗</span></button></div></aside>
-    <main className="main-area"><header className="topbar"><div className="mobile-brand"><Brand /></div><div className="topbar-context"><span className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="topbar-title">{candidate ? 'Кандидат' : 'Работодатель'} <span className="topbar-separator">/</span> {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</div></div><div className="topbar-right"><span className="status-dot" />Аккаунт активен</div></header><details className="mobile-navigation" ref={mobileMenuRef}><summary><span className="nav-icon" aria-hidden="true"><NavIcon name="menu" /></span><span>Разделы кабинета</span></summary><WorkspaceLinks links={links} onNavigate={closeMobileMenu} /><button className="mobile-logout" onClick={() => { closeMobileMenu(); void logout(); }}><span className="nav-icon" aria-hidden="true"><NavIcon name="logout" /></span><span className="nav-label">Выйти из кабинета</span></button></details><div className="content"><Routes>
+    <main className="main-area"><header className="topbar"><div className="mobile-brand"><Brand /></div><div className="topbar-context"><span className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="topbar-title">{candidate ? 'Кандидат' : 'Работодатель'} <span className="topbar-separator">/</span> {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</div></div><div className="topbar-right"><ThemeToggle /><span className="status-dot" />Аккаунт активен</div></header><details className="mobile-navigation" ref={mobileMenuRef}><summary><span className="nav-icon" aria-hidden="true"><NavIcon name="menu" /></span><span>Разделы кабинета</span></summary><WorkspaceLinks links={links} onNavigate={closeMobileMenu} /><button className="mobile-logout" onClick={() => { closeMobileMenu(); void logout(); }}><span className="nav-icon" aria-hidden="true"><NavIcon name="logout" /></span><span className="nav-label">Выйти из кабинета</span></button></details><div className="content"><Routes>
       {candidate ? <>
         <Route path="/" element={<CandidateHome user={user} />} />
         <Route path="/profile" element={<CandidateProfilePage user={user} />} />
