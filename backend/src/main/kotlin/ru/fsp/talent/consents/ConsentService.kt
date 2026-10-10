@@ -86,6 +86,27 @@ class ConsentService(private val store: Store) {
 
     fun requirePublication(userId: String) = requireConsent(userId, "publication")
 
+    /**
+     * Reads current processing-consent state for accounts whose rows the caller has already locked.
+     * The caller must keep those locks until it has finished any consent-gated reads.
+     */
+    fun processingConsentStatusForLockedUsers(userIds: Collection<String>): Map<String, Boolean> {
+        val ids = userIds.distinct()
+        if (ids.isEmpty()) return emptyMap()
+        val processingVersion = SCOPES.getValue("processing").version
+        return store.rows(
+            """SELECT u.id::text AS user_id, COALESCE(latest.action = 'accept', FALSE) AS active
+               FROM users u
+               LEFT JOIN LATERAL (
+                   SELECT ce.action FROM consent_events ce
+                   WHERE ce.actor_user_id = u.id AND ce.scope = 'processing' AND ce.version = :version
+                   ORDER BY ce.sequence DESC LIMIT 1
+               ) latest ON TRUE
+               WHERE u.id IN (:userIds)""".trimIndent(),
+            mapOf("version" to processingVersion, "userIds" to ids),
+        ).associate { row -> row.getValue("user_id").toString() to (row["active"] == true) }
+    }
+
     private fun requireConsent(userId: String, scope: String) {
         store.one("SELECT id FROM users WHERE id = :user FOR UPDATE", mapOf("user" to userId))
             ?: throw ApiException(404, "NOT_FOUND", "Account not found")

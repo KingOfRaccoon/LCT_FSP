@@ -1,0 +1,70 @@
+.adoption-card { min-width: 0; }
+.adoption-card .card-head { align-items: flex-start; }
+.adoption-card .card-head h2 { margin-top: 4px; }
+.adoption-intro { color: var(--muted); font-size: 13px; line-height: 1.55; margin: -4px 0 18px; }
+.adoption-upload-form { display: grid; gap: 8px; }
+.adoption-upload-form > small { color: var(--muted); font-size: 11px; line-height: 1.45; }
+.adoption-upload-form > .button { justify-self: start; margin-top: 6px; }
+.adoption-review { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 18px; }
+.adoption-review > h3, .adoption-card h3 { font-size: 14px; margin: 0 0 8px; }
+.adoption-review-field { border: 1px solid var(--line); border-radius: 9px; padding: 12px; margin-top: 10px; min-width: 0; }
+.adoption-select-field { display: flex; align-items: flex-start; gap: 9px; font-size: 12px; font-weight: 650; line-height: 1.4; cursor: pointer; }
+.adoption-select-field input { accent-color: var(--brand); margin: 2px 0 0; flex: none; width: 16px; height: 16px; }
+.adoption-edit-field { display: grid; gap: 6px; margin: 10px 0 0; }
+.adoption-edit-field > span { font-size: 11px; }
+.adoption-edit-field > small { color: var(--muted); font-size: 10px; line-height: 1.45; }
+.adoption-edit-field input, .adoption-edit-field textarea { width: 100%; min-width: 0; }
+.adoption-choice-group, .adoption-entry-editor { border: 1px solid var(--border); border-radius: 8px; padding: 12px; min-width: 0; margin: 10px 0 0; }
+.adoption-choice-group legend, .adoption-entry-editor legend { padding: 0 5px; color: var(--muted); font-size: 11px; font-weight: 650; }
+.adoption-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; }
+.adoption-choice-grid label { display: flex; align-items: flex-start; gap: 8px; min-width: 0; color: var(--text); font-size: 11px; line-height: 1.4; cursor: pointer; }
+.adoption-choice-grid input { flex: none; margin: 1px 0 0; accent-color: var(--brand); }
+.adoption-choice-grid span { overflow-wrap: anywhere; }
+.adoption-entry-list { display: grid; gap: 8px; }
+.adoption-entry-editor { padding: 14px; margin-top: 0; }
+.adoption-entry-editor > .text-button { display: block; margin: -2px 0 12px auto; }
+.adoption-entry-editor .field { margin: 0 0 10px; }
+.adoption-entry-editor .field:last-of-type { margin-bottom: 0; }
+.adoption-entry-editor .field > small { color: var(--muted); font-size: 10px; }
+.adoption-contacts { border-radius: 9px; background: #f7f6fc; padding: 12px; margin-top: 16px; overflow-wrap: anywhere; }
+.adoption-contacts h4 { font-size: 12px; margin: 0 0 7px; }
+.adoption-contacts ul { display: grid; gap: 6px; list-style: none; margin: 0; padding: 0; font-size: 12px; }
+.adoption-contacts p { color: var(--muted); font-size: 11px; line-height: 1.5; margin: 9px 0 0; }
+.adoption-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
+.adoption-pool-summary { display: flex; align-items: baseline; gap: 10px; border-radius: 9px; background: var(--purple-tint); padding: 14px; margin-bottom: 12px; }
+.adoption-pool-summary strong { color: var(--brand); font-size: 24px; letter-spacing: -.04em; }
+.adoption-pool-summary span { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.adoption-counts, .adoption-requirement-counts, .adoption-salary-counts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; margin: 0 0 20px; }
+.adoption-counts > div, .adoption-requirement-counts > div, .adoption-salary-counts > div { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.adoption-counts dt, .adoption-requirement-counts dt, .adoption-salary-counts dt { color: var(--muted); font-size: 11px; line-height: 1.4; }
+.adoption-counts dd, .adoption-requirement-counts dd, .adoption-salary-counts dd { font-size: 12px; font-weight: 680; margin: 0; flex: none; }
+.adoption-unknown-note { display: grid; gap: 5px; border: 1px solid #f0dcae; background: #fffaf0; border-radius: 9px; padding: 12px; margin: 4px 0 20px; }
+.adoption-unknown-note strong { color: #76530e; font-size: 12px; }
+.adoption-unknown-note span { color: #765f2a; font-size: 11px; line-height: 1.5; }
+.adoption-requirements { display: grid; gap: 10px; margin: 10px 0 20px; }
+.adoption-requirement { border: 1px solid var(--border); border-radius: 9px; padding: 12px; min-width: 0; }
+.adoption-requirement-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.adoption-requirement-heading strong { font-size: 12px; }
+.adoption-requirement-counts { grid-template-columns: 1fr; margin: 8px 0; }
+.adoption-requirement-counts > div { padding: 6px 0; }
+.adoption-requirement .text-button { text-align: left; line-height: 1.4; }
+.adoption-preview { margin: 9px 0 0; padding: 10px; border-radius: 7px; background: var(--purple-tint); color: #39318f; font-size: 11px; line-height: 1.5; }
+.adoption-salary { border-top: 1px solid var(--line); padding-top: 18px; }
+.adoption-salary > .field-hint { font-size: 11px; line-height: 1.5; }
+.adoption-salary-counts { margin-top: 10px; }
+.adoption-median { border-radius: 8px; background: var(--green-bg); color: var(--green); padding: 11px 12px; font-size: 12px; }
+.adoption-data-note { color: var(--subtle); font-size: 10px; line-height: 1.45; margin: 14px 0 0; }
+.adoption-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.adoption-salary-form { display: grid; gap: 14px; }
+
+@media (max-width: 480px) {
+  .adoption-card { padding: 16px; }
+  .adoption-card .card-head { gap: 8px; }
+  .adoption-card .card-head > .badge { white-space: normal; text-align: center; }
+  .adoption-counts, .adoption-salary-counts { grid-template-columns: 1fr; }
+  .adoption-form-grid { grid-template-columns: 1fr; gap: 9px; }
+  .adoption-choice-grid { grid-template-columns: 1fr; }
+  .adoption-actions { align-items: stretch; }
+  .adoption-actions > .button { flex: 1 1 100%; }
+  .adoption-upload-form > .button { width: 100%; }
+}

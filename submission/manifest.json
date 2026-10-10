@@ -9,8 +9,8 @@
     },
     {
       "name": "FSP_Companion_Documentation.pdf",
-      "bytes": 48070,
-      "sha256": "adee3b6a51ecc8ddf7144c764a0b8f315b980b3454aeaaedc5981876ef75f288"
+      "bytes": 129999,
+      "sha256": "de369f74142a9dc48ec7411e418f9cb9c0fcffc7847f9ea5c38114d604e5b352"
     },
     {
       "name": "FSP_Demo.mp4",
@@ -19,8 +19,8 @@
     },
     {
       "name": "FSP_Companion_Documentation.md",
-      "bytes": 32003,
-      "sha256": "05477e093d1c43c70f08a1a229bc5c3dea662727aaad8b9daa8a9a4e52668b10"
+      "bytes": 44585,
+      "sha256": "b33243fb95ce5cf3c89e7dba0ffa45f1a9ed84057f9b42afb0fb397c63b8a9bb"
     },
     {
       "name": "dependency-versions.txt",
@@ -63,5 +63,10 @@
   "repository": {
     "url": "https://github.com/KingOfRaccoon/LCT_FSP",
     "branch": "prototype"
+  },
+  "deployment": {
+    "public_url": "http://158.160.223.177",
+    "swagger_ui": "http://158.160.223.177/swagger-ui",
+    "auto_deploy": "cron every 10 min from branch prototype"
   }
 }

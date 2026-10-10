@@ -1,0 +1,243 @@
+/* Dark theme. Page/surface colors match fsp-russia.ru's dark layout (#1b1c21 page, #1e1f26 panels). */
+
+:root[data-theme='dark'] {
+  --page: #1b1c21;
+  --surface: #1e1f26;
+  --text: #ededed;
+  --muted: #a7a9b4;
+  --subtle: #7d7f8c;
+  --border: #33343d;
+  --line: #2a2b33;
+  --purple-tint: #262347;
+  --green: #5fd79b;
+  --green-bg: rgba(22, 116, 76, .22);
+  --amber: #ffcf70;
+  --amber-bg: rgba(153, 96, 0, .26);
+  --red-bg: rgba(236, 29, 53, .18);
+  --shadow: 0 12px 40px rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+
+/* Base chrome */
+[data-theme='dark'] body,
+[data-theme='dark'] body .assessment-run { color: var(--text); background: var(--page); }
+[data-theme='dark'] body .sidebar { background: var(--surface); border-right-color: var(--border); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-theme='dark'] body .topbar { background: var(--surface); border-bottom-color: var(--border); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+[data-theme='dark'] body .sidebar-role { color: var(--subtle); }
+[data-theme='dark'] body .mobile-navigation { background: var(--surface); border-bottom-color: var(--border); }
+[data-theme='dark'] body .mobile-logout { background: var(--surface); border-top-color: var(--line); }
+[data-theme='dark'] body .nav-link { color: var(--muted); }
+[data-theme='dark'] body .nav-link:hover { background: #262733; color: #c6c1ff; }
+[data-theme='dark'] body .nav-link.active { background: var(--purple-tint); color: #c6c1ff; border-left-color: #fff; box-shadow: none; }
+[data-theme='dark'] body .eyebrow { color: var(--subtle); }
+
+[data-theme='dark'] body .page-header,
+[data-theme='dark'] .candidate-feature-heading,
+[data-theme='dark'] .extension-header { border-bottom-color: var(--border); }
+[data-theme='dark'] body .page-header h1,
+[data-theme='dark'] .candidate-feature-heading h1,
+[data-theme='dark'] .extension-header h1 { color: var(--text); }
+[data-theme='dark'] body .page-header p,
+[data-theme='dark'] .candidate-feature-heading > p,
+[data-theme='dark'] .extension-header p { color: var(--muted); }
+[data-theme='dark'] .candidate-feature-heading .candidate-eyebrow { color: var(--subtle); }
+
+[data-theme='dark'] body .card { background: var(--surface); border-color: var(--border); box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
+[data-theme='dark'] body .card-head h2,
+[data-theme='dark'] body .group-heading h2,
+[data-theme='dark'] body .need-title-row h2,
+[data-theme='dark'] body .shortlist-card h2 { color: var(--text); }
+
+[data-theme='dark'] body .button-secondary { border-color: var(--border); background: var(--surface); color: var(--text); }
+[data-theme='dark'] body .button-secondary:hover { border-color: var(--brand); background: #23213a; }
+
+[data-theme='dark'] body .field > span { color: var(--text); }
+[data-theme='dark'] body .field input,
+[data-theme='dark'] body .field select,
+[data-theme='dark'] body .field textarea,
+[data-theme='dark'] body .requirement-row select,
+[data-theme='dark'] input,
+[data-theme='dark'] select,
+[data-theme='dark'] textarea { background: var(--surface); border-color: var(--border); color: var(--text); }
+[data-theme='dark'] body .field input::placeholder,
+[data-theme='dark'] body .field textarea::placeholder,
+[data-theme='dark'] .field input::placeholder,
+[data-theme='dark'] .field textarea::placeholder { color: var(--subtle); }
+[data-theme='dark'] body .field-hint,
+[data-theme='dark'] body .privacy-note { color: var(--muted); }
+[data-theme='dark'] .option-key { background: var(--surface); border-color: var(--border); color: var(--muted); }
+
+[data-theme='dark'] .stat-card { background: var(--surface); border-color: var(--border); }
+[data-theme='dark'] .empty { background: rgba(255, 255, 255, .04); border-color: var(--border); }
+[data-theme='dark'] .grade-token { background: var(--purple-tint); color: #cfc9ff; }
+[data-theme='dark'] .grade-token small { color: var(--subtle); }
+[data-theme='dark'] .timer { background: var(--surface); }
+[data-theme='dark'] .timer-warning { border-color: #6b5420; background: #332707; color: var(--amber); }
+[data-theme='dark'] .result-panel { background: var(--surface); }
+[data-theme='dark'] .verify-card { background: var(--surface); }
+[data-theme='dark'] select { background: var(--surface); }
+
+/* Generic light tinted panels used across assessment, profile and employer screens */
+[data-theme='dark'] .notice { background: var(--purple-tint); color: #c6c1ff; }
+[data-theme='dark'] .notice-success { color: #7eeab3; }
+[data-theme='dark'] .notice-danger { color: #ff8a97; }
+[data-theme='dark'] .error-box { border-color: #5c2530; color: #ff8a97; }
+[data-theme='dark'] .badge { background: #24252d; color: var(--muted); }
+[data-theme='dark'] .badge-neutral { background: #24252d; color: var(--muted); }
+[data-theme='dark'] .need-icon { background: var(--purple-tint); }
+[data-theme='dark'] .assessment-callout { background: var(--purple-tint); }
+[data-theme='dark'] .assessment-callout small { color: var(--muted); }
+[data-theme='dark'] .option-selected { background: var(--purple-tint); border-color: #8d83ff; color: #d4d0ff; }
+[data-theme='dark'] body .privacy-note-box { background: var(--purple-tint); color: #c6c1ff; }
+[data-theme='dark'] .candidate-meta span,
+[data-theme='dark'] .need-summary span { background: #24252d; color: var(--muted); }
+[data-theme='dark'] .eligibility,
+[data-theme='dark'] .block-scores > div,
+[data-theme='dark'] .reason-list,
+[data-theme='dark'] .contact-channels > div,
+[data-theme='dark'] .contact-reveal > div,
+[data-theme='dark'] .evidence-row { background: #24252d; }
+[data-theme='dark'] .candidate-avatar { background: var(--purple-tint); }
+
+[data-theme='dark'] body .avatar,
+[data-theme='dark'] .avatar { background: var(--purple-tint); }
+[data-theme='dark'] body .role-picker label.selected,
+[data-theme='dark'] .role-picker label.selected { background: #23213a; }
+[data-theme='dark'] .status-dot { box-shadow: 0 0 0 3px rgba(153, 96, 0, .3); }
+[data-theme='dark'] .quiet-link { color: var(--muted); }
+[data-theme='dark'] body .question-card { border-color: var(--border); }
+
+[data-theme='dark'] body .auth-page,
+[data-theme='dark'] body .auth-main { background: var(--page); }
+[data-theme='dark'] body .auth-card,
+[data-theme='dark'] body .verify-card { background: var(--surface); box-shadow: 0 8px 32px rgba(0, 0, 0, .45); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-theme='dark'] body .auth-main,
+[data-theme='dark'] body .verify-layout {
+  background:
+    radial-gradient(ellipse 560px 460px at 90% 12%, rgba(64, 47, 255, .12), transparent 70%),
+    radial-gradient(ellipse 420px 380px at 12% 90%, rgba(236, 29, 53, .08), transparent 70%),
+    var(--page);
+}
+
+/* Candidate feature pages */
+[data-theme='dark'] .candidate-practice-banner,
+[data-theme='dark'] .candidate-preview-notice,
+[data-theme='dark'] .candidate-inline-info { background: linear-gradient(135deg, rgba(64, 47, 255, .14), rgba(255, 255, 255, .03)); color: #c9c4ff; border-color: rgba(64, 47, 255, .35); }
+[data-theme='dark'] .candidate-practice-option { background: rgba(255, 255, 255, .04); }
+[data-theme='dark'] .candidate-practice-option:hover { border-color: #6a5de0; }
+[data-theme='dark'] .candidate-practice-option.is-selected { border-color: #8d83ff; background: var(--purple-tint); }
+[data-theme='dark'] .candidate-practice-explanation { background: #211f3a; }
+[data-theme='dark'] .candidate-practice-explanation.is-correct { border-left-color: #2fae7c; background: #16281f; }
+[data-theme='dark'] .candidate-practice-save-state { color: #5fd79b; }
+[data-theme='dark'] .candidate-provenance-chip,
+[data-theme='dark'] .candidate-visibility-chip,
+[data-theme='dark'] .candidate-demo-marker { background: var(--surface); }
+[data-theme='dark'] .candidate-provenance-chip { border-color: #4a46a8; background: #23213a; color: #c6c1ff; }
+[data-theme='dark'] .candidate-visibility-chip.is-public { border-color: #1f6b46; background: #14241b; color: #7eeab3; }
+[data-theme='dark'] .candidate-evidence-entry { background: rgba(255, 255, 255, .03); }
+[data-theme='dark'] .candidate-remove-button { color: #ff8a97; }
+[data-theme='dark'] .candidate-evidence-grid input:not([type=checkbox]),
+[data-theme='dark'] .candidate-evidence-grid textarea { background: var(--surface); }
+[data-theme='dark'] .candidate-inline-error { border-color: #5c2530; background: #2a1a1e; color: #ff8a97; }
+[data-theme='dark'] .candidate-inline-success { border-color: #1f6b46; background: #14241b; color: #7eeab3; }
+[data-theme='dark'] .candidate-public-card { background: #24252d; }
+[data-theme='dark'] .candidate-public-meta span { background: #23213a; color: #c6c1ff; }
+[data-theme='dark'] .candidate-preview-skills span { background: var(--surface); }
+[data-theme='dark'] .candidate-preview-list > div { background: var(--surface); }
+[data-theme='dark'] .candidate-access-icon { background: #23213a; }
+[data-theme='dark'] .candidate-dialog-backdrop { background: rgba(0, 0, 0, .6); }
+[data-theme='dark'] .candidate-review-dialog { background: linear-gradient(145deg, #23242b, #1d1e24); box-shadow: 0 22px 70px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .04); border-color: var(--border); }
+[data-theme='dark'] .candidate-review-warning { background: #332707; color: var(--amber) !important; }
+[data-theme='dark'] .candidate-result-total { background: #24252d; }
+[data-theme='dark'] .candidate-threshold-met { color: #5fd79b; }
+[data-theme='dark'] .candidate-threshold-missed { color: #ffb067; }
+[data-theme='dark'] .candidate-result-block { background: rgba(255, 255, 255, .03); }
+[data-theme='dark'] .candidate-next-step { background: #211f3a; }
+[data-theme='dark'] .candidate-demo-marker { border-color: #6b5420; background: #332707; color: var(--amber); }
+
+/* Employer feature pages */
+[data-theme='dark'] .employer-comparison-scroll { background: var(--surface); }
+[data-theme='dark'] .employer-comparison-table th:first-child { background: #202129; }
+[data-theme='dark'] .employer-comparison-table thead th { background: var(--surface); }
+[data-theme='dark'] .employer-table-section th { background: #23213a !important; color: #c6c1ff; }
+[data-theme='dark'] .employer-badge-good { background: rgba(22, 116, 76, .22); color: #7eeab3; }
+[data-theme='dark'] .employer-badge-warm { background: rgba(153, 96, 0, .26); color: var(--amber); }
+[data-theme='dark'] .employer-badge-danger { background: rgba(236, 29, 53, .18); color: #ff8a97; }
+[data-theme='dark'] .employer-badge-muted { background: #24252d; color: var(--muted); }
+[data-theme='dark'] .employer-review-summary { background: #211f3a; }
+[data-theme='dark'] .employer-person-avatar { background: var(--purple-tint); }
+[data-theme='dark'] .employer-brief-group-danger h4 { color: #ff8a97; }
+[data-theme='dark'] .employer-preferred-topics > summary,
+[data-theme='dark'] .employer-review-details > summary,
+[data-theme='dark'] .employer-question-list summary { color: #c6c1ff; }
+[data-theme='dark'] .employer-invitation-blocked { background: #24252d; border-left-color: var(--subtle); }
+[data-theme='dark'] .employer-interview-kit { background: #24252d; }
+[data-theme='dark'] .employer-task-context { background: #211f3a; border-left-color: #4a46a8; }
+[data-theme='dark'] .employer-modal-backdrop { background: rgba(0, 0, 0, .6); }
+[data-theme='dark'] .employer-role-tasks { background: rgba(255, 255, 255, .03); }
+[data-theme='dark'] .employer-role-task,
+[data-theme='dark'] .employer-shortlist-manager { background: var(--surface); }
+
+/* Extensions: address tasks and conversation */
+[data-theme='dark'] .extension-context,
+[data-theme='dark'] .conversation-messages,
+[data-theme='dark'] .conversation-compose,
+[data-theme='dark'] .extension-card,
+[data-theme='dark'] .extension-task-list-item,
+[data-theme='dark'] .address-task-manual-lookup { background: var(--surface); }
+[data-theme='dark'] .extension-alert,
+[data-theme='dark'] .extension-alert .text-button { background: #2a1a1e; border-color: #5c2530; color: #ff8a97; }
+[data-theme='dark'] .extension-status,
+[data-theme='dark'] .extension-public-label { color: #7eeab3; }
+[data-theme='dark'] .extension-closed,
+[data-theme='dark'] .extension-task-facts,
+[data-theme='dark'] .extension-no-grade,
+[data-theme='dark'] .address-task-candidate-lookup,
+[data-theme='dark'] .address-task-match-picker { background: #24252d; }
+[data-theme='dark'] .conversation-message { background: #24252d; }
+[data-theme='dark'] .conversation-message.is-own { border-color: #4a46a8; background: #23213a; }
+[data-theme='dark'] .address-task-candidate-preview { border-color: #1f6b46; background: #14241b; }
+[data-theme='dark'] .extension-avatar { background: var(--purple-tint); color: #c6c1ff; }
+[data-theme='dark'] .extension-inline-error { color: #ff8a97; }
+[data-theme='dark'] .extension-status-badge.tone-good { background: rgba(22, 116, 76, .22); color: #7eeab3; }
+[data-theme='dark'] .extension-status-badge.tone-warm { background: rgba(153, 96, 0, .26); color: var(--amber); }
+[data-theme='dark'] .extension-status-badge.tone-neutral { background: #24252d; color: var(--muted); }
+[data-theme='dark'] .extension-sharing-notice,
+[data-theme='dark'] .extension-task-solution { background: #211f3a; border-color: #4a46a8; }
+[data-theme='dark'] .extension-auto-result { border-left-color: #8d83ff; }
+[data-theme='dark'] .extension-employer-review { border-left-color: #2fae7c; }
+
+/* Hiring journey */
+[data-theme='dark'] .hiring-overdue { color: #ff8a97; }
+
+/* Case bank consent */
+[data-theme='dark'] .case-consent-document { background: rgba(255, 255, 255, .04); }
+/* Consent body text, styled like fsp-russia.ru's cookie popup: a light pill on the dark page. */
+[data-theme='dark'] .case-consent-text { background: rgba(217, 217, 217, .9); color: #1b1c21; }
+
+/* Theme toggle button: circular icon, pinned to the same top-right corner on every
+   screen (workspace, login, email verification, practice). */
+html body .theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 50;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+body .theme-toggle:hover { border-color: var(--brand); color: var(--brand); }
+
+/* Keep the workspace header's account-status text clear of the corner toggle. */
+body .topbar .topbar-right { margin-right: 44px; }
+
+@media (max-width: 650px) {
+  html body .theme-toggle { top: 14px; right: 14px; }
+  body .topbar .topbar-right { margin-right: 36px; }
+}

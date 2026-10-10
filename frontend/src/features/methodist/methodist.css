@@ -1,0 +1,102 @@
+.methodist-workspace { width: min(1220px, 100%); margin: 0 auto; padding: 32px 24px 64px; color: #1b1c21; }
+.methodist-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.methodist-header h1 { margin: 4px 0 8px; font-family: 'JetBrains Mono', monospace; font-size: clamp(25px, 4vw, 34px); }
+.methodist-header p:not(.methodist-eyebrow) { max-width: 760px; margin: 0; color: #55565d; font-size: 14px; line-height: 1.6; }
+.methodist-eyebrow { margin: 0; color: #656572; font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+.methodist-access-tag { flex: 0 0 auto; padding: 8px 11px; border: 1px solid #d7d7e0; border-radius: 999px; color: #3c326f; background: #f6f5ff; font-size: 11px; }
+.methodist-tabs { display: flex; gap: 7px; margin: 0 0 18px; border-bottom: 1px solid #d7d7e0; }
+.methodist-tabs button { display: inline-flex; align-items: center; gap: 8px; margin-bottom: -1px; padding: 12px 15px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #55565d; font: inherit; font-size: 13px; cursor: pointer; }
+.methodist-tabs button[aria-current='page'] { border-bottom-color: #402fff; color: #28205e; font-weight: 700; }
+.methodist-tabs button span { display: grid; min-width: 20px; height: 20px; place-items: center; border-radius: 999px; background: #f1f0f6; font-size: 10px; }
+.methodist-alert, .methodist-notice, .methodist-closed { margin: 0 0 16px; padding: 12px 14px; border-radius: 8px; font-size: 13px; line-height: 1.5; }
+.methodist-alert { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #e7b6b8; background: #fff6f6; color: #782730; }
+.methodist-notice { border: 1px solid #b9d9c3; background: #f4fbf6; color: #245a37; }
+.methodist-closed { border: 1px solid #dedee5; background: #f7f7f9; color: #42424a; }
+.methodist-drafts-layout { display: grid; grid-template-columns: minmax(250px, 320px) minmax(0, 1fr); align-items: start; gap: 18px; }
+.methodist-workspace .card { min-width: 0; padding: 20px; }
+.methodist-list { position: sticky; top: 14px; }
+.methodist-list-head, .methodist-section-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 15px; }
+.methodist-list-head h2, .methodist-section-head h2, .methodist-empty-detail h2, .methodist-monitor-head h2 { margin: 4px 0 0; font-family: 'JetBrains Mono', monospace; font-size: 16px; }
+.methodist-draft-list { display: grid; gap: 8px; max-height: 68vh; margin: 0; padding: 0; overflow: auto; list-style: none; }
+.methodist-draft-row { display: grid; width: 100%; gap: 6px; padding: 12px; border: 1px solid #e1e1e8; border-radius: 8px; background: #fff; color: inherit; text-align: left; cursor: pointer; }
+.methodist-draft-row:hover, .methodist-draft-row.is-selected { border-color: #8075f4; background: #f8f7ff; }
+.methodist-draft-row strong { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 12px; line-height: 1.5; }
+.methodist-draft-row span, .methodist-draft-row small { color: #64646e; font-size: 10px; }
+.methodist-detail { display: grid; min-width: 0; gap: 14px; }
+.methodist-detail .card { margin: 0; }
+.methodist-form, .methodist-readonly { display: grid; gap: 14px; }
+.methodist-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.methodist-workspace .field { min-width: 0; }
+.methodist-workspace .field small { color: #656572; font-size: 10px; line-height: 1.4; }
+.methodist-workspace textarea { resize: vertical; }
+.methodist-options { display: grid; gap: 9px; min-width: 0; margin: 0; padding: 13px; border: 1px solid #dedee5; border-radius: 8px; }
+.methodist-options legend { padding: 0 5px; color: #34353b; font-size: 12px; font-weight: 700; }
+.methodist-option { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.methodist-option-field { min-width: 0; }
+.methodist-correct { display: inline-flex; align-items: center; gap: 6px; min-height: 42px; color: #55565d; font-size: 11px; white-space: nowrap; }
+.methodist-correct input, .methodist-mark-grid input { accent-color: #402fff; }
+.methodist-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.methodist-question { margin: 0; font-size: 17px; font-weight: 650; line-height: 1.55; }
+.methodist-readonly blockquote, .methodist-private-export blockquote { margin: 0; padding: 10px 13px; border-left: 3px solid #8c83ed; background: #f7f6ff; color: #4b4b55; font-size: 12px; line-height: 1.6; }
+.methodist-source-ref { display: block; margin-top: 3px; color: #55565d; font-size: 11px; overflow-wrap: anywhere; }
+.methodist-readonly p { margin: 0; font-size: 12px; line-height: 1.6; }
+.methodist-readonly ol, .methodist-candidate-export ol { display: grid; gap: 7px; margin: 0; padding-left: 22px; font-size: 12px; }
+.methodist-conflict { display: grid; gap: 8px; margin-top: 16px; padding: 13px; border: 1px solid #e6c785; border-radius: 8px; background: #fffaf0; font-size: 12px; }
+.methodist-conflict p { margin: 0; color: #5d5035; line-height: 1.5; }
+.methodist-review-status { margin: -4px 0 12px; color: #55565d; font-size: 11px; }
+.methodist-mark-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+.methodist-mark-grid label { display: flex; align-items: flex-start; gap: 7px; padding: 10px; border: 1px solid #e2e2e9; border-radius: 7px; color: #393941; font-size: 11px; }
+.methodist-review .field { margin: 0 0 12px; }
+.methodist-pilot > p, .methodist-export > p, .methodist-monitor-head p { color: #55565d; font-size: 12px; line-height: 1.6; }
+.methodist-csv { font-family: 'JetBrains Mono', monospace !important; font-size: 12px !important; }
+.methodist-report, .methodist-candidate-export, .methodist-private-export { margin-top: 14px; padding: 14px; border: 1px solid #e0e0e7; border-radius: 8px; background: #fbfbfd; }
+.methodist-report h3, .methodist-candidate-export h3 { margin: 0 0 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.methodist-report p, .methodist-candidate-export p, .methodist-private-export p { font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
+.methodist-candidate-export { background: #f6fbff; }
+.methodist-candidate-export p:first-of-type { font-size: 14px; font-weight: 650; }
+.methodist-private-export { border-color: #d2c9a8; background: #fffdf5; }
+.methodist-private-export summary { cursor: pointer; font-size: 12px; font-weight: 700; }
+.methodist-caution { margin-top: 12px; color: #675823 !important; font-size: 11px !important; }
+.methodist-empty, .methodist-empty-detail p { color: #62626c; font-size: 12px; line-height: 1.6; }
+.methodist-empty-detail { min-height: 210px; }
+.methodist-monitor { display: grid; gap: 14px; }
+.methodist-monitor-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.methodist-monitor-head p { max-width: 720px; margin-bottom: 0; }
+.methodist-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.methodist-stats .stat-card { min-width: 0; }
+.methodist-stats strong { overflow-wrap: anywhere; }
+.methodist-table-wrap { width: 100%; overflow-x: auto; }
+.methodist-table-wrap table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; }
+.methodist-table-wrap th, .methodist-table-wrap td { padding: 10px 9px; border-bottom: 1px solid #e5e5eb; vertical-align: top; }
+.methodist-table-wrap th { color: #5c5c66; font-size: 10px; font-weight: 650; }
+.methodist-variant-count, .methodist-review-signal { display: block; margin-top: 4px; color: #686872; font-size: 10px; line-height: 1.45; }
+.methodist-variant-list { display: grid; gap: 3px; margin: 5px 0 0; padding-left: 16px; color: #686872; font-size: 10px; line-height: 1.4; }
+.methodist-review-flag { display: inline-block; padding: 4px 7px; border-radius: 999px; background: #fff5df; color: #75520b; font-size: 10px; font-weight: 700; }
+.methodist-difficulty-list { display: grid; gap: 9px; }
+.methodist-difficulty-list article { padding: 13px; border: 1px solid #e4e4ea; border-radius: 8px; }
+.methodist-difficulty-list article > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 11px; }
+.methodist-difficulty-list article > div span, .methodist-difficulty-list article > small { color: #62626c; font-size: 10px; }
+.methodist-difficulty-list article p { margin: 8px 0 0; color: #46464e; font-size: 11px; line-height: 1.5; }
+.methodist-workspace .text-button { color: #402fff; font-size: 11px; }
+
+@media (max-width: 820px) {
+  .methodist-drafts-layout { grid-template-columns: 1fr; }
+  .methodist-list { position: static; }
+  .methodist-draft-list { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 280px; }
+}
+@media (max-width: 560px) {
+  .methodist-workspace { padding: 22px 14px 44px; }
+  .methodist-header { display: grid; gap: 12px; }
+  .methodist-access-tag { justify-self: start; }
+  .methodist-tabs button { padding: 11px 10px; }
+  .methodist-workspace .card { padding: 15px; }
+  .methodist-list-head, .methodist-section-head, .methodist-monitor-head { align-items: flex-start; }
+  .methodist-list-head { flex-direction: column; }
+  .methodist-draft-list { grid-template-columns: 1fr; max-height: 240px; }
+  .methodist-form-grid, .methodist-mark-grid, .methodist-stats { grid-template-columns: 1fr; }
+  .methodist-option { grid-template-columns: 1fr; gap: 4px; }
+  .methodist-correct { min-height: 30px; }
+  .methodist-monitor-head { flex-direction: column; }
+  .methodist-table-wrap table { min-width: 610px; }
+  .methodist-actions .button { flex: 1 1 auto; }
+}

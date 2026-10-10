@@ -15,10 +15,118 @@ export type OwnContacts = Schemas['OwnContacts'];
 export type ContactBundle = Schemas['ContactBundle'];
 export type Grade = 'junior' | 'middle';
 export type SkillId = 'python-basics' | 'http-api' | 'sql-transactions' | 'reliability' | 'postgres' | 'docker' | 'fastapi';
-export type ApiPayload = Schemas['RegisterRequest'] | Schemas['ConfirmEmailRequest'] | Schemas['ResendConfirmationRequest'] | Schemas['LoginRequest'] | Schemas['CandidateProfilePatch'] | Schemas['VisibilityRequest'] | Schemas['OwnContactsPatch'] | Schemas['CompanyPatch'] | Schemas['FspLinkRequest'] | Schemas['CreateAttemptRequest'] | Schemas['AnswerRequest'] | Schemas['NeedCreateRequest'] | Schemas['NeedPatchRequest'] | Schemas['ConfirmCompetenciesRequest'] | Schemas['SearchRequest'] | Schemas['ShortlistCreateRequest'] | Schemas['ShortlistPatchRequest'] | Schemas['InvitationCreateRequest'] | Schemas['InvitationDecisionRequest'] | Schemas['InvitationSupersedeRequest'] | Schemas['CandidateComparisonRequest'] | Schemas['RecruitingRecordPutRequest'] | Schemas["CandidateBankSearchRequest"] | Schemas["ConsentMutationRequest"] | Schemas['InvitationMessageCreateRequest'] | Schemas['ShortTaskCreateRequest'] | Schemas['ShortTaskTransitionRequest'] | Schemas['ShortTaskAcceptRequest'] | Schemas['ShortTaskSubmissionRequest'] | Schemas['ShortTaskReviewRequest'] | Schemas['InvitationNextStepPutRequest'] | { expected_version: number };
+export type ApiPayload = Schemas['RegisterRequest'] | Schemas['ConfirmEmailRequest'] | Schemas['ResendConfirmationRequest'] | Schemas['LoginRequest'] | Schemas['CandidateProfilePatch'] | Schemas['VisibilityRequest'] | Schemas['OwnContactsPatch'] | Schemas['CompanyPatch'] | Schemas['FspLinkRequest'] | Schemas['CreateAttemptRequest'] | Schemas['AnswerRequest'] | Schemas['NeedCreateRequest'] | Schemas['NeedPatchRequest'] | Schemas['ConfirmCompetenciesRequest'] | Schemas['SearchRequest'] | Schemas['ShortlistCreateRequest'] | Schemas['ShortlistPatchRequest'] | Schemas['InvitationCreateRequest'] | Schemas['InvitationDecisionRequest'] | Schemas['InvitationSupersedeRequest'] | Schemas['CandidateComparisonRequest'] | Schemas['RecruitingRecordPutRequest'] | Schemas["CandidateBankSearchRequest"] | Schemas["ConsentMutationRequest"] | Schemas['InvitationMessageCreateRequest'] | Schemas['ShortTaskCreateRequest'] | Schemas['ShortTaskTransitionRequest'] | Schemas['ShortTaskAcceptRequest'] | Schemas['ShortTaskSubmissionRequest'] | Schemas['ShortTaskReviewRequest'] | Schemas['InvitationNextStepPutRequest'] | Schemas['MethodistDraftRequest'] | Schemas['MethodistDraftPatchRequest'] | Schemas['MethodistReviewRequest'] | Schemas['MethodistPilotRequest'] | { expected_version: number } | VacancyPublishPayload | Record<string, unknown>;
+
+export type PublicVacancy = {
+  id: string;
+  need_id: string | null;
+  company_id: string;
+  company_name: string;
+  company_verification?: import('./features/company-ops').PublicCompanyVerificationSummary;
+  company_industry?: string | null;
+  title: string;
+  description: string;
+  specialization_id: string;
+  target_grade: Grade;
+  work_mode: string;
+  city?: string | null;
+  workload_hours_per_week: number;
+  salary: { min_kopecks: number; max_kopecks: number; currency: string; basis: string };
+  status: string;
+  created_at: string;
+};
+
+export type CandidateApplication = {
+  id: string;
+  vacancy_id?: string;
+  vacancy_title?: string;
+  company_name?: string;
+  specialization_id?: string;
+  target_grade?: string;
+  work_mode?: string;
+  salary?: { min_kopecks: number; max_kopecks: number };
+  status: 'submitted' | 'reviewed' | 'accepted' | 'declined';
+  cover_letter?: string | null;
+  created_at: string;
+  contact_access_revoked: boolean;
+  has_selected_contacts: boolean;
+};
+
+export function isApplicationContactRequestCurrent(requestId: number, currentRequestId: number, accessAvailable: boolean): boolean {
+  return accessAvailable && requestId === currentRequestId;
+}
+
+export type VacancyPublishPayload = {
+  need_id: string;
+  title: string;
+  description: string;
+  specialization_id: string;
+  target_grade: Grade;
+  work_mode: 'remote' | 'hybrid' | 'office';
+  city: string | null;
+  workload_hours_per_week: number;
+  salary_min_kopecks: number;
+  salary_max_kopecks: number;
+  salary_basis: 'gross' | 'net';
+};
+
+export function buildVacancyPublishPayload(need: Need): VacancyPublishPayload {
+  return {
+    need_id: need.id,
+    title: need.title,
+    description: need.description,
+    specialization_id: need.specialization_id,
+    target_grade: need.target_grade,
+    work_mode: need.work_mode,
+    city: need.city,
+    workload_hours_per_week: need.workload_hours_per_week,
+    salary_min_kopecks: need.salary.min_kopecks,
+    salary_max_kopecks: need.salary.max_kopecks,
+    salary_basis: need.salary.basis,
+  };
+}
+
+export function nextVacancyPublishIdempotencyKey(
+  intents: Map<string, { fingerprint: string; key: string }>,
+  needId: string,
+  payload: VacancyPublishPayload,
+  createKey: () => string = generateUUID,
+): string {
+  const fingerprint = JSON.stringify(payload);
+  const current = intents.get(needId);
+  if (current?.fingerprint === fingerprint) return current.key;
+  const key = createKey();
+  intents.set(needId, { fingerprint, key });
+  return key;
+}
+
+export function clearVacancyPublishIntent(intents: Map<string, { fingerprint: string; key: string }>, needId: string, key: string): void {
+  if (intents.get(needId)?.key === key) intents.delete(needId);
+}
+
+export function claimVacancyPublish(inFlight: Set<string>, needId: string): boolean {
+  if (inFlight.has(needId)) return false;
+  inFlight.add(needId);
+  return true;
+}
+
+export function releaseVacancyPublish(inFlight: Set<string>, needId: string): void {
+  inFlight.delete(needId);
+}
+
+export function buildVacancyApplicationPayload(
+  coverLetter: string,
+  selectedTypes: string[],
+  channels: OwnContacts['channels'],
+): { cover_letter: string | null; contact_channel_types: OwnContacts['channels'][number]['type'][] } {
+  const enabled = new Set(channels.filter((channel) => channel.enabled).map((channel) => channel.type));
+  const contact_channel_types = [...new Set(selectedTypes.filter((type): type is OwnContacts['channels'][number]['type'] => enabled.has(type as OwnContacts['channels'][number]['type'])))];
+  return { cover_letter: coverLetter.trim() || null, contact_channel_types };
+}
 
 type Envelope<T> = { data: T };
 type ApiError = { error?: { code?: string; message?: string; field?: string; retryable?: boolean; eligible_at?: string | null; active_attempt_id?: string | null } };
+
 
 export class RequestError extends Error {
   code: string;
@@ -94,8 +202,9 @@ export function rotateCsrf(): void {
   csrfPromise = undefined;
 }
 
-async function send<T>(path: string, method: string, payload?: ApiPayload, idempotencyKey?: string): Promise<T> {
+async function send<T>(path: string, method: string, payload?: ApiPayload | FormData, idempotencyKey?: string): Promise<T> {
   const mutating = !['GET', 'HEAD'].includes(method);
+    const multipart = payload instanceof FormData;
   const key = mutating ? (idempotencyKey ?? generateUUID()) : undefined;
   let attempts = 0;
   while (true) {
@@ -106,11 +215,11 @@ async function send<T>(path: string, method: string, payload?: ApiPayload, idemp
         credentials: 'include',
         headers: {
           Accept: 'application/json',
-          ...(payload === undefined ? {} : { 'Content-Type': 'application/json' }),
+          ...(payload === undefined || multipart ? {} : { 'Content-Type': 'application/json' }),
           ...(token ? { 'X-CSRF-Token': token } : {}),
           ...(key ? { 'Idempotency-Key': key } : {}),
         },
-        ...(payload === undefined ? {} : { body: JSON.stringify(payload) }),
+        ...(payload === undefined ? {} : { body: multipart ? payload : JSON.stringify(payload) }),
       });
       if (response.status === 204) return undefined as T;
       const body = (await response.json()) as Envelope<T> | ApiError;
@@ -143,23 +252,29 @@ async function send<T>(path: string, method: string, payload?: ApiPayload, idemp
 }
 
 export const api = {
+  upload: <T>(path: string, body: FormData, idempotencyKey?: string) => send<T>(path, 'POST', body, idempotencyKey),
   get: <T>(path: string) => send<T>(path, 'GET'),
   post: <T>(path: string, body?: ApiPayload, idempotencyKey?: string) => send<T>(path, 'POST', body, idempotencyKey),
   put: <T>(path: string, body: ApiPayload, idempotencyKey?: string) => send<T>(path, 'PUT', body, idempotencyKey),
   patch: <T>(path: string, body: ApiPayload, idempotencyKey?: string) => send<T>(path, 'PATCH', body, idempotencyKey),
   delete: <T>(path: string) => send<T>(path, 'DELETE'),
-  download: async (path: string) => {
+  download: async (path: string, filename?: string) => {
     const response = await fetch(`/api/v1${path}`, { credentials: 'include' });
     if (!response.ok) {
       let body: ApiError = {};
-      try { body = (await response.json()) as ApiError; } catch { /* PDF error has no JSON body. */ }
+      try { body = (await response.json()) as ApiError; } catch { /* download error has no JSON body */ }
       throw new RequestError(response.status, body);
     }
     const blob = await response.blob();
     const href = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = href;
-    anchor.download = 'profile.pdf';
+    const disposition = response.headers.get('content-disposition');
+    let name = filename;
+    if (!name && disposition && disposition.includes('filename=')) {
+      name = disposition.split('filename=')[1]?.replace(/["';]/g, '').trim();
+    }
+    anchor.download = name || 'download';
     anchor.click();
     URL.revokeObjectURL(href);
   },
