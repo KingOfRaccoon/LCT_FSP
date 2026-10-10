@@ -1,7 +1,20 @@
 .extension-page { min-width: 0; }
-.extension-header { margin-bottom: 20px; }
-.extension-header h1 { margin: 6px 0 8px; font: 400 30px/1.2 'TDA Text', 'JetBrains Mono', monospace; }
-.extension-header p { max-width: 780px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.extension-header {
+  position: relative;
+  margin: 0 0 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #dcdce4;
+  animation: motion-heading-enter var(--motion-standard) var(--motion-ease);
+}
+.extension-header::after { content: ''; position: absolute; left: 0; bottom: -1px; width: 44px; height: 2px; background: #ec1d35; }
+.extension-header h1 { margin: 6px 0 7px; font-family: 'TDA Text', 'JetBrains Mono', monospace; font-size: 32px; font-weight: 400; letter-spacing: 0; line-height: 1.2; }
+.extension-header p { max-width: 720px; margin: 0; color: #55565d; font-size: 14px; line-height: 1.6; }
+
+@media (max-width: 650px) {
+  .extension-header { padding-bottom: 18px; }
+  .extension-header h1 { font-size: 28px; }
+  .extension-header p { font-size: 13px; }
+}
 .extension-context { margin: 0 0 16px; padding: 16px; border: 1px solid var(--border); background: #fff; }
 .extension-context > strong { font-size: 12px; }
 .extension-context > p { margin: 8px 0; color: var(--text); font-size: 12px; line-height: 1.55; white-space: pre-wrap; }

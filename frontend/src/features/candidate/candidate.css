@@ -1,15 +1,33 @@
-.candidate-practice,
-.candidate-feature-stack {
+.candidate-practice {
   display: grid;
   gap: 16px;
   max-width: 980px;
   margin: 0 auto;
 }
 
-.candidate-feature-heading { margin: 0 0 4px; }
-.candidate-feature-heading h1 { margin: 8px 0; font-family: 'TDA Text', 'JetBrains Mono', monospace; font-size: clamp(25px, 3vw, 36px); letter-spacing: -.045em; }
-.candidate-feature-heading > p,
+.candidate-feature-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.candidate-feature-heading {
+  position: relative;
+  margin: 0 0 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #dcdce4;
+  animation: motion-heading-enter var(--motion-standard) var(--motion-ease);
+}
+.candidate-feature-heading::after { content: ''; position: absolute; left: 0; bottom: -1px; width: 44px; height: 2px; background: #ec1d35; }
+.candidate-feature-heading .candidate-eyebrow { color: #55565d; font-size: 11px; font-weight: 500; letter-spacing: .06em; }
+.candidate-feature-heading h1 { margin: 6px 0 7px; font-family: 'TDA Text', 'JetBrains Mono', monospace; font-size: 32px; font-weight: 400; letter-spacing: 0; line-height: 1.2; }
+.candidate-feature-heading > p { max-width: 720px; margin: 0; color: #55565d; font-size: 14px; line-height: 1.6; }
 .candidate-section-intro { max-width: 760px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+
+@media (max-width: 650px) {
+  .candidate-feature-heading { padding-bottom: 18px; }
+  .candidate-feature-heading h1 { font-size: 28px; }
+  .candidate-feature-heading > p { font-size: 13px; }
+}
 .candidate-eyebrow { color: var(--brand); font: 500 10px/1.5 'JetBrains Mono', monospace; letter-spacing: .08em; }
 .candidate-practice-banner,
 .candidate-preview-notice,

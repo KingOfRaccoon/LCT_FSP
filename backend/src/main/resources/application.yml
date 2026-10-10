@@ -5,6 +5,10 @@ server:
     include-message: never
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 6MB
+      max-request-size: 7MB
   application:
     name: fsp-talent-backend
   datasource:
@@ -37,3 +41,9 @@ fsp:
   session-secret: ${SESSION_SECRET:local-demo-session-secret-change-before-deploy-2026}
   public-origin: ${PUBLIC_ORIGIN:http://localhost:5173}
   session-cookie-secure: ${SESSION_COOKIE_SECURE:false}
+  company-verification:
+    registry-mode: ${COMPANY_VERIFICATION_PROVIDER:manual}
+    dadata-token: ${DADATA_TOKEN:}
+  monitoring:
+    scrape-token: ${FSP_METRICS_TOKEN:}
+    scrape-token-file: ${FSP_METRICS_TOKEN_FILE:}

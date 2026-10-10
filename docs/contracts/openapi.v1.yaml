@@ -41,6 +41,15 @@
     },
     {
       "name": "Contacts"
+    },
+    {
+      "name": "Vacancies"
+    },
+    {
+      "name": "Company verification"
+    },
+    {
+      "name": "Operations"
     }
   ],
   "paths": {
@@ -9042,6 +9051,16 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Next step saved or idempotently replayed after checking current authorization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationNextStepEnvelope"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Invalid fields, blank action or malformed offset-bearing timestamp."
           },
@@ -9053,16 +9072,6 @@
           },
           "409": {
             "description": "Version conflict or idempotency key reused with a different payload."
-          },
-          "200": {
-            "description": "Next step saved or idempotently replayed after checking current authorization.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InvitationNextStepEnvelope"
-                }
-              }
-            }
           }
         }
       }
@@ -9131,6 +9140,3311 @@
           }
         ]
       }
+    },
+    "/me/resume/import": {
+      "post": {
+        "tags": [
+          "Adoption"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ResumeImportDraft"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Resume PDF exceeds the permitted size",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "post_me_resume_import",
+        "summary": "post me resume import",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Text PDF <=5 MiB, <=20 pages; encrypted/scanned files rejected, never persisted."
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/needs/{need_id}/insights": {
+      "get": {
+        "tags": [
+          "Adoption"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NeedInsights"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "get_needs_need_id_insights",
+        "summary": "get needs need id insights",
+        "parameters": [
+          {
+            "name": "need_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "expected_version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/methodist/drafts": {
+      "get": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistDraftList"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "get_methodist_drafts",
+        "summary": "get methodist drafts",
+        "parameters": []
+      },
+      "post": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistDraft"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "post_methodist_drafts",
+        "summary": "post methodist drafts",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 16
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodistDraftRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/methodist/drafts/{draft_id}": {
+      "patch": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistDraft"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "patch_methodist_drafts_draft_id",
+        "summary": "patch methodist drafts draft id",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 16
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodistDraftPatchRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/methodist/drafts/{draft_id}/review": {
+      "post": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistDraft"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "post_methodist_drafts_draft_id_review",
+        "summary": "post methodist drafts draft id review",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 16
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodistReviewRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/methodist/drafts/{draft_id}/pilot": {
+      "post": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistPilotReceipt"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "post_methodist_drafts_draft_id_pilot",
+        "summary": "post methodist drafts draft id pilot",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 16
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodistPilotRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/methodist/drafts/{draft_id}/pilot-report": {
+      "get": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistPilotReport"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "get_methodist_drafts_draft_id_pilot_report",
+        "summary": "get methodist drafts draft id pilot report",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ]
+      }
+    },
+    "/methodist/drafts/{draft_id}/export": {
+      "get": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistDraftExport"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "get_methodist_drafts_draft_id_export",
+        "summary": "get methodist drafts draft id export",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ]
+      }
+    },
+    "/methodist/bank/monitor": {
+      "get": {
+        "tags": [
+          "Methodist"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MethodistBankMonitor"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or email-verification precondition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "operationId": "get_methodist_bank_monitor",
+        "summary": "get methodist bank monitor",
+        "parameters": []
+      }
+    },
+    "/me/resume/parse": {
+      "post": {
+        "operationId": "parse_resume_suggestions",
+        "summary": "Parse a candidate-provided PDF into reviewable suggestions",
+        "tags": [
+          "Candidate"
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggestions extracted; no profile fields are written.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeSuggestionsEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_FILE for an empty or unreadable PDF, or FILE_TOO_LARGE for a file above 15 MB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN for wrong role or CONSENT_REQUIRED when current processing consent is absent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Candidate-provided PDF only. Requires current processing consent. Returns nullable suggestions; the client must show them and require explicit confirmation before saving. Parsed declared_grade never sets the test-confirmed grade. Maximum file size is 15 MB.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/recruiting/export/ats": {
+      "get": {
+        "operationId": "export_recruiting_json",
+        "summary": "Download a JSON export of candidates with active contact grants",
+        "tags": [
+          "Company"
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON export file.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AtsExportEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Only format=json is supported.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Employer role required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Plain JSON export only; this is not an ATS provider integration. Includes only active grants with current processing consent and explicitly enabled contact channels. The account email is not a fallback.",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json"
+              ],
+              "default": "json"
+            }
+          }
+        ],
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/vacancies": {
+      "get": {
+        "operationId": "list_vacancies",
+        "summary": "List active public vacancies",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Vacancy list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyListEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "specialization_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "grade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "publish_vacancy",
+        "summary": "Publish a vacancy from an owned active need",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Vacancy published.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, mutation header, or payload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN when the requester is not an authorized employer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The active need is not found or not owned by this company.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency conflict or VERSION_CONFLICT because submitted fields no longer match the current active need.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "The full need snapshot is required. Fields and salary must match the current active need owned by this company; otherwise the server returns 409 VERSION_CONFLICT. Salary is a required RUB/month range with no default.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VacancyPublishRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/vacancies/{id}": {
+      "get": {
+        "operationId": "get_vacancy",
+        "summary": "Get a public vacancy",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Vacancy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed UUID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vacancy not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ]
+      }
+    },
+    "/vacancies/{id}/apply": {
+      "post": {
+        "operationId": "apply_to_vacancy",
+        "summary": "Submit a direct application and choose contact channels for this vacancy employer",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Application submitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyApplicationEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload or requested channel is not enabled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN for wrong role or CONSENT_REQUIRED when current processing consent is absent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vacancy or candidate profile not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Application already exists or idempotency conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires current processing consent. The contact list may be empty; requested channels must be enabled. Grant is scoped to the company that owns this vacancy and does not require an accepted invitation.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VacancyApplicationRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/me/applications": {
+      "get": {
+        "operationId": "list_my_vacancy_applications",
+        "summary": "List the current candidate’s direct applications",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Application list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateApplicationListEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Candidate role required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "When processing consent is inactive, each item contains only id, status, created_at, contact_access_revoked, and has_selected_contacts.",
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/vacancies/company/applications": {
+      "get": {
+        "operationId": "list_company_vacancy_applications",
+        "summary": "List applications to vacancies owned by the current company",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Application list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyApplicationListEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Employer role required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Candidate profile/application details are returned only while current processing consent is active. Otherwise only id, status, created_at, candidate_processing_active=false, contact_access_revoked, and has_selected_contacts are returned.",
+        "parameters": [
+          {
+            "name": "vacancy_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/vacancies/applications/{id}/contacts": {
+      "get": {
+        "operationId": "get_application_contacts",
+        "summary": "Read contact channels explicitly allowed in a direct application",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Selected enabled contact channels.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationContactsEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Employer role required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Foreign company, revoked application permission, or inactive processing consent. An active permission with no currently enabled selected channels returns 200 with an empty channels array.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Only candidate-selected channels that remain enabled are returned. If permission remains active but no selected channel is currently enabled, channels is an empty array. Foreign company, revoked permission, or inactive processing consent returns 404. Response is private and non-cacheable.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/me/applications/{id}/contact-access/revoke": {
+      "post": {
+        "operationId": "revoke_application_contact_access",
+        "summary": "Revoke contact access granted by a direct application",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact access revoked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationContactRevokeEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, mutation header, or payload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN when the requester is not the candidate.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application or permission not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency key or operation state conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Separate from public-profile visibility and processing consent; the application remains. Mutation requires an Idempotency-Key.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/vacancies/applications/{id}/status": {
+      "patch": {
+        "operationId": "update_vacancy_application_status",
+        "summary": "Update status of an application to the current company’s vacancy",
+        "tags": [
+          "Vacancies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Application status updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationStatusEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Dynamic personal or session data is not stored in shared caches.",
+                "schema": {
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unsupported status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN for wrong role or an application owned by a different company.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency key or operation state conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email verification is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable; retry only when retryable is true.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "description": "Allowed statuses are reviewed, accepted, and declined. Mutation requires an Idempotency-Key.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationStatusRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/me/company/verification": {
+      "get": {
+        "operationId": "get_my_company_verification",
+        "summary": "Get own company verification status",
+        "tags": [
+          "Company"
+        ],
+        "description": "Returns the public verification summary plus private details for the authenticated company owner. INN, owner email, and captured criteria appear only in the owner history.",
+        "responses": {
+          "200": {
+            "description": "Current public status and owner-only request history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompanyVerificationView"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or precondition failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/me/company/verification/requests": {
+      "post": {
+        "operationId": "request_company_verification",
+        "summary": "Request company verification",
+        "tags": [
+          "Company"
+        ],
+        "description": "Requires the current company version, valid INN and legal name, a verified owner email, and processing consent. Requests are idempotently reused for unchanged criteria.",
+        "requestBody": {
+          "required": true,
+          "description": "Request body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyVerificationRequestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Verification request queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompanyVerificationSubmitResult"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or precondition failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/me/company/verification/requests/{request_id}/registry-check": {
+      "post": {
+        "operationId": "check_company_registry",
+        "summary": "Check company details against the configured registry provider",
+        "tags": [
+          "Company"
+        ],
+        "description": "Optional server-configured provider check. The request version is required. Missing provider credentials produce an unavailable result; callers do not supply a URL or token.",
+        "requestBody": {
+          "required": true,
+          "description": "Request body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyVerificationRegistryCheckBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registry result recorded, or provider marked unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompanyVerificationSubmitResult"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or precondition failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ]
+      }
+    },
+    "/operations/company-verifications": {
+      "get": {
+        "operationId": "list_company_verification_queue",
+        "summary": "List company verification requests",
+        "tags": [
+          "Operations"
+        ],
+        "description": "Requires the company_review operational permission.",
+        "responses": {
+          "200": {
+            "description": "Requests available to an authorized company reviewer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompanyVerificationQueue"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/operations/company-verifications/{request_id}/review": {
+      "post": {
+        "operationId": "review_company_verification",
+        "summary": "Record an operator decision for a company",
+        "tags": [
+          "Operations"
+        ],
+        "description": "Requires company_review. Approval requires matching active registry evidence and explicit representative review. Operators cannot review their own company.",
+        "requestBody": {
+          "required": true,
+          "description": "Request body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyVerificationReviewBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review decision recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompanyVerificationReviewResult"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State, idempotency, or optimistic-lock conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Policy or precondition failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ]
+      }
+    },
+    "/operations/summary": {
+      "get": {
+        "operationId": "get_operations_summary",
+        "summary": "Get operational monitoring summary",
+        "tags": [
+          "Operations"
+        ],
+        "description": "Requires the monitor_read operational permission. Database-derived values are null when the snapshot cannot be read.",
+        "responses": {
+          "200": {
+            "description": "Process, HTTP, database, and outbox summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/OperationsSummary"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          }
+        ]
+      }
+    },
+    "/operations/metrics": {
+      "get": {
+        "operationId": "get_operations_prometheus_metrics",
+        "summary": "Get Prometheus metrics",
+        "tags": [
+          "Operations"
+        ],
+        "description": "Requires monitor_read session access or a configured machine bearer token. Metrics labels use bounded route templates and fixed enums.",
+        "responses": {
+          "200": {
+            "description": "Prometheus text exposition format 0.0.4",
+            "content": {
+              "text/plain; version=0.0.4; charset=utf-8": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing monitoring credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Monitoring permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session_cookie": []
+          },
+          {
+            "scrape_bearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -9139,6 +12453,11 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "fsp_session"
+      },
+      "scrape_bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "opaque configured token"
       }
     },
     "schemas": {
@@ -9175,7 +12494,13 @@
               "EMAIL_ALREADY_EXISTS",
               "PROFILE_INCOMPLETE",
               "INTERNAL_ERROR",
-              "INVITATION_COOLDOWN"
+              "INVITATION_COOLDOWN",
+              "CONSENT_REQUIRED",
+              "INVALID_UUID",
+              "INVALID_FILE",
+              "FILE_TOO_LARGE",
+              "ALREADY_APPLIED",
+              "INVALID_STATUS"
             ],
             "maxLength": 64
           },
@@ -9537,6 +12862,16 @@
             },
             "maxItems": 10,
             "uniqueItems": true
+          },
+          "expected_salary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MoneyRange"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -9888,6 +13223,20 @@
                 "type": "null"
               }
             ]
+          },
+          "methodist_access": {
+            "type": "boolean"
+          },
+          "operations_permissions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "company_review",
+                "monitor_read"
+              ]
+            },
+            "uniqueItems": true
           }
         },
         "required": [
@@ -9897,7 +13246,8 @@
           "account_type",
           "candidate_profile",
           "company",
-          "membership_role"
+          "membership_role",
+          "methodist_access"
         ],
         "additionalProperties": false
       },
@@ -9975,6 +13325,32 @@
                 "type": "null"
               }
             ]
+          },
+          "inn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{10}(?:\\d{2})?$",
+                "maxLength": 12
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "legal_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verification": {
+            "$ref": "#/components/schemas/PublicCompanyVerificationSummary"
           }
         },
         "required": [
@@ -11312,6 +14688,16 @@
                 "type": "null"
               }
             ]
+          },
+          "company_verification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicCompanyVerificationSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -11695,6 +15081,16 @@
             },
             "maxItems": 10,
             "uniqueItems": true
+          },
+          "expected_salary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MoneyRange"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -11831,6 +15227,29 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "inn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{10}(?:\\d{2})?$",
+                "maxLength": 12
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "legal_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
               },
               {
                 "type": "null"
@@ -15071,6 +18490,2967 @@
         },
         "required": [
           "data"
+        ],
+        "additionalProperties": false
+      },
+      "ResumeCandidatePatch": {
+        "type": "object",
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "headline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "minItems": 0,
+            "maxItems": 30
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "python-basics",
+                "http-api",
+                "sql-transactions",
+                "reliability",
+                "postgres",
+                "docker",
+                "fastapi"
+              ]
+            },
+            "minItems": 0,
+            "maxItems": 20
+          },
+          "experience_entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExperienceEntryInput"
+            },
+            "minItems": 0,
+            "maxItems": 10
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "ResumeImportDraft": {
+        "type": "object",
+        "properties": {
+          "candidate_patch": {
+            "$ref": "#/components/schemas/ResumeCandidatePatch"
+          },
+          "suggestions": {
+            "type": "object",
+            "properties": {
+              "contacts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "email",
+                        "phone"
+                      ]
+                    },
+                    "value": {
+                      "type": "string",
+                      "maxLength": 254
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 20
+              }
+            },
+            "required": [
+              "contacts"
+            ],
+            "additionalProperties": false
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "maxItems": 30
+          },
+          "needs_review": {
+            "const": true
+          }
+        },
+        "required": [
+          "candidate_patch",
+          "suggestions",
+          "warnings",
+          "needs_review"
+        ],
+        "additionalProperties": false
+      },
+      "NeedInsights": {
+        "type": "object",
+        "properties": {
+          "need_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "need_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "generated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "policy_version": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "scope": {
+            "const": "current_visible_platform_profiles"
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "profile_pool": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "confirmed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "needs_clarification": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "needs_confirmation": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "excluded": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "demo": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "profile_pool",
+              "confirmed",
+              "needs_clarification",
+              "needs_confirmation",
+              "excluded",
+              "demo"
+            ],
+            "additionalProperties": false
+          },
+          "mandatory_requirements": {
+            "type": "object",
+            "properties": {
+              "unknown_test_evidence_pairs": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "blocked_by_matching_policy_count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "unknown_test_evidence_pairs",
+              "blocked_by_matching_policy_count"
+            ],
+            "additionalProperties": false
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "skill_id": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "importance": {
+                  "type": "string",
+                  "enum": [
+                    "required",
+                    "preferred"
+                  ]
+                },
+                "test_confirmed_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "declared_only_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "no_skill_signal_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "additional_confirmed_matches_if_relaxed": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "skill_id",
+                "importance",
+                "test_confirmed_count",
+                "declared_only_count",
+                "no_skill_signal_count",
+                "additional_confirmed_matches_if_relaxed"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "salary": {
+            "type": "object",
+            "properties": {
+              "known_count": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "compatible_count": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "unknown_count": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "incompatible_count": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "within_range_count": {
+                "type": "null"
+              },
+              "median_min_kopecks": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "median_max_kopecks": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "low_sample": {
+                "type": "boolean"
+              },
+              "scope": {
+                "const": "fixed_visible_specialization_grade_cohort"
+              },
+              "summary_available": {
+                "type": "boolean"
+              },
+              "range_count_available": {
+                "const": false
+              },
+              "range_count_suppression_reason": {
+                "const": "privacy_protected"
+              }
+            },
+            "required": [
+              "known_count",
+              "compatible_count",
+              "unknown_count",
+              "incompatible_count",
+              "within_range_count",
+              "median_min_kopecks",
+              "median_max_kopecks",
+              "low_sample",
+              "scope",
+              "summary_available",
+              "range_count_available",
+              "range_count_suppression_reason"
+            ],
+            "additionalProperties": false,
+            "description": "Fixed visible specialization/grade cohort, independent of employer-selected skills/location/mode. No count for arbitrary salary ranges. Summary null below five compatible declarations; medians rounded to 10,000 RUB."
+          }
+        },
+        "required": [
+          "need_id",
+          "need_version",
+          "generated_at",
+          "policy_version",
+          "scope",
+          "counts",
+          "mandatory_requirements",
+          "requirements",
+          "salary"
+        ],
+        "additionalProperties": false,
+        "description": "Aggregate of current visible profiles in target specialization/category. Counterfactual counts newly confirmed-fit matches after relaxing one requirement, not newly awarded qualifications. Salary summaries cover matching-eligible profiles only, comparable currency/period/basis/workload, medians null for n<5."
+      },
+      "MethodistDraftRequest": {
+        "type": "object",
+        "properties": {
+          "source_title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "source_reference": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1
+          },
+          "source_excerpt": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "competency_id": {
+            "type": "string",
+            "enum": [
+              "python-basics",
+              "http-api",
+              "sql-transactions",
+              "reliability"
+            ]
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 1000,
+              "minLength": 1
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "uniqueItems": true
+          },
+          "correct_option": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "rubric": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "source_title",
+          "source_reference",
+          "source_excerpt",
+          "competency_id",
+          "grade",
+          "question",
+          "options",
+          "correct_option",
+          "rubric"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistDraftPatchRequest": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "source_title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "source_reference": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1
+          },
+          "source_excerpt": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "competency_id": {
+            "type": "string",
+            "enum": [
+              "python-basics",
+              "http-api",
+              "sql-transactions",
+              "reliability"
+            ]
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 1000,
+              "minLength": 1
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "uniqueItems": true
+          },
+          "correct_option": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "rubric": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_version",
+          "source_title",
+          "source_reference",
+          "source_excerpt",
+          "competency_id",
+          "grade",
+          "question",
+          "options",
+          "correct_option",
+          "rubric"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistReviewRequest": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "changes_requested",
+              "rejected"
+            ]
+          },
+          "marks": {
+            "type": "object",
+            "properties": {
+              "relevance": {
+                "type": "boolean"
+              },
+              "level": {
+                "type": "boolean"
+              },
+              "clarity": {
+                "type": "boolean"
+              },
+              "correctness": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "relevance",
+              "level",
+              "clarity",
+              "correctness"
+            ],
+            "additionalProperties": false
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "expected_version",
+          "outcome",
+          "marks",
+          "comment"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistPilotRequest": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "observations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string",
+                  "enum": [
+                    "synthetic",
+                    "pilot_record"
+                  ]
+                },
+                "correct": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "source",
+                "correct"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 500,
+            "minItems": 1
+          }
+        },
+        "required": [
+          "expected_version",
+          "observations"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistDraft": {
+        "type": "object",
+        "properties": {
+          "source_title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "source_reference": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1
+          },
+          "source_excerpt": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "competency_id": {
+            "type": "string",
+            "enum": [
+              "python-basics",
+              "http-api",
+              "sql-transactions",
+              "reliability"
+            ]
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 1000,
+              "minLength": 1
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "uniqueItems": true
+          },
+          "correct_option": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "rubric": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1
+          },
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "approved",
+              "changes_requested",
+              "rejected"
+            ]
+          },
+          "review": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "actor_id": {
+                    "$ref": "#/components/schemas/UUID"
+                  },
+                  "outcome": {
+                    "type": "string",
+                    "enum": [
+                      "approved",
+                      "changes_requested",
+                      "rejected"
+                    ]
+                  },
+                  "marks": {
+                    "type": "object",
+                    "properties": {
+                      "relevance": {
+                        "type": "boolean"
+                      },
+                      "level": {
+                        "type": "boolean"
+                      },
+                      "clarity": {
+                        "type": "boolean"
+                      },
+                      "correctness": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "relevance",
+                      "level",
+                      "clarity",
+                      "correctness"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "comment": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "reviewed_at": {
+                    "$ref": "#/components/schemas/Timestamp"
+                  }
+                },
+                "required": [
+                  "actor_id",
+                  "outcome",
+                  "marks",
+                  "comment",
+                  "reviewed_at"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "source_title",
+          "source_reference",
+          "source_excerpt",
+          "competency_id",
+          "grade",
+          "question",
+          "options",
+          "correct_option",
+          "rubric",
+          "id",
+          "version",
+          "status",
+          "review"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistDraftList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MethodistDraft"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistPilotReceipt": {
+        "type": "object",
+        "properties": {
+          "draft_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "accepted_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "draft_id",
+          "version",
+          "accepted_count"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistPilotReport": {
+        "type": "object",
+        "properties": {
+          "draft_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "approved",
+              "changes_requested",
+              "rejected"
+            ]
+          },
+          "source_title": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "sample_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "correct_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_counts": {
+            "type": "object",
+            "properties": {
+              "synthetic": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "pilot_record": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "synthetic",
+              "pilot_record"
+            ],
+            "additionalProperties": false
+          },
+          "accuracy_by_source": {
+            "type": "object",
+            "properties": {
+              "synthetic": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "pilot_record": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "synthetic",
+              "pilot_record"
+            ],
+            "additionalProperties": false
+          },
+          "minimum_sample_for_statistics": {
+            "const": 10
+          },
+          "evidence_sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "synthetic",
+                "pilot_record"
+              ]
+            }
+          },
+          "human_results_claimed": {
+            "const": false
+          }
+        },
+        "required": [
+          "draft_id",
+          "version",
+          "status",
+          "source_title",
+          "sample_count",
+          "correct_count",
+          "accuracy",
+          "source_counts",
+          "accuracy_by_source",
+          "minimum_sample_for_statistics",
+          "evidence_sources",
+          "human_results_claimed"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistDraftExport": {
+        "type": "object",
+        "properties": {
+          "draft_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "candidate_form": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "const": "draft-v1"
+              },
+              "source": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 2048
+                  }
+                },
+                "required": [
+                  "title",
+                  "reference"
+                ],
+                "additionalProperties": false
+              },
+              "competency_id": {
+                "type": "string",
+                "enum": [
+                  "python-basics",
+                  "http-api",
+                  "sql-transactions",
+                  "reliability"
+                ]
+              },
+              "grade": {
+                "type": "string",
+                "enum": [
+                  "junior",
+                  "middle"
+                ]
+              },
+              "question": {
+                "type": "string",
+                "maxLength": 5000,
+                "minLength": 1
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 1000,
+                  "minLength": 1
+                },
+                "maxItems": 4,
+                "minItems": 4,
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "format",
+              "source",
+              "competency_id",
+              "grade",
+              "question",
+              "options"
+            ],
+            "additionalProperties": false
+          },
+          "private_answer_key": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "const": "draft-v1"
+              },
+              "draft_id": {
+                "$ref": "#/components/schemas/UUID"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "correct_option": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 3
+              },
+              "source_excerpt": {
+                "type": "string",
+                "maxLength": 5000
+              },
+              "rubric": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "required": [
+              "format",
+              "draft_id",
+              "version",
+              "correct_option",
+              "source_excerpt",
+              "rubric"
+            ],
+            "additionalProperties": false
+          },
+          "live_bank_published": {
+            "const": false
+          }
+        },
+        "required": [
+          "draft_id",
+          "version",
+          "candidate_form",
+          "private_answer_key",
+          "live_bank_published"
+        ],
+        "additionalProperties": false
+      },
+      "MethodistBankMonitor": {
+        "type": "object",
+        "properties": {
+          "bank_version": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "families_total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "coverage": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "grade": {
+                  "type": "string",
+                  "enum": [
+                    "junior",
+                    "middle"
+                  ]
+                },
+                "competency_id": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "families_total": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "families_exposed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "exposure_count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "grade",
+                "competency_id",
+                "families_total",
+                "families_exposed",
+                "exposure_count"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "repeated_use": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "grade": {
+                  "type": "string",
+                  "enum": [
+                    "junior",
+                    "middle"
+                  ]
+                },
+                "competency_id": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "family_id": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "exposure_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "variant_exposures": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "variant_id": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "exposure_count": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "variant_id",
+                      "exposure_count"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "repeated_use": {
+                  "type": "boolean"
+                },
+                "review_required": {
+                  "type": "boolean"
+                },
+                "review_signal": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "grade",
+                "competency_id",
+                "family_id",
+                "exposure_count",
+                "variant_exposures",
+                "repeated_use",
+                "review_required",
+                "review_signal"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "difficulty_windows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "window": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "grade": {
+                  "type": "string",
+                  "enum": [
+                    "junior",
+                    "middle"
+                  ]
+                },
+                "sample_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "mean_total_score": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "mean_block_scores": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "review_required": {
+                  "type": "boolean"
+                },
+                "review_signal": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "interpretation": {
+                  "type": "string",
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "window",
+                "grade",
+                "sample_count",
+                "mean_total_score",
+                "mean_block_scores",
+                "review_required",
+                "review_signal",
+                "interpretation"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "answer_keys_included": {
+            "const": false
+          },
+          "person_or_attempt_data_included": {
+            "const": false
+          }
+        },
+        "required": [
+          "bank_version",
+          "families_total",
+          "coverage",
+          "repeated_use",
+          "difficulty_windows",
+          "answer_keys_included",
+          "person_or_attempt_data_included"
+        ],
+        "additionalProperties": false
+      },
+      "ResumeSuggestions": {
+        "type": "object",
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "headline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "declared_grade": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "junior",
+                  "middle"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "soft_skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "role_preferences": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "raw_preview": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "display_name",
+          "email",
+          "phone",
+          "headline",
+          "summary",
+          "declared_grade",
+          "skills",
+          "soft_skills",
+          "role_preferences",
+          "cities",
+          "raw_preview"
+        ],
+        "description": "Extracted values are suggestions only. The candidate must review and confirm before saving; parsed grade never sets the test-confirmed grade."
+      },
+      "ResumeSuggestionsEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ResumeSuggestions"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "VacancySalary": {
+        "type": "object",
+        "properties": {
+          "min_kopecks": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "max_kopecks": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "currency": {
+            "const": "RUB"
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "gross",
+              "net"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "min_kopecks",
+          "max_kopecks",
+          "currency",
+          "basis"
+        ]
+      },
+      "Vacancy": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "need_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UUID"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "company_name": {
+            "type": "string"
+          },
+          "company_industry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "specialization_id": {
+            "type": "string"
+          },
+          "target_grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle",
+              "senior"
+            ]
+          },
+          "work_mode": {
+            "type": "string",
+            "enum": [
+              "remote",
+              "hybrid",
+              "office"
+            ]
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "workload_hours_per_week": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 40
+          },
+          "salary": {
+            "$ref": "#/components/schemas/VacancySalary"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "archived"
+            ]
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "need_id",
+          "company_id",
+          "company_name",
+          "company_industry",
+          "title",
+          "description",
+          "specialization_id",
+          "target_grade",
+          "work_mode",
+          "city",
+          "workload_hours_per_week",
+          "salary",
+          "status",
+          "created_at"
+        ]
+      },
+      "VacancyEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Vacancy"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "VacancyList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Vacancy"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "items"
+        ]
+      },
+      "VacancyListEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/VacancyList"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "VacancyPublishRequest": {
+        "type": "object",
+        "properties": {
+          "need_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000
+          },
+          "specialization_id": {
+            "const": "backend-python-v1"
+          },
+          "target_grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle",
+              "senior"
+            ]
+          },
+          "work_mode": {
+            "type": "string",
+            "enum": [
+              "remote",
+              "hybrid",
+              "office"
+            ]
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "workload_hours_per_week": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 40
+          },
+          "salary_min_kopecks": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000000
+          },
+          "salary_max_kopecks": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000000
+          },
+          "salary_basis": {
+            "type": "string",
+            "enum": [
+              "gross",
+              "net"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "need_id",
+          "title",
+          "description",
+          "specialization_id",
+          "target_grade",
+          "work_mode",
+          "city",
+          "workload_hours_per_week",
+          "salary_min_kopecks",
+          "salary_max_kopecks",
+          "salary_basis"
+        ],
+        "description": "All fields must match the active need owned by the current company. Salary is a mandatory RUB/month range in kopecks; no default is applied."
+      },
+      "VacancyApplicationRequest": {
+        "type": "object",
+        "properties": {
+          "cover_letter": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contact_channel_types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "email",
+                "phone",
+                "website"
+              ]
+            },
+            "uniqueItems": true,
+            "minItems": 0,
+            "maxItems": 3
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "contact_channel_types"
+        ]
+      },
+      "VacancyApplication": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "vacancy_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "submitted",
+              "reviewed",
+              "accepted",
+              "declined"
+            ]
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "contact_access_revoked": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "vacancy_id",
+          "status",
+          "created_at",
+          "contact_access_revoked"
+        ]
+      },
+      "VacancyApplicationEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/VacancyApplication"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "CandidateApplication": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "vacancy_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "vacancy_title": {
+            "type": "string"
+          },
+          "company_name": {
+            "type": "string"
+          },
+          "specialization_id": {
+            "type": "string"
+          },
+          "target_grade": {
+            "type": "string"
+          },
+          "work_mode": {
+            "type": "string"
+          },
+          "salary": {
+            "type": "object",
+            "properties": {
+              "min_kopecks": {
+                "type": "integer"
+              },
+              "max_kopecks": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "min_kopecks",
+              "max_kopecks"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "submitted",
+              "reviewed",
+              "accepted",
+              "declined"
+            ]
+          },
+          "cover_letter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "contact_access_revoked": {
+            "type": "boolean"
+          },
+          "has_selected_contacts": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "created_at",
+          "contact_access_revoked",
+          "has_selected_contacts"
+        ],
+        "description": "When processing consent is inactive, only id, status, created_at, contact_access_revoked, and has_selected_contacts remain. Missing/revoked permission yields contact_access_revoked=true and has_selected_contacts=false; an active permission with an empty channel selection yields false for both flags."
+      },
+      "CandidateApplicationList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CandidateApplication"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "items"
+        ]
+      },
+      "CandidateApplicationListEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CandidateApplicationList"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "CompanyApplication": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "vacancy_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "vacancy_title": {
+            "type": "string"
+          },
+          "candidate_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "candidate_name": {
+            "type": "string"
+          },
+          "candidate_headline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "declared_grade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verified_grade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cover_letter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "submitted",
+              "reviewed",
+              "accepted",
+              "declined"
+            ]
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "candidate_processing_active": {
+            "type": "boolean"
+          },
+          "contact_access_revoked": {
+            "type": "boolean"
+          },
+          "has_selected_contacts": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "created_at",
+          "candidate_processing_active",
+          "contact_access_revoked",
+          "has_selected_contacts"
+        ],
+        "description": "When processing consent is inactive, profile and application details are omitted; id, status, created_at, candidate_processing_active, contact_access_revoked, and has_selected_contacts remain. Missing/revoked permission yields contact_access_revoked=true and has_selected_contacts=false; an active permission with an empty channel selection yields false for both flags."
+      },
+      "CompanyApplicationList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanyApplication"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "items"
+        ]
+      },
+      "CompanyApplicationListEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CompanyApplicationList"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "ApplicationContactChannel": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "email",
+              "phone",
+              "website"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "value"
+        ]
+      },
+      "ApplicationContacts": {
+        "type": "object",
+        "properties": {
+          "application_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationContactChannel"
+            },
+            "minItems": 0,
+            "maxItems": 3
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "application_id",
+          "channels"
+        ]
+      },
+      "ApplicationContactsEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ApplicationContacts"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "ApplicationContactRevoke": {
+        "type": "object",
+        "properties": {
+          "revoked": {
+            "const": true
+          },
+          "contact_access_revoked": {
+            "const": true
+          },
+          "revoked_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "revoked",
+          "contact_access_revoked",
+          "revoked_at"
+        ]
+      },
+      "ApplicationContactRevokeEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ApplicationContactRevoke"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "ApplicationStatusRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "reviewed",
+              "accepted",
+              "declined"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ]
+      },
+      "ApplicationStatus": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "reviewed",
+              "accepted",
+              "declined"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status"
+        ]
+      },
+      "ApplicationStatusEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ApplicationStatus"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "AtsExportCandidate": {
+        "type": "object",
+        "properties": {
+          "external_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "position": {
+            "type": "string"
+          },
+          "verified_grade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "declared_grade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationContactChannel"
+            }
+          },
+          "skills": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "const": "FSP_Talent_Platform"
+          },
+          "granted_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "external_id",
+          "first_name",
+          "last_name",
+          "contacts",
+          "verified_grade",
+          "declared_grade",
+          "skills",
+          "source",
+          "granted_at"
+        ],
+        "description": "Contact properties are included only for explicitly enabled channels. Account email is never substituted."
+      },
+      "AtsExport": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "const": "json"
+          },
+          "export_version": {
+            "type": "string"
+          },
+          "total_candidates": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AtsExportCandidate"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "format",
+          "export_version",
+          "total_candidates",
+          "candidates"
+        ]
+      },
+      "AtsExportEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AtsExport"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ]
+      },
+      "PublicCompanyVerificationSummary": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "unverified",
+              "pending",
+              "registry_confirmed",
+              "reviewed",
+              "needs_changes",
+              "rejected",
+              "unavailable",
+              "expired",
+              "superseded",
+              "demo"
+            ]
+          },
+          "demo": {
+            "type": "boolean"
+          },
+          "checked_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "enum": [
+                    "registry",
+                    "legal_name",
+                    "corporate_email",
+                    "representative"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "passed",
+                    "failed",
+                    "unknown"
+                  ]
+                }
+              },
+              "required": [
+                "code",
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 3,
+            "maxItems": 4
+          },
+          "claims_legal_authority": {
+            "const": false
+          }
+        },
+        "required": [
+          "status",
+          "demo",
+          "checked_at",
+          "expires_at",
+          "company_version",
+          "checks",
+          "claims_legal_authority"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationSnapshot": {
+        "type": "object",
+        "properties": {
+          "inn": {
+            "type": "string",
+            "pattern": "^\\d{10}(?:\\d{2})?$",
+            "maxLength": 12
+          },
+          "legal_name": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "contact_email": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "owner_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "owner_email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "owner_email_verified": {
+            "type": "boolean"
+          },
+          "owner_processing_consent": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "inn",
+          "legal_name",
+          "website",
+          "contact_email",
+          "owner_id",
+          "owner_email",
+          "owner_email_verified",
+          "owner_processing_consent"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "company_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "company_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "criteria_current": {
+            "type": "boolean"
+          },
+          "criteria_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "registry_confirmed",
+              "reviewed",
+              "needs_changes",
+              "rejected",
+              "unavailable",
+              "superseded"
+            ]
+          },
+          "demo": {
+            "type": "boolean"
+          },
+          "inn": {
+            "type": "string",
+            "pattern": "^\\d{10}(?:\\d{2})?$",
+            "maxLength": 12
+          },
+          "legal_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/CompanyVerificationSnapshot"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checked_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "review_notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "company_id",
+          "company_version",
+          "criteria_current",
+          "criteria_hash",
+          "status",
+          "demo",
+          "inn",
+          "legal_name",
+          "snapshot",
+          "provider",
+          "source_type",
+          "source_label",
+          "source_reference",
+          "checked_at",
+          "expires_at",
+          "review_notes",
+          "created_at"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationOwnerSummary": {
+        "type": "object",
+        "properties": {
+          "company_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "current_status": {
+            "type": "string",
+            "enum": [
+              "unverified",
+              "pending",
+              "registry_confirmed",
+              "reviewed",
+              "needs_changes",
+              "rejected",
+              "unavailable",
+              "superseded"
+            ]
+          },
+          "criteria_current": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "company_version",
+          "current_status",
+          "criteria_current"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationOwnerView": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/CompanyVerificationOwnerSummary"
+          },
+          "current_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompanyVerificationRequest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanyVerificationRequest"
+            },
+            "maxItems": 20
+          }
+        },
+        "required": [
+          "summary",
+          "current_request",
+          "history"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationView": {
+        "type": "object",
+        "properties": {
+          "public": {
+            "$ref": "#/components/schemas/PublicCompanyVerificationSummary"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/CompanyVerificationOwnerView"
+          }
+        },
+        "required": [
+          "public",
+          "owner"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationSubmitResult": {
+        "type": "object",
+        "properties": {
+          "public": {
+            "$ref": "#/components/schemas/PublicCompanyVerificationSummary"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/CompanyVerificationOwnerView"
+          },
+          "current_request": {
+            "$ref": "#/components/schemas/CompanyVerificationRequest"
+          }
+        },
+        "required": [
+          "public",
+          "owner",
+          "current_request"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationReviewResult": {
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/CompanyVerificationRequest"
+          },
+          "public": {
+            "$ref": "#/components/schemas/PublicCompanyVerificationSummary"
+          }
+        },
+        "required": [
+          "request",
+          "public"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationQueue": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanyVerificationRequest"
+            },
+            "maxItems": 200
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationRequestBody": {
+        "type": "object",
+        "properties": {
+          "expected_company_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "expected_company_version"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationRegistryCheckBody": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "additionalProperties": false
+      },
+      "CompanyVerificationReviewBody": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "request_changes",
+              "reject"
+            ]
+          },
+          "evidence_reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "registry_inn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{10}(?:\\d{2})?$",
+                "maxLength": 12
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "registry_legal_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "registry_status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "LIQUIDATING",
+              "TERMINATED",
+              "UNKNOWN"
+            ]
+          },
+          "representative_reviewed": {
+            "type": "boolean"
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "expected_version",
+          "outcome",
+          "evidence_reference",
+          "registry_inn",
+          "registry_legal_name",
+          "registry_status",
+          "representative_reviewed",
+          "comment"
+        ],
+        "additionalProperties": false
+      },
+      "OperationsCountSnapshot": {
+        "type": "object",
+        "properties": {
+          "pending": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "delivered": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "failed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "discarded": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "pending",
+          "delivered",
+          "failed",
+          "discarded"
+        ],
+        "additionalProperties": false
+      },
+      "OperationsSummary": {
+        "type": "object",
+        "properties": {
+          "generated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "process": {
+            "type": "object",
+            "properties": {
+              "uptime_seconds": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "heap_used_bytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "heap_max_bytes": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "uptime_seconds",
+              "heap_used_bytes",
+              "heap_max_bytes"
+            ],
+            "additionalProperties": false
+          },
+          "database": {
+            "type": "object",
+            "properties": {
+              "available": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "available"
+            ],
+            "additionalProperties": false
+          },
+          "http": {
+            "type": "object",
+            "properties": {
+              "requests_total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "server_errors_total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "average_duration_seconds": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "requests_total",
+              "server_errors_total",
+              "average_duration_seconds"
+            ],
+            "additionalProperties": false
+          },
+          "outbox": {
+            "type": "object",
+            "properties": {
+              "worker_enabled": {
+                "type": "boolean"
+              },
+              "worker_last_tick_at": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Timestamp"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "counts": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/OperationsCountSnapshot"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "oldest_due_age_seconds": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "worker_enabled",
+              "worker_last_tick_at",
+              "counts",
+              "oldest_due_age_seconds"
+            ],
+            "additionalProperties": false
+          },
+          "upstream": {
+            "type": "object",
+            "properties": {
+              "dadata": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "timeout": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "error": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "success",
+                  "timeout",
+                  "error"
+                ],
+                "additionalProperties": false
+              },
+              "smtp": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "timeout": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "error": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "success",
+                      "timeout",
+                      "error"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "dadata",
+              "smtp"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "generated_at",
+          "process",
+          "database",
+          "http",
+          "outbox",
+          "upstream"
         ],
         "additionalProperties": false
       }

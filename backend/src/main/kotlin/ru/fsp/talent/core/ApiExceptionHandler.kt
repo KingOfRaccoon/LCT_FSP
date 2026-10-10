@@ -15,6 +15,9 @@ import java.time.Duration
 import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.web.servlet.resource.NoResourceFoundException
+import org.springframework.web.multipart.MaxUploadSizeExceededException
+import org.springframework.web.bind.MissingServletRequestParameterException
+import org.springframework.web.multipart.support.MissingServletRequestPartException
 
 @RestControllerAdvice
 class ApiExceptionHandler {
@@ -44,10 +47,15 @@ class ApiExceptionHandler {
         return response.body(mapOf("error" to details))
     }
 
+    @ExceptionHandler(MaxUploadSizeExceededException::class)
+    fun uploadTooLarge() = apiException(ApiException(413, "RESUME_IMPORT_TOO_LARGE", "PDF должен быть не больше 5 MiB", "file"))
+
     @ExceptionHandler(
         MethodArgumentNotValidException::class,
         HttpMessageNotReadableException::class,
         MethodArgumentTypeMismatchException::class,
+        MissingServletRequestPartException::class,
+        MissingServletRequestParameterException::class,
     )
     fun badRequest(): ResponseEntity<Map<String, Any?>> =
         ResponseEntity.badRequest().body(

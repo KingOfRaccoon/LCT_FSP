@@ -116,6 +116,9 @@ class MatchingService(
     /** Matching internals are exposed only for current public, verified candidates. */
     fun policyProfileById(id: String): Map<String, Any?>? = policyProfiles(listOf(id)).firstOrNull()
 
+    /** Internal aggregate diagnostics reuse exactly the public search consent and visibility gates. */
+    fun insightProfiles(): List<Map<String, Any?>> = policyProfiles()
+
     /** Reasons are derived by the same components as filtering and ordering. */
     fun candidateReasons(profileRow: Map<String, Any?>, needRow: Map<String, Any?>): List<String> {
         val need = if (needRow.containsKey("requirements")) needRow else NeedService.needDto(needRow)

@@ -90,6 +90,8 @@ a[href][data-motion-press]:not([aria-disabled='true']):active {
   }
 
   .page-header > div:first-child,
+  .candidate-feature-heading,
+  .extension-header,
   .auth-card-top,
   .candidate-dialog-backdrop,
   .candidate-review-dialog,
@@ -123,6 +125,8 @@ a[href][data-motion-press]:not([aria-disabled='true']):active {
 }
 
 :root[data-motion-reduced='true'] .page-header > div:first-child,
+:root[data-motion-reduced='true'] .candidate-feature-heading,
+:root[data-motion-reduced='true'] .extension-header,
 :root[data-motion-reduced='true'] .auth-card-top,
 :root[data-motion-reduced='true'] .candidate-dialog-backdrop,
 :root[data-motion-reduced='true'] .candidate-review-dialog,
@@ -150,6 +154,8 @@ a[href][data-motion-press]:not([aria-disabled='true']):active {
   }
 
   .page-header > div:first-child,
+  .candidate-feature-heading,
+  .extension-header,
   .auth-card-top,
   .candidate-dialog-backdrop,
   .candidate-review-dialog,

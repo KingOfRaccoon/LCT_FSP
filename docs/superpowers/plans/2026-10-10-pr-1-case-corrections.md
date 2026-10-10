@@ -1,0 +1,9 @@
+# PR #1 case corrections implementation plan
+
+Goal: Repair the reviewed PR against the approved source reconciliation. Architecture: reuse ConsentService,MutationService,ContactRules and current grants/journal; application contact permission is explicit and separate from public visibility. Stack: current React/TypeScript,Kotlin/Spring,PostgreSQL; no dependencies added.
+
+1. Security lane owns ResumeController/ResumeParserService,AtsExportController and their tests. Write failing disabled-channel/consent/inferred-grade tests; repair parser/access/export and remove trust endpoint. Keep original grant locking and journaling.
+2. Vacancy lane owns VacancyController/VacancyService,an additive V10 migration and vacancy tests. RED required salary/idempotency/permission regressions; repair DTO validation/ownership and processing gates,add explicit per-application contact read/revoke permission. Preserve V9 checksum. Publish final wire contract to other lanes before frontend wiring.
+3. Frontend lane owns App.tsx,api.ts,VacanciesPage,EmployerApplicationsPanel,frontend tests/package. RED render/payload/parser-review tests; remove fake trust,send real conditions,require processing consent and explicit parser confirmation,wire application contact permission/revocation with immediate stale-data clearing.
+4. Contract lane owns OpenAPI/generated schema/submission docs after wire contract is agreed. Enumerate all actual endpoints and errors,remove false trust/integration claims and validate specification. Read-only review remains independent.
+5. Leader runs fresh integrated tests in isolated fsp_test database on private loopback port,frontend typecheck/build/schema/static checks and browser flows,then code-reviewer+architect. Commit only reviewed corrections and update existing PR branch with ordinary fast-forward push; no GitHub comments or merge.

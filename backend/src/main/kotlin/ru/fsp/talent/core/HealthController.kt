@@ -71,4 +71,3 @@ class HealthController(private val mapper: ObjectMapper, private val jdbc: JdbcT
 </html>
 """.trimIndent()
 }
-
