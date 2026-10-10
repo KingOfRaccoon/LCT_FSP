@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import React from 'react';
 import { renderToString, renderToStaticMarkup } from 'react-dom/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -7,7 +8,7 @@ import { MemoryRouter } from 'react-router';
 import { createServer } from 'vite';
 
 test('company page server-renders from the company profile without a trust-score endpoint', async () => {
-  const vite = await createServer({ root: new URL('../../', import.meta.url).pathname, configFile: false, server: { middlewareMode: true, hmr: false, ws: false }, appType: 'custom' });
+  const vite = await createServer({ root: fileURLToPath(new URL('../../', import.meta.url)), configFile: false, server: { middlewareMode: true, hmr: false, ws: false }, appType: 'custom' });
   try {
     const { CompanyPage } = await vite.ssrLoadModule('/src/App.tsx');
     const company = {
@@ -31,7 +32,7 @@ test('company page server-renders from the company profile without a trust-score
 });
 
 test('company page renders an unnamed company as incomplete without inventing a name', async () => {
-  const vite = await createServer({ root: new URL('../../', import.meta.url).pathname, configFile: false, server: { middlewareMode: true, hmr: false, ws: false }, appType: 'custom' });
+  const vite = await createServer({ root: fileURLToPath(new URL('../../', import.meta.url)), configFile: false, server: { middlewareMode: true, hmr: false, ws: false }, appType: 'custom' });
   try {
     const { CompanyPage } = await vite.ssrLoadModule('/src/App.tsx');
     const company = { id: 'company-new', version: 1, name: null, description: null, website: null, industry: null, contact_email: null, contact_phone: null };
@@ -54,7 +55,7 @@ test('company page renders an unnamed company as incomplete without inventing a 
 });
 
 test('minimal application response server-renders as a redacted row after processing consent is revoked', async () => {
-  const vite = await createServer({ root: new URL('../../', import.meta.url).pathname, configFile: false, server: { middlewareMode: true, hmr: false, ws: false }, appType: 'custom' });
+  const vite = await createServer({ root: fileURLToPath(new URL('../../', import.meta.url)), configFile: false, server: { middlewareMode: true, hmr: false, ws: false }, appType: 'custom' });
   try {
     const { CandidateApplicationRow } = await vite.ssrLoadModule('/src/features/vacancies/VacanciesPage.tsx');
     const html = renderToStaticMarkup(React.createElement(CandidateApplicationRow, {

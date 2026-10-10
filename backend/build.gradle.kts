@@ -33,9 +33,11 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("com.networknt:json-schema-validator:1.5.6")
     implementation("org.apache.pdfbox:pdfbox:3.0.6")
+    implementation("com.google.zxing:core:3.5.3")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework:spring-jdbc")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test>().configureEach {

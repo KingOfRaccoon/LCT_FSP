@@ -1,23 +1,17 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { api, errorMessage, RequestError, skillLabels, type ApiPayload, type Schemas, type SkillId } from '../../api';
 import { summarizeDecision } from '../decision-brief';
+import { CompetencyRadarChart } from '../radar';
 import './employer.css';
 
 type Need = Schemas['Need'];
 type Candidate = Schemas['CandidatePublic'];
 type Review = Schemas['CandidateReview'];
 type Kit = Schemas['InterviewKit'];
-type RecruitingRecord = Schemas['RecruitingRecord'];
-type Stage = Schemas['RecruitingStage'];
 type Shortlist = Schemas['Shortlist'];
 type RoleTask = Schemas['RoleTask'];
 type NeedPage = { items: Need[]; page: { next_cursor: string | null; limit: number } };
-
-const stages: { id: Stage; label: string }[] = [
-  { id: 'reviewing', label: 'На рассмотрении' }, { id: 'shortlisted', label: 'В шорт-листе' },
-  { id: 'invited', label: 'Приглашение отправлено' }, { id: 'discussion', label: 'Обсуждение' }, { id: 'closed', label: 'Закрыто' },
-];
 const statusLabel: Record<Schemas['FitCheck']['status'], string> = {
   met: 'Подтверждено', declared: 'Заявлено кандидатом', unknown: 'Пока неизвестно', mismatch: 'Условие не совпадает',
 };
@@ -86,6 +80,12 @@ export function CandidateComparisonPage() {
     {loading && <Loading label="Проверяем доступ и загружаем свежие профили" />}
     {comparison && <>
       <section className="card employer-need-context"><div><div className="eyebrow">ПОТРЕБНОСТЬ · {comparison.need.status === 'active' ? 'АКТИВНА' : comparison.need.status}</div><h2>{comparison.need.title}</h2><p>{comparison.need.description}</p></div><dl><div><dt>Формат</dt><dd>{workMode[comparison.need.work_mode]} · {comparison.need.workload_hours_per_week} ч/нед.</dd></div><div><dt>Метод подбора</dt><dd>{comparison.policy_version}</dd></div><div><dt>Сформировано</dt><dd>{new Date(comparison.generated_at).toLocaleString('ru-RU')}</dd></div></dl></section>
+      <CompetencyRadarChart
+        need={comparison.need}
+        items={comparison.items}
+        title="Сравнительный радар компетенций"
+        description="Сопоставление требований позиции и навыков всех сравниваемых специалистов"
+      />
       <div className="employer-comparison-scroll" role="region" aria-label="Сравнительная таблица кандидатов" tabIndex={0}>
         <table className="employer-comparison-table"><thead><tr><th scope="col">Критерий</th>{items.map(({ candidate }) => <th scope="col" key={candidate.id}><div className="comparison-person"><strong>{candidate.display_name}</strong><small>{candidate.headline || 'Профиль специалиста'}</small><span>{candidate.demo || candidate.qualification?.demo ? <Badge tone="warm">DEMO</Badge> : <Badge tone="good">Данные профиля</Badge>}</span><small>Профиль v{candidate.profile_version ?? '—'} · оценка {candidate.qualification ? `v${candidate.qualification.policy_version} · ${new Date(candidate.qualification.assessed_at).toLocaleDateString('ru-RU')}` : 'не сдавалась'}</small></div></th>)}</tr></thead><tbody>
           <tr className="employer-table-section"><th scope="row" colSpan={items.length + 1}>Требования роли</th></tr>
@@ -186,101 +186,9 @@ function BriefGroup({ title, items, note, tone }: { title: string; items: ReactN
   return <div className={`employer-brief-group${tone ? ' employer-brief-group-danger' : ''}`}><h4>{title}</h4><ul>{items}</ul>{note && <p className="employer-muted">{note}</p>}</div>;
 }
 
-/** Company-private pipeline. Server is the source of truth; filters and cursor are sent on every list request. */
-export function RecruitingWorkspacePage() {
-  const [records, setRecords] = useState<RecruitingRecord[]>([]); const [cursor, setCursor] = useState<string | null>(null); const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [candidateFilter, setCandidateFilter] = useState(''); const [needFilter, setNeedFilter] = useState(''); const [applied, setApplied] = useState({ candidate: '', need: '' });
-  const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [revision, setRevision] = useState(0);
-  const [editing, setEditing] = useState<{ candidateId: string; needId: string | null }>();
-  useEffect(() => {
-    let current = true; setLoading(true); setError('');
-    const query = new URLSearchParams({ limit: '30' }); if (cursor) query.set('cursor', cursor); if (applied.candidate) query.set('candidate_id', applied.candidate); if (applied.need) query.set('need_id', applied.need);
-    if (!cursor) setRecords([]);
-    api.get<Schemas['RecruitingRecordPage']>(`/recruiting/records?${query.toString()}`)
-      .then((page) => { if (!current) return; setRecords((existing) => cursor ? [...existing, ...page.items] : page.items); setNextCursor(page.next_cursor); })
-      .catch((reason: unknown) => { if (current) setError(errorMessage(reason)); })
-      .finally(() => { if (current) setLoading(false); });
-    return () => { current = false; };
-  }, [cursor, applied, revision]);
-  const submitFilter = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setCursor(null); setApplied({ candidate: candidateFilter.trim(), need: needFilter.trim() }); };
-  return <div className="employer-page"><PageHeader title="Рабочая воронка" description="Приватные заметки и этапы вашей компании. Они не влияют на оценку кандидата и не означают, что приглашение принято или контакт открыт." />
-    <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-        <button type="button" className="button button-secondary button-small" onClick={() => void api.download('/recruiting/export/ats?format=json', 'fsp-records-export.json')}>
-          📥 Экспорт профилей (JSON)
-        </button>
-      </div>
-      <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>В выгрузку попадают профили по действующим разрешениям после принятия приглашений</span>
-    </div>
-    <form className="card employer-record-filters" onSubmit={submitFilter}><label className="field"><span>ID кандидата</span><input value={candidateFilter} onChange={(event) => setCandidateFilter(event.target.value)} placeholder="UUID кандидата" /></label><label className="field"><span>ID потребности</span><input value={needFilter} onChange={(event) => setNeedFilter(event.target.value)} placeholder="UUID потребности" /></label><button className="button button-secondary">Применить фильтры</button><button type="button" className="button button-primary" onClick={() => setEditing({ candidateId: '', needId: applied.need || null })}>＋ Новая запись</button></form>
-    {error && <ErrorMessage message={error} retry={() => setRevision((value) => value + 1)} />}
-    {loading ? <Loading label="Загружаем только записи вашей компании" /> : records.length === 0 ? <div className="empty"><div className="empty-icon">▤</div><h3>Записей пока нет</h3><p>Записи появятся после сохранения рабочего этапа по конкретному кандидату.</p></div> : <div className="employer-record-list">{records.map((record) => <article className="card employer-record-card" key={record.id}><div className="employer-record-heading"><div><div className="eyebrow">{record.need_title ?? 'Без привязки к потребности'} · {new Date(record.updated_at).toLocaleString('ru-RU')}</div><h2>{record.candidate_display_name ?? 'Профиль скрыт'}</h2><code>{record.candidate_id}</code></div><Badge tone={record.candidate_visibility === 'public' ? 'good' : 'muted'}>{record.candidate_visibility === 'public' ? 'Публичный профиль' : 'Профиль скрыт'}</Badge></div><div className="employer-record-body"><Badge>{stages.find((stage) => stage.id === record.stage)?.label ?? record.stage}</Badge><p>{record.note || 'Личной заметки нет.'}</p></div><button className="button button-secondary button-small" onClick={() => setEditing({ candidateId: record.candidate_id, needId: record.need_id })}>Открыть свою запись</button></article>)}</div>}
-    {nextCursor && !loading && <button className="button button-secondary employer-next-page" onClick={() => setCursor(nextCursor)}>Загрузить следующую страницу</button>}
-    {editing && <RecruitingRecordEditor candidateId={editing.candidateId} needId={editing.needId} onSaved={() => { setEditing(undefined); setRevision((value) => value + 1); }} onCancel={() => setEditing(undefined)} />}
-  </div>;
-}
-
-export function RecruitingRecordEditor({ candidateId, needId, onSaved, onCancel }: { candidateId: string; needId?: string | null; onSaved?: (record: RecruitingRecord) => void; onCancel?: () => void }) {
-  const [current, setCurrent] = useState<RecruitingRecord>(); const [stage, setStage] = useState<Stage>('reviewing'); const [note, setNote] = useState(''); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [error, setError] = useState(''); const [saved, setSaved] = useState('');
-  const [candidateInput, setCandidateInput] = useState(candidateId); const [needInput, setNeedInput] = useState(needId ?? ''); const location = useLocation();
-  const dialog = useRef<HTMLElement>(null); const previouslyFocused = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    previouslyFocused.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const first = dialog.current?.querySelector<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
-    first?.focus();
-    return () => { if (previouslyFocused.current?.isConnected) previouslyFocused.current.focus(); previouslyFocused.current = null; };
-  }, []);
-  useEffect(() => {
-    let active = true;
-    if (!candidateId) { setCurrent(undefined); setNeedInput(needId ?? ''); setStage('reviewing'); setNote(''); setLoading(false); return () => { active = false; }; }
-    setLoading(true); setError('');
-    const query = new URLSearchParams({ candidate_id: candidateId });
-    api.get<Schemas['RecruitingRecordPage']>(`/recruiting/records?${query.toString()}`)
-      .then((page) => { if (!active) return; const own = page.items.find((record) => record.candidate_id === candidateId); setCurrent(own); setNeedInput(own ? own.need_id ?? '' : needId ?? ''); setStage(own?.stage ?? 'reviewing'); setNote(own?.note ?? ''); })
-      .catch((reason: unknown) => { if (active) setError(errorMessage(reason)); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [candidateId, needId, location.key]);
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); setError(''); setSaved('');
-    const id = candidateId || candidateInput.trim(); if (!id) { setError('Укажите UUID кандидата.'); return; }
-    setSaving(true);
-    try {
-      let existing = current;
-      if (!existing) {
-        const lookup = new URLSearchParams({ candidate_id: id, limit: '100' });
-        const page = await api.get<Schemas['RecruitingRecordPage']>(`/recruiting/records?${lookup.toString()}`);
-        existing = page.items.find((record) => record.candidate_id === id);
-        if (existing) { setCurrent(existing); setNeedInput(existing.need_id ?? ''); setStage(existing.stage); setNote(existing.note ?? ''); }
-      }
-      const payload: Schemas['RecruitingRecordPutRequest'] = { expected_version: existing?.version ?? 0, need_id: needInput.trim() || null, stage, note: note.trim() || null };
-      const record = await api.put<RecruitingRecord>(`/recruiting/records/${encodeURIComponent(id)}`, payload as ApiPayload);
-      setCurrent(record); setStage(record.stage); setNote(record.note ?? ''); setSaved('Запись сохранена для вашей компании.'); onSaved?.(record);
-    } catch (reason) { setError(errorMessage(reason)); }
-    finally { setSaving(false); }
-  };
-  const onDialogKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
-    if (event.key === 'Escape') { event.preventDefault(); onCancel?.(); return; }
-    if (event.key !== 'Tab') return;
-    const focusable = dialog.current?.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
-    if (!focusable?.length) return;
-    const first = focusable[0]; const last = focusable[focusable.length - 1];
-    if (!dialog.current?.contains(document.activeElement)) { event.preventDefault(); (event.shiftKey ? last : first).focus(); }
-    else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-  };
-  return <div className="employer-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCancel?.(); }}><section ref={dialog} className="card employer-record-editor" role="dialog" aria-modal="true" aria-labelledby="record-editor-title" aria-describedby="record-editor-description" onKeyDown={onDialogKeyDown}><div className="card-head"><div><div className="eyebrow">ТОЛЬКО ВАША КОМПАНИЯ</div><h2 id="record-editor-title">Рабочая запись</h2></div><button className="text-button" type="button" onClick={onCancel} aria-label="Закрыть">Закрыть ×</button></div>
-    <p id="record-editor-description" className="employer-muted">Заметка и этап видны только вашей компании. Закрытие окна не отменяет уже отправленное сохранение.</p>
-    {error && <ErrorMessage message={error} />}{saved && <Notice tone="success">{saved}</Notice>}{loading ? <Loading label="Проверяем текущую версию записи" /> : <form className="form-stack" onSubmit={(event) => void submit(event)}>
-      <label className="field"><span>UUID кандидата</span><input value={candidateInput} onChange={(event) => setCandidateInput(event.target.value)} readOnly={Boolean(candidateId)} required /></label>
-      <label className="field"><span>UUID потребности (необязательно)</span><input value={needInput} onChange={(event) => setNeedInput(event.target.value)} placeholder="Можно оставить без привязки" /><small>Связь с потребностью можно изменить; запись остаётся одной на кандидата в вашей компании.</small></label>
-      {current?.candidate_visibility === 'hidden' && <Notice tone="danger">Кандидат скрыл публичный профиль. Сохранённая заметка вашей компании остаётся доступна; публичные сведения и контакты не загружаются.</Notice>}
-      <label className="field"><span>Этап вашей команды</span><select value={stage} onChange={(event) => setStage(event.target.value as Stage)}>{stages.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
-      <label className="field"><span>Приватная заметка <small>до 2000 символов</small></span><textarea value={note} onChange={(event) => setNote(event.target.value)} rows={6} maxLength={2000} placeholder="Факты и следующие шаги команды" /><small>{note.length}/2000</small></label>
-      <Notice>Этап и заметка не создают приглашение, не открывают контакты и не подтверждают факт найма.</Notice>
-      <div className="employer-editor-actions"><button type="button" className="button button-secondary" onClick={onCancel}>Отмена</button><button className="button button-primary" disabled={saving}>{saving ? 'Сохраняем…' : current ? `Сохранить · версия ${current.version}` : 'Создать запись'}</button></div>
-    </form>}</section></div>;
-}
+export const ATS_EXPORT_PATH = '/recruiting/export/ats?format=json';
+export const ATS_EXPORT_LABEL = 'Экспорт профилей (JSON)';
+export { RecruitingWorkspacePage, RecruitingRecordEditor } from '../recruiting';
 
 export function RoleTaskEditor({ requirements, value, onChange }: { requirements: Need['requirements']; value: RoleTask[]; onChange: (tasks: RoleTask[]) => void }) {
   const requirementIds = requirements.map((requirement) => requirement.skill_id);
