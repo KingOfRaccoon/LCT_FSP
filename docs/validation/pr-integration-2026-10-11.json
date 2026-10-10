@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-11",
+  "source_commit": "359b1d0cdb01dc602c87c14d74835a7a0b80ff10",
+  "branch": "codex/pr-review-integration",
+  "target": "prototype",
+  "base": "b6deebd",
+  "pull_requests": {
+    "2": "fda1997c49aacf21316731885bd97c278824e51b",
+    "3": "6e8062db80298456c558f2a8b2e542e75fe5e778",
+    "4": "83139e592a07ca9dafd9989030273d1b57b5d75f"
+  },
+  "backend": {
+    "tests": 228,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "frontend": {
+    "tests": 197,
+    "failures": 0,
+    "typecheck": "passed",
+    "build": "passed"
+  },
+  "python": {
+    "tests": 41,
+    "failures": 0
+  },
+  "backend_bootJar": "passed",
+  "submission_integrity": "6/6 sizes and SHA-256, exercised by npm test",
+  "pdf_qr": "decoded from rendered PDF in ProfilePdfLinkTest; access-gated profile link",
+  "independent_review": {
+    "architecture": "CLEAR",
+    "code": "COMMENT",
+    "actionable_findings": 0,
+    "diagnostics": "native LSP tool unavailable; actual TypeScript compiler and builds passed"
+  },
+  "limits": [
+    "local isolated PostgreSQL and synthetic data",
+    "no production deployment in this remediation",
+    "no current browser E2E run",
+    "no human psychometric validation",
+    "PPTX/documentation PDF/video retain explicitly labeled historical snapshot"
+  ]
+}
