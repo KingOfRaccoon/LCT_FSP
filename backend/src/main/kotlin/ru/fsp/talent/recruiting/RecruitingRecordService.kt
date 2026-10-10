@@ -28,43 +28,49 @@ class RecruitingRecordService(
         val note = body["note"] as? String
         val needId = body["need_id"]?.toString()?.let { requireUuid(it, "need_id") }
 
-        store.one(
-            "SELECT pg_advisory_xact_lock(hashtextextended(:lockKey, 0))",
-            mapOf("lockKey" to "$companyId:$candidateId"),
-        )
-        val existing = store.one(
-            "SELECT * FROM recruiting_records WHERE company_id = :companyId AND candidate_id = :candidateId FOR UPDATE",
-            mapOf("companyId" to companyId, "candidateId" to candidateId),
-        )
-        if (existing == null) {
-            if (expectedVersion != 0) throw versionConflict(0)
-            requireCurrentlyPublic(candidateId)
-        } else {
-            val current = (existing["version"] as? Number)?.toInt() ?: 0
-            if (expectedVersion != current) throw versionConflict(current)
-        }
-
-        if (needId != null) requireOwnNeed(companyId, needId)
-
-        val now = store.now()
-        val id = existing?.get("id")?.toString() ?: store.id()
-        if (existing == null) {
-            store.exec(
-                """INSERT INTO recruiting_records(id, company_id, candidate_id, need_id, version, stage, note, updated_at)
-                   VALUES (:id, :companyId, :candidateId, :needId, 1, :stage, :note, :updatedAt)""".trimIndent(),
-                mapOf("id" to id, "companyId" to companyId, "candidateId" to candidateId, "needId" to needId,
-                    "stage" to stage, "note" to note, "updatedAt" to now),
+        return store.tx.execute {
+            store.one(
+                "SELECT pg_advisory_xact_lock(hashtextextended(:lockKey, 0))",
+                mapOf("lockKey" to "$companyId:$candidateId"),
             )
-        } else {
-            store.exec(
-                """UPDATE recruiting_records SET need_id = :needId, stage = :stage, note = :note,
-                          version = version + 1, updated_at = :updatedAt
-                   WHERE id = :id AND company_id = :companyId AND candidate_id = :candidateId AND version = :version""".trimIndent(),
-                mapOf("needId" to needId, "stage" to stage, "note" to note, "updatedAt" to now,
-                    "id" to id, "companyId" to companyId, "candidateId" to candidateId, "version" to expectedVersion),
+            val existing = store.one(
+                "SELECT * FROM recruiting_records WHERE company_id = :companyId AND candidate_id = :candidateId FOR UPDATE",
+                mapOf("companyId" to companyId, "candidateId" to candidateId),
             )
-        }
-        return recordDto(getRecord(companyId, candidateId))
+            if (existing == null) {
+                if (expectedVersion != 0) throw versionConflict(0)
+                requireCurrentlyPublic(candidateId)
+            } else {
+                val current = (existing["version"] as? Number)?.toInt() ?: 0
+                if (expectedVersion != current) throw versionConflict(current)
+            }
+
+            if (needId != null) requireOwnNeed(companyId, needId)
+
+            val now = store.now()
+            val id = existing?.get("id")?.toString() ?: store.id()
+            if (existing == null) {
+                store.exec(
+                    """INSERT INTO recruiting_records(id, company_id, candidate_id, need_id, version, stage, note, updated_at)
+                       VALUES (:id, :companyId, :candidateId, :needId, 1, :stage, :note, :updatedAt)""".trimIndent(),
+                    mapOf("id" to id, "companyId" to companyId, "candidateId" to candidateId, "needId" to needId,
+                        "stage" to stage, "note" to note, "updatedAt" to now),
+                )
+            } else {
+                val updated = store.exec(
+                    """UPDATE recruiting_records SET need_id = :needId, stage = :stage, note = :note,
+                              version = version + 1, updated_at = :updatedAt
+                       WHERE id = :id AND company_id = :companyId AND candidate_id = :candidateId AND version = :version""".trimIndent(),
+                    mapOf("needId" to needId, "stage" to stage, "note" to note, "updatedAt" to now,
+                        "id" to id, "companyId" to companyId, "candidateId" to candidateId, "version" to expectedVersion),
+                )
+                if (updated == 0) {
+                    val current = (getRecord(companyId, candidateId)["version"] as? Number)?.toInt() ?: 0
+                    throw versionConflict(current)
+                }
+            }
+            recordDto(getRecord(companyId, candidateId))
+        } ?: throw IllegalStateException("Recruiting record upsert transaction returned no result")
     }
 
     fun list(

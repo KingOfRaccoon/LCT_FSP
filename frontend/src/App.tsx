@@ -285,7 +285,8 @@ function CandidateProfilePage({ user }: { user: User }) {
   if (profileQuery.isPending || contactsQuery.isPending) return <Loading />;
   if (!profile) return <ErrorBlock error={profileQuery.error ?? 'Профиль не найден'} retry={() => void profileQuery.refetch()} />;
   const contacts = contactsQuery.data;
-  return <><PageHeader eyebrow="ПРОФИЛЬ КАНДИДАТА" title="Ваш профессиональный профиль" description="Заявленные навыки и результат оценки показываются раздельно. Контакты открываются только после принятия приглашения." action={<button className="button button-secondary" onClick={() => void api.download('/me/profile.pdf')}>Скачать PDF ↓</button>} />
+  const downloadPdf = async () => { setError(''); try { await api.download('/me/profile.pdf'); } catch (e) { setError(errorMessage(e)); } };
+  return <><PageHeader eyebrow="ПРОФИЛЬ КАНДИДАТА" title="Ваш профессиональный профиль" description="Заявленные навыки и результат оценки показываются раздельно. Контакты открываются только после принятия приглашения." action={<button className="button button-secondary" onClick={() => void downloadPdf()}>Скачать PDF ↓</button>} />
     {error && <ErrorBlock error={error} />}{saved && <Notice tone="success">{saved}</Notice>}
     <Card title="Согласия и управление видимостью"><ConsentPanel onChanged={() => { void profileQuery.refetch(); }} /></Card>
     <div className="profile-layout"><div className="profile-column"><Card title="Основная информация"><form className="form-grid" onSubmit={saveProfile}><fieldset className="case-gated-fields" disabled={!processingAccepted}>

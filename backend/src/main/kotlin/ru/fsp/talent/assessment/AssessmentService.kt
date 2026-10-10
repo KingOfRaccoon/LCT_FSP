@@ -204,12 +204,16 @@ class AssessmentService(
                 throw ApiException(409, "VERSION_CONFLICT", "Reload the saved answer snapshot", currentVersion = currentVersion)
             }
             val normalized = normalizeAnswers(locked, answers)
-            store.exec(
+            val affected = store.exec(
                 """UPDATE attempts SET answers = :answers, version = version + 1
                    WHERE id = :id AND user_id = :user AND version = :version""".trimIndent(),
                 mapOf("answers" to store.json(mapOf("items" to normalized)), "id" to attemptId,
                     "user" to userId, "version" to expectedVersion),
             )
+            if (affected == 0) {
+                val current = loadAttempt(attemptId, userId)?.int("version") ?: currentVersion
+                throw ApiException(409, "VERSION_CONFLICT", "Reload the saved answer snapshot", currentVersion = current)
+            }
             val updated = loadAttempt(attemptId, userId) ?: notFound()
             attemptDto(updated, store.now())
         } ?: throw ApiException(503, "DEPENDENCY_UNAVAILABLE", "Please retry", retryable = true)

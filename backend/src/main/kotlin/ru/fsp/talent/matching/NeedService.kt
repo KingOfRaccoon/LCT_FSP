@@ -72,7 +72,7 @@ class NeedService(private val store: Store, private val contracts: Contracts) {
         }
         val clearsConfirmation = status != "active"
         data["updated_at"] = store.now().toString()
-        store.exec(
+        val updated = store.exec(
             """UPDATE employer_needs SET data = :data, status = :status, version = version + 1,
                       confirmed_at = CASE WHEN :clearConfirmation THEN NULL ELSE confirmed_at END,
                       confirmed_by = CASE WHEN :clearConfirmation THEN NULL ELSE confirmed_by END
@@ -80,6 +80,10 @@ class NeedService(private val store: Store, private val contracts: Contracts) {
             mapOf("data" to store.json(data), "status" to status, "clearConfirmation" to clearsConfirmation,
                 "id" to id, "companyId" to companyId, "version" to expectedVersion),
         )
+        if (updated == 0) {
+            val current = (getNeed(id, companyId)["version"] as? Number)?.toInt() ?: 0
+            throw ApiException(409, "VERSION_CONFLICT", "Need has changed", currentVersion = current)
+        }
         return needDto(getNeed(id, companyId))
     }
 
@@ -101,13 +105,17 @@ class NeedService(private val store: Store, private val contracts: Contracts) {
         }
         data["confirmed_skill_ids"] = requiredIds.sorted()
         data["updated_at"] = store.now().toString()
-        store.exec(
+        val updated = store.exec(
             """UPDATE employer_needs SET data = :data, status = 'active', version = version + 1,
                       confirmed_at = now(), confirmed_by = :actorId
                WHERE id = :id AND company_id = :companyId AND version = :version""".trimIndent(),
             mapOf("data" to store.json(data), "actorId" to actor.id, "id" to id,
                 "companyId" to companyId, "version" to expectedVersion),
         )
+        if (updated == 0) {
+            val current = (getNeed(id, companyId)["version"] as? Number)?.toInt() ?: 0
+            throw ApiException(409, "VERSION_CONFLICT", "Need has changed", currentVersion = current)
+        }
         return needDto(getNeed(id, companyId))
     }
 
