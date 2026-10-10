@@ -104,6 +104,15 @@ let currentUserRole: 'candidate' | 'employer' = 'candidate';
 
 const attemptsMap = new Map<string, AttemptState>();
 
+const PROCTORING_STORAGE_DIR = path.resolve(process.cwd(), '.proctoring_media');
+if (!fs.existsSync(PROCTORING_STORAGE_DIR)) {
+  try {
+    fs.mkdirSync(PROCTORING_STORAGE_DIR, { recursive: true });
+  } catch {
+    // ignore
+  }
+}
+
 function loadSampleTasks(): Task[] {
   try {
     const candidatePaths = [
@@ -537,7 +546,146 @@ export function offlineMockPlugin(): Plugin {
           return;
         }
 
-        // Proctoring telemetry endpoint
+        // 1. Upload proctoring media: POST /attempts/:id/proctoring/media
+        const mediaUploadMatch = cleanPath.match(/^\/attempts\/([^/]+)\/proctoring\/media$/);
+        if (mediaUploadMatch && method === 'POST') {
+          const attemptId = mediaUploadMatch[1];
+          const urlObj = new URL(req.url || '', 'http://localhost');
+          const type = urlObj.searchParams.get('type') === 'screen' ? 'screen' : 'camera';
+          const fileName = `${attemptId}_${type}.webm`;
+          const filePath = path.join(PROCTORING_STORAGE_DIR, fileName);
+          const writeStream = fs.createWriteStream(filePath);
+          req.pipe(writeStream);
+          writeStream.on('finish', () => {
+            sendJson(200, {
+              success: true,
+              media_url: `/api/v1/attempts/${attemptId}/proctoring/media?type=${type}`,
+            });
+          });
+          writeStream.on('error', () => {
+            sendJson(500, { error: 'Failed to write video file' });
+          });
+          return;
+        }
+
+        // 2. Stream proctoring media: GET /attempts/:id/proctoring/media
+        if (mediaUploadMatch && method === 'GET') {
+          const attemptId = mediaUploadMatch[1];
+          const urlObj = new URL(req.url || '', 'http://localhost');
+          const type = urlObj.searchParams.get('type') === 'screen' ? 'screen' : 'camera';
+          const fileName = `${attemptId}_${type}.webm`;
+          const filePath = path.join(PROCTORING_STORAGE_DIR, fileName);
+
+          if (!fs.existsSync(filePath)) {
+            res.statusCode = 404;
+            return res.end(JSON.stringify({ error: 'Video not found on server' }));
+          }
+
+          const stat = fs.statSync(filePath);
+          const fileSize = stat.size;
+          const range = req.headers.range;
+
+          if (range) {
+            const parts = range.replace(/bytes=/, '').split('-');
+            const start = parseInt(parts[0], 10);
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+            const chunksize = end - start + 1;
+            const file = fs.createReadStream(filePath, { start, end });
+            res.writeHead(206, {
+              'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+              'Accept-Ranges': 'bytes',
+              'Content-Length': chunksize,
+              'Content-Type': 'video/webm',
+            });
+            file.pipe(res);
+          } else {
+            res.writeHead(200, {
+              'Content-Length': fileSize,
+              'Content-Type': 'video/webm',
+              'Accept-Ranges': 'bytes',
+            });
+            fs.createReadStream(filePath).pipe(res);
+          }
+          return;
+        }
+
+        // 3. Save proctoring telemetry report: POST /attempts/:id/proctoring/report
+        const reportUploadMatch = cleanPath.match(/^\/attempts\/([^/]+)\/proctoring\/report$/);
+        if (reportUploadMatch && method === 'POST') {
+          let bodyStr = '';
+          req.on('data', (c) => { bodyStr += c; });
+          req.on('end', () => {
+            const report = bodyStr ? JSON.parse(bodyStr) : {};
+            const attemptId = reportUploadMatch[1];
+            report.video_url = `/api/v1/attempts/${attemptId}/proctoring/media?type=camera`;
+            report.screen_video_url = `/api/v1/attempts/${attemptId}/proctoring/media?type=screen`;
+            const filePath = path.join(PROCTORING_STORAGE_DIR, `${attemptId}_report.json`);
+            fs.writeFileSync(filePath, JSON.stringify(report, null, 2), 'utf-8');
+            sendJson(200, { success: true, report });
+          });
+          return;
+        }
+
+        // 4. Get proctoring report: GET /attempts/:id/proctoring
+        const getReportMatch = cleanPath.match(/^\/attempts\/([^/]+)\/proctoring$/);
+        if (getReportMatch && method === 'GET') {
+          const attemptId = getReportMatch[1];
+          const filePath = path.join(PROCTORING_STORAGE_DIR, `${attemptId}_report.json`);
+          if (fs.existsSync(filePath)) {
+            const content = fs.readFileSync(filePath, 'utf-8');
+            const data = JSON.parse(content);
+            data.video_url = `/api/v1/attempts/${attemptId}/proctoring/media?type=camera`;
+            data.screen_video_url = `/api/v1/attempts/${attemptId}/proctoring/media?type=screen`;
+            return sendJson(200, data);
+          }
+          return sendJson(404, { error: 'Report not found' });
+        }
+
+        // 5. Get all proctoring queue: GET /proctoring/queue
+        if (cleanPath === '/proctoring/queue' && method === 'GET') {
+          const serverReports: any[] = [];
+          try {
+            const files = fs.readdirSync(PROCTORING_STORAGE_DIR);
+            for (const f of files) {
+              if (f.endsWith('_report.json')) {
+                const content = fs.readFileSync(path.join(PROCTORING_STORAGE_DIR, f), 'utf-8');
+                const rep = JSON.parse(content);
+                rep.video_url = `/api/v1/attempts/${rep.attempt_id}/proctoring/media?type=camera`;
+                rep.screen_video_url = `/api/v1/attempts/${rep.attempt_id}/proctoring/media?type=screen`;
+                serverReports.push(rep);
+              }
+            }
+          } catch {}
+          return sendJson(200, serverReports);
+        }
+
+        // 6. Expert submit verdict: POST /attempts/:id/proctoring/verdict
+        const verdictMatch = cleanPath.match(/^\/attempts\/([^/]+)\/proctoring\/verdict$/);
+        if (verdictMatch && method === 'POST') {
+          let bodyStr = '';
+          req.on('data', (c) => { bodyStr += c; });
+          req.on('end', () => {
+            const body = bodyStr ? JSON.parse(bodyStr) : {};
+            const attemptId = verdictMatch[1];
+            const filePath = path.join(PROCTORING_STORAGE_DIR, `${attemptId}_report.json`);
+            if (fs.existsSync(filePath)) {
+              const rep = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+              rep.manager_verdict = {
+                reviewed_at: new Date().toISOString(),
+                reviewer_name: body.reviewer_name || 'Эксперт платформы',
+                decision: body.decision,
+                comment: body.comment,
+              };
+              rep.review_status = body.decision === 'confirm_fraud' ? 'confirmed_fraud' : 'dismissed_clean';
+              fs.writeFileSync(filePath, JSON.stringify(rep, null, 2), 'utf-8');
+              return sendJson(200, rep);
+            }
+            sendJson(404, { error: 'Report not found' });
+          });
+          return;
+        }
+
+        // Legacy /proctoring/ wildcard fallback
         if (cleanPath.startsWith('/proctoring/')) {
           return sendJson(200, { status: 'recorded' });
         }

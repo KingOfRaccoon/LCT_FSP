@@ -83,6 +83,22 @@ export async function loadProctoringVideoBlob(attemptId: string, type: 'camera' 
     // fallback
   }
 
+  // If not in local IndexedDB (e.g. expert is on a different PC or device), fetch directly from the server!
+  try {
+    const serverUrl = `/api/v1/attempts/${attemptId}/proctoring/media?type=${type}`;
+    const res = await fetch(serverUrl);
+    if (res.ok) {
+      const blob = await res.blob();
+      if (blob && blob.size > 0) {
+        memoryVideoStore.set(key, blob);
+        await saveProctoringVideoBlob(attemptId, blob, type);
+        return blob;
+      }
+    }
+  } catch {
+    // network fallback
+  }
+
   // Generate placeholder ONLY for pre-seeded static demo attempts (e.g. att-demo-01)
   if (attemptId.startsWith('att-demo-')) {
     try {
@@ -636,6 +652,11 @@ export async function buildProctoringReport({
   try {
     if (videoBlob && videoBlob.size > 0) {
       await saveProctoringVideoBlob(attemptId, videoBlob, 'camera');
+      fetch(`/api/v1/attempts/${attemptId}/proctoring/media?type=camera`, {
+        method: 'POST',
+        headers: { 'Content-Type': videoBlob.type || 'video/webm' },
+        body: videoBlob,
+      }).catch((e) => console.warn('Failed to upload camera video to server:', e));
     }
   } catch {
     // ignore
@@ -644,10 +665,22 @@ export async function buildProctoringReport({
   try {
     if (screenBlob && screenBlob.size > 0) {
       await saveProctoringVideoBlob(attemptId, screenBlob, 'screen');
+      fetch(`/api/v1/attempts/${attemptId}/proctoring/media?type=screen`, {
+        method: 'POST',
+        headers: { 'Content-Type': screenBlob.type || 'video/webm' },
+        body: screenBlob,
+      }).catch((e) => console.warn('Failed to upload screen video to server:', e));
     }
   } catch {
     // ignore
   }
+
+  // Upload report to server so expert on any device can access it
+  fetch(`/api/v1/attempts/${attemptId}/proctoring/report`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(report),
+  }).catch((e) => console.warn('Failed to upload proctoring report to server:', e));
 
   // 3. Enqueue for manager / platform staff verification queue
   try {
@@ -792,6 +825,25 @@ export function loadManagerReviewQueue(): ProctoringReportData[] {
   return DEFAULT_DEMO_REPORTS;
 }
 
+export async function fetchServerReviewQueue(): Promise<ProctoringReportData[]> {
+  try {
+    const res = await fetch('/api/v1/proctoring/queue');
+    if (res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json.data) && json.data.length > 0) {
+        const local = loadManagerReviewQueue();
+        const serverIds = new Set(json.data.map((item: any) => item.attempt_id));
+        const merged = [...json.data, ...local.filter((item) => !serverIds.has(item.attempt_id))];
+        safeStorage.setItem(REVIEW_QUEUE_KEY, JSON.stringify(merged));
+        return merged;
+      }
+    }
+  } catch {
+    // fallback
+  }
+  return loadManagerReviewQueue();
+}
+
 export function submitManagerVerdict({
   attemptId,
   decision,
@@ -814,6 +866,17 @@ export function submitManagerVerdict({
   };
 
   report.manager_verdict = verdictRecord;
+
+  // Sync verdict with server
+  fetch(`/api/v1/attempts/${attemptId}/proctoring/verdict`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      decision,
+      reviewer_name: reviewerName,
+      comment,
+    }),
+  }).catch((e) => console.warn('Failed to submit verdict to server:', e));
 
   if (decision === 'confirm_fraud') {
     report.review_status = 'confirmed_fraud';

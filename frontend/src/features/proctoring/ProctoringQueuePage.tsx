@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ProctoringReportData } from './proctoring-types.ts';
 import {
   loadManagerReviewQueue,
+  fetchServerReviewQueue,
   getFraudStatusBadgeInfo,
   getActiveFraudBan,
 } from './proctoring-storage.ts';
@@ -14,8 +15,12 @@ export function ProctoringQueuePage() {
   const [filter, setFilter] = useState<'all' | 'review_required' | 'confirmed_fraud' | 'clean'>('all');
 
   const refreshQueue = () => {
-    setReports(loadManagerReviewQueue());
+    fetchServerReviewQueue().then(setReports);
   };
+
+  useEffect(() => {
+    fetchServerReviewQueue().then(setReports);
+  }, []);
 
   const selectedReport = reports.find((r) => r.attempt_id === selectedAttemptId);
 
