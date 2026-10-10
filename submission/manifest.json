@@ -63,5 +63,10 @@
   "repository": {
     "url": "https://github.com/KingOfRaccoon/LCT_FSP",
     "branch": "prototype"
+  },
+  "deployment": {
+    "public_url": "http://158.160.223.177",
+    "swagger_ui": "http://158.160.223.177/swagger-ui",
+    "auto_deploy": "cron every 10 min from branch prototype"
   }
 }

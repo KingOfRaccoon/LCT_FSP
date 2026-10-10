@@ -204,6 +204,17 @@ export function RecruitingWorkspacePage() {
   }, [cursor, applied, revision]);
   const submitFilter = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setCursor(null); setApplied({ candidate: candidateFilter.trim(), need: needFilter.trim() }); };
   return <div className="employer-page"><PageHeader title="Рабочая воронка" description="Приватные заметки и этапы вашей компании. Они не влияют на оценку кандидата и не означают, что приглашение принято или контакт открыт." />
+    <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <button type="button" className="button button-secondary button-small" onClick={() => void api.download('/recruiting/export/ats?format=huntflow', 'fsp-huntflow-export.json')}>
+          📥 Экспорт в Huntflow (JSON)
+        </button>
+        <button type="button" className="button button-secondary button-small" onClick={() => void api.download('/recruiting/export/ats?format=json', 'fsp-ats-export.json')}>
+          📥 Выгрузка ATS (JSON)
+        </button>
+      </div>
+      <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>В выгрузку попадают кандидаты с открытыми контактами</span>
+    </div>
     <form className="card employer-record-filters" onSubmit={submitFilter}><label className="field"><span>ID кандидата</span><input value={candidateFilter} onChange={(event) => setCandidateFilter(event.target.value)} placeholder="UUID кандидата" /></label><label className="field"><span>ID потребности</span><input value={needFilter} onChange={(event) => setNeedFilter(event.target.value)} placeholder="UUID потребности" /></label><button className="button button-secondary">Применить фильтры</button><button type="button" className="button button-primary" onClick={() => setEditing({ candidateId: '', needId: applied.need || null })}>＋ Новая запись</button></form>
     {error && <ErrorMessage message={error} retry={() => setRevision((value) => value + 1)} />}
     {loading ? <Loading label="Загружаем только записи вашей компании" /> : records.length === 0 ? <div className="empty"><div className="empty-icon">▤</div><h3>Записей пока нет</h3><p>Записи появятся после сохранения рабочего этапа по конкретному кандидату.</p></div> : <div className="employer-record-list">{records.map((record) => <article className="card employer-record-card" key={record.id}><div className="employer-record-heading"><div><div className="eyebrow">{record.need_title ?? 'Без привязки к потребности'} · {new Date(record.updated_at).toLocaleString('ru-RU')}</div><h2>{record.candidate_display_name ?? 'Профиль скрыт'}</h2><code>{record.candidate_id}</code></div><Badge tone={record.candidate_visibility === 'public' ? 'good' : 'muted'}>{record.candidate_visibility === 'public' ? 'Публичный профиль' : 'Профиль скрыт'}</Badge></div><div className="employer-record-body"><Badge>{stages.find((stage) => stage.id === record.stage)?.label ?? record.stage}</Badge><p>{record.note || 'Личной заметки нет.'}</p></div><button className="button button-secondary button-small" onClick={() => setEditing({ candidateId: record.candidate_id, needId: record.need_id })}>Открыть свою запись</button></article>)}</div>}

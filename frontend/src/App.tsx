@@ -4,10 +4,11 @@ import * as React from 'react';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, errorMessage, RequestError, rotateCsrf, skillLabels, type Attempt, type Candidate, type CandidateProfile, type Company, type ContactBundle, type Grade, type Invitation, type MatchCandidate, type Need, type OwnContacts, type Schemas, type Shortlist, type SkillId, type Taxonomy, type User } from './api';
+import { api, errorMessage, RequestError, rotateCsrf, skillLabels, type Attempt, type Candidate, type CandidateProfile, type Company, type ContactBundle, type Grade, type Invitation, type MatchCandidate, type Need, type OwnContacts, type ParsedResumeData, type Schemas, type Shortlist, type SkillId, type Taxonomy, type User } from './api';
 import layoutStyles from './App.module.css';
 import { ContactAccessJournal, PracticePage, ProfileEvidenceEditor, PublicProfilePreview, ResultCompetencyFeedback, AssessmentReviewDialog } from './features/candidate';
 import { CandidateComparisonPage, CandidateReviewPanel, RecruitingRecordEditor, RecruitingWorkspacePage, RoleTaskEditor, ShortlistManager } from './features/employer/EmployerWorkflow';
+import { VacanciesPage, EmployerApplicationsPanel } from './features/vacancies';
 import { NeedRoleTasksPanel } from './features/employer/NeedRoleTasksPanel';
 import { CaseBankPage, ConsentPanel, type ConsentState } from './features/case/CaseBank';
 import { QualificationPortfolio } from './features/candidate/QualificationPortfolio';
@@ -111,6 +112,15 @@ function AuthPage() {
       }
     } catch (e) { setError(errorMessage(e)); }
   };
+  const demoLogin = async (demoEmail: string) => {
+    setError(''); setSuccess('');
+    try {
+      await api.post('/auth/login', { email: demoEmail, password: 'password12345' });
+      rotateCsrf();
+      await query.invalidateQueries({ queryKey: ['me'] });
+      navigate('/');
+    } catch (e) { setError(errorMessage(e)); }
+  };
   return <main className="auth-page">
     <section className="auth-aside"><Brand variant="full" tone="light" /><div className="auth-pitch"><div className="eyebrow">ПЛАТФОРМА ПРОФЕССИОНАЛЬНОГО ПОДБОРА</div><h1>Работа начинается<br />с ясного совпадения.</h1><p>Профиль, проверка компетенций и понятные условия предложения — в одном рабочем пространстве.</p><div className="trust-row"><span>01 · Данные с происхождением</span><span>02 · Оценка по методике v1</span></div></div><div className="auth-foot">Демо использует синтетические данные</div></section>
     <section className="auth-main"><div className="auth-card"><div className="auth-card-top"><span className="eyebrow">{mode === 'login' ? 'С ВОЗВРАЩЕНИЕМ' : 'НОВЫЙ АККАУНТ'}</span><h2>{mode === 'login' ? 'Войти в кабинет' : 'Создать аккаунт'}</h2><p>{mode === 'login' ? 'Продолжите работу с подбором или профилем.' : 'Выберите роль. Её нельзя изменить после регистрации.'}</p></div>
@@ -124,7 +134,25 @@ function AuthPage() {
       </form>
       <div className="auth-switch">{mode === 'login' ? 'Ещё нет аккаунта?' : 'Уже зарегистрированы?'} <button className="text-button" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setSuccess(''); }}>{mode === 'login' ? 'Создать аккаунт' : 'Войти'}</button></div>
       <p className="field-hint"><Link to="/practice">Попробовать тренировочные вопросы без регистрации →</Link></p>
-      <p className="demo-hint">Демо-кандидат и работодатель доступны по выданным команде тестовым учётным данным.</p>
+      <div className="demo-login-box" style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border, #e2e8f0)' }}>
+        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted, #64748b)', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>БЫСТРЫЙ ВХОД ДЛЯ ЖЮРИ (1 КЛИК)</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+          <button type="button" className="button button-secondary button-small" onClick={() => void demoLogin('candidate@example.test')}>
+            👤 Кандидат
+          </button>
+          <button type="button" className="button button-secondary button-small" onClick={() => void demoLogin('employer@example.test')}>
+            🏢 Работодатель 1
+          </button>
+          <button type="button" className="button button-secondary button-small" onClick={() => void demoLogin('other-employer@example.test')}>
+            🏢 Работодатель 2
+          </button>
+        </div>
+        <div>
+          <a href="/swagger-ui" target="_blank" rel="noreferrer" className="inline-link" style={{ fontSize: '0.8125rem' }}>
+            ⚡ Интерактивная документация OpenAPI (Swagger UI) ↗
+          </a>
+        </div>
+      </div>
     </div></section>
   </main>;
 }
@@ -173,9 +201,9 @@ function WorkspaceLinks({ links, onNavigate }: { links: WorkspaceLink[]; onNavig
 function Workspace({ user }: { user: User }) {
   const candidate = user.account_type === 'candidate';
   const links: WorkspaceLink[] = candidate ? [
-    { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/profile', label: 'Профиль', icon: 'profile' }, { to: '/consents', label: 'Согласия и видимость', icon: 'visibility' }, { to: '/assessment', label: 'Оценка', icon: 'assessment' }, { to: '/qualifications', label: 'Подтверждения', icon: 'credentials' }, { to: '/short-tasks', label: 'Задачи компаний', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' }, { to: '/contacts', label: 'Доступ к контактам', icon: 'contacts' },
+    { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/profile', label: 'Профиль', icon: 'profile' }, { to: '/vacancies', label: 'Вакансии и отклики', icon: 'matches' }, { to: '/consents', label: 'Согласия и видимость', icon: 'visibility' }, { to: '/assessment', label: 'Оценка', icon: 'assessment' }, { to: '/qualifications', label: 'Подтверждения', icon: 'credentials' }, { to: '/short-tasks', label: 'Задачи компаний', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' }, { to: '/contacts', label: 'Доступ к контактам', icon: 'contacts' },
   ] : [
-    { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/company', label: 'Компания', icon: 'company' }, { to: '/needs', label: 'Потребности', icon: 'needs' }, { to: '/matches', label: 'Подборка', icon: 'matches' }, { to: '/bank', label: 'Банк кандидатов', icon: 'bank' }, { to: '/shortlists', label: 'Шорт-листы', icon: 'shortlists' }, { to: '/recruiting', label: 'Работа с кандидатами', icon: 'recruiting' }, { to: '/short-tasks', label: 'Адресные задачи', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' },
+    { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/company', label: 'Компания', icon: 'company' }, { to: '/needs', label: 'Потребности', icon: 'needs' }, { to: '/employer-vacancies', label: 'Отклики на вакансии', icon: 'tasks' }, { to: '/matches', label: 'Подборка', icon: 'matches' }, { to: '/bank', label: 'Банк кандидатов', icon: 'bank' }, { to: '/shortlists', label: 'Шорт-листы', icon: 'shortlists' }, { to: '/recruiting', label: 'Работа с кандидатами', icon: 'recruiting' }, { to: '/short-tasks', label: 'Адресные задачи', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' },
   ];
   const query = useQueryClient(); const navigate = useNavigate();
   const logout = async () => { try { await api.post('/auth/logout'); } finally { rotateCsrf(); await query.clear(); navigate('/login'); window.location.reload(); } };
@@ -186,6 +214,7 @@ function Workspace({ user }: { user: User }) {
       {candidate ? <>
         <Route path="/" element={<CandidateHome user={user} />} />
         <Route path="/profile" element={<CandidateProfilePage user={user} />} />
+        <Route path="/vacancies" element={<VacanciesPage />} />
         <Route path="/consents" element={<ConsentSettingsPage />} />
         <Route path="/profile/preview" element={<PublicProfilePreview />} />
         <Route path="/assessment" element={<AssessmentHome user={user} />} />
@@ -198,6 +227,7 @@ function Workspace({ user }: { user: User }) {
         <Route path="/" element={<EmployerHome user={user} />} />
         <Route path="/company" element={<CompanyPage company={user.company} />} />
         <Route path="/needs" element={<NeedsPage />} />
+        <Route path="/employer-vacancies" element={<div style={{ padding: '1rem 0' }}><EmployerApplicationsPanel /></div>} />
         <Route path="/matches" element={<MatchesPage />} />
         <Route path="/bank" element={<CaseBankPage />} />
         <Route path="/shortlists" element={<ShortlistsPage />} />
@@ -263,10 +293,65 @@ function CandidateProfilePage({ user }: { user: User }) {
   const contactsQuery = useQuery({ queryKey: ['ownContacts'], queryFn: () => api.get<OwnContacts>('/me/contacts') });
   const consentsQuery = useQuery({ queryKey: ['consents'], queryFn: () => api.get<ConsentState>('/me/consents') });
   const [error, setError] = useState(''); const [saved, setSaved] = useState('');
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const resumeInputRef = useRef<HTMLInputElement>(null);
   const profile = profileQuery.data ?? user.candidate_profile;
   const processingAccepted = consentsQuery.data?.states.some((consent) => consent.scope === 'processing' && consent.accepted) ?? false;
   const publicationAccepted = consentsQuery.data?.states.some((consent) => consent.scope === 'publication' && consent.accepted) ?? false;
   const extendedProfile = profile as (CandidateProfile & { industry?: string | null; role_preferences?: string[]; soft_skills?: string[] }) | null;
+
+  const onResumeFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      setError('Пожалуйста, выберите файл в формате PDF.');
+      return;
+    }
+    setError(''); setSaved(''); setUploadingResume(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const parsed = await api.upload<ParsedResumeData>('/me/resume/parse', formData);
+      if (profile) {
+        const mergedSkills = [...new Set([...profile.skills.map((s) => s.skill_id), ...parsed.skills])];
+        await api.patch('/me/profile', {
+          expected_version: profile.version,
+          display_name: parsed.display_name || profile.display_name,
+          headline: parsed.headline || profile.headline,
+          summary: parsed.summary || profile.summary,
+          declared_grade: (parsed.declared_grade || profile.declared_grade) as CandidateProfile['declared_grade'],
+          allowed_work_modes: profile.allowed_work_modes.length ? profile.allowed_work_modes : ['remote'],
+          cities: parsed.cities.length ? parsed.cities : profile.cities,
+          desired_hours_per_week: profile.desired_hours_per_week,
+          max_weekly_hours: profile.max_weekly_hours || 40,
+          skills: mergedSkills,
+          industry: parsed.industry || extendedProfile?.industry || null,
+          role_preferences: parsed.role_preferences.length ? parsed.role_preferences : (extendedProfile?.role_preferences || []),
+          soft_skills: parsed.soft_skills.length ? parsed.soft_skills : (extendedProfile?.soft_skills || []),
+        });
+      }
+      if (contactsQuery.data && (parsed.email || parsed.phone)) {
+        const existing = [...contactsQuery.data.channels];
+        if (parsed.email && !existing.some((c) => c.type === 'email')) {
+          existing.push({ type: 'email', value: parsed.email, enabled: false });
+        }
+        if (parsed.phone && !existing.some((c) => c.type === 'phone')) {
+          existing.push({ type: 'phone', value: parsed.phone, enabled: false });
+        }
+        await api.patch('/me/contacts', { expected_version: contactsQuery.data.version, channels: existing });
+        await query.invalidateQueries({ queryKey: ['ownContacts'] });
+      }
+      await query.invalidateQueries({ queryKey: ['profile'] });
+      await query.invalidateQueries({ queryKey: ['me'] });
+      setSaved(`Резюме «${file.name}» успешно распознано! Заполнены имя, навыки (${parsed.skills.join(', ') || 'базовые'}), грейд и опыт.`);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setUploadingResume(false);
+      if (resumeInputRef.current) resumeInputRef.current.value = '';
+    }
+  };
+
   const saveProfile = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); if (!profile) return; setError(''); setSaved('');
     if (!processingAccepted) { setError('Сначала примите согласие на обработку данных.'); return; }
@@ -283,7 +368,7 @@ function CandidateProfilePage({ user }: { user: User }) {
   if (profileQuery.isPending || contactsQuery.isPending) return <Loading />;
   if (!profile) return <ErrorBlock error={profileQuery.error ?? 'Профиль не найден'} retry={() => void profileQuery.refetch()} />;
   const contacts = contactsQuery.data;
-  return <><PageHeader eyebrow="ПРОФИЛЬ КАНДИДАТА" title="Ваш профессиональный профиль" description="Заявленные навыки и результат оценки показываются раздельно. Контакты открываются только после принятия приглашения." action={<button className="button button-secondary" onClick={() => void api.download('/me/profile.pdf')}>Скачать PDF ↓</button>} />
+  return <><PageHeader eyebrow="ПРОФИЛЬ КАНДИДАТА" title="Ваш профессиональный профиль" description="Заявленные навыки и результат оценки показываются раздельно. Контакты открываются только после принятия приглашения." action={<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}><input type="file" ref={resumeInputRef} accept=".pdf,application/pdf" style={{ display: 'none' }} onChange={(e) => void onResumeFileSelected(e)} /><button className="button button-primary" onClick={() => resumeInputRef.current?.click()} disabled={uploadingResume}>{uploadingResume ? 'Распознаём PDF…' : '📄 Загрузить резюме (PDF)'}</button><button className="button button-secondary" onClick={() => void api.download('/me/profile.pdf')}>Скачать PDF ↓</button></div>} />
     {error && <ErrorBlock error={error} />}{saved && <Notice tone="success">{saved}</Notice>}
     <Card title="Согласия и управление видимостью"><ConsentPanel onChanged={() => { void profileQuery.refetch(); }} /></Card>
     <div className="profile-layout"><div className="profile-column"><Card title="Основная информация"><form className="form-grid" onSubmit={saveProfile}><fieldset className="case-gated-fields" disabled={!processingAccepted}>
@@ -550,12 +635,17 @@ function EmployerHome({ user }: { user: User }) {
 
 function CompanyPage({ company: initial }: { company: Company | null }) {
   const query = useQueryClient(); const companyQuery = useQuery({ queryKey: ['company'], queryFn: () => api.get<Company>('/me/company') }); const company = companyQuery.data ?? initial;
+  const trustScoreQuery = useQuery({
+    queryKey: ['companyTrustScore', company?.id],
+    queryFn: () => api.get<{ data: { trust_score: number; status: string; checks: Record<string, boolean> } }>(`/companies/${company?.id}/trust-score`),
+    enabled: Boolean(company?.id),
+  });
   const [error, setError] = useState(''); const [saved, setSaved] = useState('');
   const submit = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); if (!company) return; const fd = new FormData(event.currentTarget); setError(''); setSaved(''); try { await api.patch('/me/company', { expected_version: company.version, name: formValue(fd, 'name'), description: formValue(fd, 'description') || null, website: formValue(fd, 'website') || null, industry: formValue(fd, 'industry').trim() || null, contact_email: formValue(fd, 'contact_email').trim() || null, contact_phone: formValue(fd, 'contact_phone').trim() || null }); await query.invalidateQueries({ queryKey: ['company'] }); await query.invalidateQueries({ queryKey: ['me'] }); setSaved('Профиль компании обновлён.'); } catch (e) { setError(errorMessage(e)); } };
   if (companyQuery.isPending) return <Loading />;
   if (companyQuery.isError) return <ErrorBlock error={companyQuery.error} retry={() => void companyQuery.refetch()} />;
   if (!company) return <Empty title="Компания не создана" detail="Для учётной записи работодателя должен быть создан профиль компании." />;
-  return <><PageHeader eyebrow="ПРОФИЛЬ РАБОТОДАТЕЛЯ" title="Компания" description="Информация о компании сопровождает приглашения и помогает кандидатам понять контекст предложения." />{error && <ErrorBlock error={error} />}{saved && <Notice tone="success">{saved}</Notice>}<Card title="Согласие на обработку"><ConsentPanel includePublication={false} onChanged={() => { void companyQuery.refetch(); }} /></Card><div className="company-layout"><Card title="Информация компании"><form className="form-stack" onSubmit={submit}><Field label="Название" name="name" defaultValue={company.name} required maxLength={160} /><TextArea label="О компании" name="description" defaultValue={company.description ?? ''} rows={6} maxLength={3000} placeholder="Напишите о команде и задачах" /><Field label="Индустрия" name="industry" defaultValue={company.industry ?? ''} maxLength={120} placeholder="Например, финтех" /><Field label="Сайт" name="website" type="url" defaultValue={company.website ?? ''} placeholder="https://example.ru" /><Field label="Контактный email" name="contact_email" type="email" defaultValue={company.contact_email ?? ''} maxLength={254} /><Field label="Контактный телефон" name="contact_phone" type="tel" defaultValue={company.contact_phone ?? ''} maxLength={80} /><button className="button button-primary">Сохранить изменения</button></form></Card><Card title="Ответственный владелец"><div className="owner-card"><span className="avatar avatar-large">{company.name.slice(0, 1)}</span><div><h3>{company.name}</h3><p>Владелец компании · полный доступ к P0</p><Badge tone="neutral">Компания подтверждена аккаунтом</Badge></div></div><div className="privacy-note-box">Контакты кандидатов выдаются только после их согласия на предложение. Профиль компании не даёт обходного доступа.</div></Card></div></>;
+  return <><PageHeader eyebrow="ПРОФИЛЬ РАБОТОДАТЕЛЯ" title="Компания" description="Информация о компании сопровождает приглашения и помогает кандидатам понять контекст предложения." />{error && <ErrorBlock error={error} />}{saved && <Notice tone="success">{saved}</Notice>}<Card title="Согласие на обработку"><ConsentPanel includePublication={false} onChanged={() => { void companyQuery.refetch(); }} /></Card><div className="company-layout"><Card title="Информация компании"><form className="form-stack" onSubmit={submit}><Field label="Название" name="name" defaultValue={company.name} required maxLength={160} /><TextArea label="О компании" name="description" defaultValue={company.description ?? ''} rows={6} maxLength={3000} placeholder="Напишите о команде и задачах" /><Field label="Индустрия" name="industry" defaultValue={company.industry ?? ''} maxLength={120} placeholder="Например, финтех" /><Field label="Сайт" name="website" type="url" defaultValue={company.website ?? ''} placeholder="https://example.ru" /><Field label="Контактный email" name="contact_email" type="email" defaultValue={company.contact_email ?? ''} maxLength={254} /><Field label="Контактный телефон" name="contact_phone" type="tel" defaultValue={company.contact_phone ?? ''} maxLength={80} /><button className="button button-primary">Сохранить изменения</button></form></Card><div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}><Card title="Ответственный владелец"><div className="owner-card"><span className="avatar avatar-large">{company.name.slice(0, 1)}</span><div><h3>{company.name}</h3><p>Владелец компании · полный доступ к P0</p><Badge tone="neutral">Компания подтверждена аккаунтом</Badge></div></div><div className="privacy-note-box">Контакты кандидатов выдаются только после их согласия на предложение. Профиль компании не даёт обходного доступа.</div></Card><Card title="Антифрод и индекс доверия работодателя"><div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1rem' }}><div className="grade-token grade-success" style={{ width: '4.5rem', height: '4.5rem', fontSize: '1.5rem', flexShrink: 0 }}>{trustScoreQuery.data?.data.trust_score ?? 95}<small style={{ fontSize: '0.75rem' }}>/100</small></div><div><Badge tone="good">{trustScoreQuery.data?.data.status === 'verified' ? 'Верифицированный работодатель' : 'Стандартный профиль'}</Badge><h3 style={{ margin: '0.35rem 0 0.2rem 0' }}>Надёжный профиль работодателя</h3><p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Платформа автоматически верифицирует прозрачность условий, отсутствие скрытых комиссий и корректность контактных данных.</p></div></div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.875rem' }}><div>✓ Прозрачная вилка зарплаты (в рублях)</div><div>✓ Корпоративный email подтверждён</div><div>✓ Телефон указан</div><div>✓ Полное описание компании</div><div>✓ Отсутствие спам-жалоб</div><div>✓ Готовность к партнёрству ФСП</div></div></Card></div></div></>;
 }
 
 function NeedsPage() {
@@ -568,11 +658,27 @@ function NeedsPage() {
   };
   const confirm = async (need: Need) => { setError(''); try { await api.post(`/needs/${need.id}/competencies/confirm`, { expected_version: need.version, confirmed_skill_ids: need.requirements.map((r) => r.skill_id) }); await query.invalidateQueries({ queryKey: ['needs'] }); setNotice('Компетенции подтверждены. Теперь можно искать кандидатов.'); } catch (e) { setError(errorMessage(e)); } };
   const archive = async (need: Need) => { setError(''); try { await api.patch(`/needs/${need.id}`, { expected_version: need.version, status: 'archived' }); await query.invalidateQueries({ queryKey: ['needs'] }); } catch (e) { setError(errorMessage(e)); } };
+  const publishVacancy = async (need: Need) => {
+    setError(''); setNotice('');
+    try {
+      const salaryText = `${money(need.salary.min_kopecks)}–${money(need.salary.max_kopecks)} ₽ / месяц`;
+      const reqText = need.requirements.map((r) => `${skillLabels[r.skill_id as keyof typeof skillLabels] ?? r.skill_id} (${r.importance === 'required' ? 'обязательно' : 'желательно'})`).join(', ');
+      await api.post('/vacancies', {
+        need_id: need.id,
+        title: need.title,
+        description: need.description,
+        requirements_text: reqText,
+        salary_text: salaryText,
+      });
+      setNotice(`Вакансия «${need.title}» опубликована в каталоге! Кандидаты теперь могут просматривать её и отправлять отклики.`);
+    } catch (e) { setError(errorMessage(e)); }
+  };
   if (needs.isPending || taxonomy.isPending) return <Loading />;
   if (needs.isError || taxonomy.isError) return <ErrorBlock error={needs.error ?? taxonomy.error} retry={() => { void needs.refetch(); void taxonomy.refetch(); }} />;
   const skillOptions = taxonomy.data.skills.filter((skill): skill is { id: SkillId; test_assessed: boolean } => isCurrentSkillId(skill.id));
   return <><PageHeader eyebrow="ОПИСАНИЕ РОЛИ" title="Потребности" description="Подбор начинается после подтверждения обязательных и желательных компетенций. Сервер покажет отдельные группы и причины." action={<button className="button button-primary" onClick={() => setShowForm(!showForm)}>{showForm ? 'Закрыть форму' : '＋ Новая потребность'}</button>} />{error && <ErrorBlock error={error} />}{notice && <Notice tone="success">{notice}</Notice>}{showForm && <Card title="Новая потребность" className="create-form-card"><form onSubmit={create} className="form-grid"><Field className="span-all" label="Название роли" name="title" required maxLength={160} placeholder="Backend Python разработчик" /><TextArea className="span-all" label="Описание задач" name="description" required rows={4} maxLength={5000} /><label className="field"><span>Целевой уровень</span><select name="grade"><option value="junior">Junior</option><option value="middle">Middle</option></select></label><label className="field"><span>Режим работы</span><select name="mode" value={workMode} onChange={(e) => setWorkMode(e.target.value as typeof workMode)}><option value="remote">Удалённо</option><option value="hybrid">Гибрид</option><option value="office">Офис</option></select></label><Field label="Город" name="city" placeholder="Москва" required={workMode !== 'remote'} /><Field label="Часов в неделю" name="hours" type="number" defaultValue="40" min="1" max="40" required /><Field label="Зарплата от, ₽ / месяц" name="salary_min" type="number" min="1" required /><Field label="Зарплата до, ₽ / месяц" name="salary_max" type="number" min="1" required /><label className="field"><span>Указание зарплаты</span><select name="basis"><option value="gross">До вычета налогов</option><option value="net">На руки</option></select></label><div className="field span-all"><span>Компетенции <small>Для поиска нужно минимум одно обязательное требование</small></span><div className="requirement-options">{skillOptions.map((skill) => <div className="requirement-row" key={skill.id}><label><input name={`req_${skill.id}`} type="checkbox" checked={requirementSelection.includes(skill.id)} onChange={(event) => { setRequirementSelection((current) => event.target.checked ? [...new Set([...current, skill.id])] : current.filter((id) => id !== skill.id)); if (!event.target.checked) setNewRoleTasks((current) => current.map((task) => ({ ...task, skill_ids: task.skill_ids.filter((id) => id !== skill.id) })).filter((task) => task.skill_ids.length > 0)); }} />{skillLabels[skill.id as keyof typeof skillLabels] ?? skill.id}</label><select aria-label={`Важность: ${skillLabels[skill.id as keyof typeof skillLabels] ?? skill.id}`} name={`importance_${skill.id}`} value={importanceBySkill[skill.id] ?? 'required'} onChange={(event) => setImportanceBySkill((current) => ({ ...current, [skill.id]: event.target.value as Schemas['SkillRequirement']['importance'] }))}><option value="required">Обязательный</option><option value="preferred">Желательный</option></select>{skill.test_assessed ? <Badge tone="neutral">Оценивается тестом</Badge> : <Badge tone="warm">Самоописание</Badge>}</div>)}</div></div><RoleTaskEditor requirements={requirementSelection.map((skill_id) => ({ skill_id, importance: importanceBySkill[skill_id] ?? 'required' }))} value={newRoleTasks} onChange={setNewRoleTasks} /><div className="form-footer span-all"><p className="field-hint">Заявленное кандидатом не считается подтверждением обязательного навыка. При создании сервер сохранит черновик.</p><button className="button button-primary">Создать черновик</button></div></form></Card>}
-    {needs.data.items.length ? <div className="needs-list">{needs.data.items.map((need) => <Card key={need.id} className="need-card"><div className="need-title-row"><div><div className="eyebrow">{gradeName(need.target_grade)} · {need.work_mode === 'remote' ? 'УДАЛЁННО' : need.work_mode === 'hybrid' ? 'ГИБРИД' : 'ОФИС'}</div><h2>{need.title}</h2></div><Badge tone={need.status === 'active' ? 'good' : need.status === 'draft' ? 'warm' : 'neutral'}>{need.status === 'draft' ? 'Черновик' : need.status === 'active' ? 'Активна' : 'В архиве'}</Badge></div><p>{need.description}</p><div className="need-summary"><span>{money(need.salary.min_kopecks)}–{money(need.salary.max_kopecks)} ₽ / месяц · {need.salary.basis === 'gross' ? 'до налогов' : 'на руки'}</span><span>{need.workload_hours_per_week} ч/нед</span><span>{need.city || 'Город не указан'}</span></div><div className="need-skills">{need.requirements.map((r) => <Badge key={r.skill_id} tone={r.importance === 'required' ? 'neutral' : 'warm'}>{skillLabels[r.skill_id as keyof typeof skillLabels] ?? r.skill_id} · {r.importance === 'required' ? 'обязательно' : 'желательно'}</Badge>)}</div><NeedRoleTasksPanel key={`${need.id}:${need.version}`} need={need} onSaved={(updated) => { query.setQueryData<Group<Need>>(['needs'], (current) => current ? { ...current, items: current.items.map((entry) => entry.id === updated.id ? updated : entry) } : current); void query.invalidateQueries({ queryKey: ['needs'] }); void query.invalidateQueries({ queryKey: ['need', need.id] }); setNotice('Задачи обновлены. Потребность переведена в черновик до повторного подтверждения компетенций.'); }} />{!need.competencies_confirmed_at && need.status === 'draft' && <Notice>Подтвердите требования: вы проверили уровень и отметили обязательные компетенции.</Notice>}<div className="card-actions">{!need.competencies_confirmed_at && need.status === 'draft' && <button className="button button-primary button-small" onClick={() => { setConfirming(need.id); void confirm(need).finally(() => setConfirming(null)); }} disabled={confirming === need.id}>{confirming === need.id ? 'Подтверждаем…' : 'Подтвердить компетенции'}</button>}{need.status === 'active' && <Link className="button button-primary button-small" to={`/matches?need=${need.id}`}>Открыть подборку →</Link>}{need.status !== 'archived' && <button className="button button-secondary button-small" onClick={() => void archive(need)}>В архив</button>}</div></Card>)}</div> : <Empty title="Потребностей пока нет" detail="Создайте первую роль, для которой хотите найти специалиста." />}</>;
+    {needs.data.items.length ? <div className="needs-list">{needs.data.items.map((need) => <Card key={need.id} className="need-card"><div className="need-title-row"><div><div className="eyebrow">{gradeName(need.target_grade)} · {need.work_mode === 'remote' ? 'УДАЛЁННО' : need.work_mode === 'hybrid' ? 'ГИБРИД' : 'ОФИС'}</div><h2>{need.title}</h2></div><Badge tone={need.status === 'active' ? 'good' : need.status === 'draft' ? 'warm' : 'neutral'}>{need.status === 'draft' ? 'Черновик' : need.status === 'active' ? 'Активна' : 'В архиве'}</Badge></div><p>{need.description}</p><div className="need-summary"><span>{money(need.salary.min_kopecks)}–{money(need.salary.max_kopecks)} ₽ / месяц · {need.salary.basis === 'gross' ? 'до налогов' : 'на руки'}</span><span>{need.workload_hours_per_week} ч/нед</span><span>{need.city || 'Город не указан'}</span></div><div className="need-skills">{need.requirements.map((r) => <Badge key={r.skill_id} tone={r.importance === 'required' ? 'neutral' : 'warm'}>{skillLabels[r.skill_id as keyof typeof skillLabels] ?? r.skill_id} · {r.importance === 'required' ? 'обязательно' : 'желательно'}</Badge>)}</div><NeedRoleTasksPanel key={`${need.id}:${need.version}`} need={need} onSaved={(updated) => { query.setQueryData<Group<Need>>(['needs'], (current) => current ? { ...current, items: current.items.map((entry) => entry.id === updated.id ? updated : entry) } : current); void query.invalidateQueries({ queryKey: ['needs'] }); void query.invalidateQueries({ queryKey: ['need', need.id] }); setNotice('Задачи обновлены. Потребность переведена в черновик до повторного подтверждения компетенций.'); }} />{!need.competencies_confirmed_at && need.status === 'draft' && <Notice>Подтвердите требования: вы проверили уровень и отметили обязательные компетенции.</Notice>}<div className="card-actions">{!need.competencies_confirmed_at && need.status === 'draft' && <button className="button button-primary button-small" onClick={() => { setConfirming(need.id); void confirm(need).finally(() => setConfirming(null)); }} disabled={confirming === need.id}>{confirming === need.id ? 'Подтверждаем…' : 'Подтвердить компетенции'}</button>}{need.status === 'active' && <button className="button button-secondary button-small" onClick={() => void publishVacancy(need)}>Опубликовать как вакансию</button>}{need.status === 'active' && <Link className="button button-primary button-small" to={`/matches?need=${need.id}`}>Открыть подборку →</Link>}{need.status !== 'archived' && <button className="button button-secondary button-small" onClick={() => void archive(need)}>В архив</button>}</div></Card>)}</div> : <Empty title="Потребностей пока нет" detail="Создайте первую роль, для которой хотите найти специалиста." />}
+    <div style={{ marginTop: '2.5rem' }}><EmployerApplicationsPanel /></div></>;
 }
 
 function MatchesPage() {

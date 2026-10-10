@@ -15,10 +15,58 @@ export type OwnContacts = Schemas['OwnContacts'];
 export type ContactBundle = Schemas['ContactBundle'];
 export type Grade = 'junior' | 'middle';
 export type SkillId = 'python-basics' | 'http-api' | 'sql-transactions' | 'reliability' | 'postgres' | 'docker' | 'fastapi';
-export type ApiPayload = Schemas['RegisterRequest'] | Schemas['ConfirmEmailRequest'] | Schemas['ResendConfirmationRequest'] | Schemas['LoginRequest'] | Schemas['CandidateProfilePatch'] | Schemas['VisibilityRequest'] | Schemas['OwnContactsPatch'] | Schemas['CompanyPatch'] | Schemas['FspLinkRequest'] | Schemas['CreateAttemptRequest'] | Schemas['AnswerRequest'] | Schemas['NeedCreateRequest'] | Schemas['NeedPatchRequest'] | Schemas['ConfirmCompetenciesRequest'] | Schemas['SearchRequest'] | Schemas['ShortlistCreateRequest'] | Schemas['ShortlistPatchRequest'] | Schemas['InvitationCreateRequest'] | Schemas['InvitationDecisionRequest'] | Schemas['InvitationSupersedeRequest'] | Schemas['CandidateComparisonRequest'] | Schemas['RecruitingRecordPutRequest'] | Schemas["CandidateBankSearchRequest"] | Schemas["ConsentMutationRequest"] | Schemas['InvitationMessageCreateRequest'] | Schemas['ShortTaskCreateRequest'] | Schemas['ShortTaskTransitionRequest'] | Schemas['ShortTaskAcceptRequest'] | Schemas['ShortTaskSubmissionRequest'] | Schemas['ShortTaskReviewRequest'] | Schemas['InvitationNextStepPutRequest'] | { expected_version: number };
+export type ApiPayload = Schemas['RegisterRequest'] | Schemas['ConfirmEmailRequest'] | Schemas['ResendConfirmationRequest'] | Schemas['LoginRequest'] | Schemas['CandidateProfilePatch'] | Schemas['VisibilityRequest'] | Schemas['OwnContactsPatch'] | Schemas['CompanyPatch'] | Schemas['FspLinkRequest'] | Schemas['CreateAttemptRequest'] | Schemas['AnswerRequest'] | Schemas['NeedCreateRequest'] | Schemas['NeedPatchRequest'] | Schemas['ConfirmCompetenciesRequest'] | Schemas['SearchRequest'] | Schemas['ShortlistCreateRequest'] | Schemas['ShortlistPatchRequest'] | Schemas['InvitationCreateRequest'] | Schemas['InvitationDecisionRequest'] | Schemas['InvitationSupersedeRequest'] | Schemas['CandidateComparisonRequest'] | Schemas['RecruitingRecordPutRequest'] | Schemas["CandidateBankSearchRequest"] | Schemas["ConsentMutationRequest"] | Schemas['InvitationMessageCreateRequest'] | Schemas['ShortTaskCreateRequest'] | Schemas['ShortTaskTransitionRequest'] | Schemas['ShortTaskAcceptRequest'] | Schemas['ShortTaskSubmissionRequest'] | Schemas['ShortTaskReviewRequest'] | Schemas['InvitationNextStepPutRequest'] | { expected_version: number } | Record<string, unknown>;
+
+export type ParsedResumeData = {
+  display_name: string | null;
+  email: string | null;
+  phone: string | null;
+  headline: string | null;
+  summary: string | null;
+  industry: string | null;
+  declared_grade: 'junior' | 'middle' | null;
+  skills: SkillId[];
+  soft_skills: string[];
+  role_preferences: string[];
+  cities: string[];
+  raw_preview: string;
+};
+
+export type PublicVacancy = {
+  id: string;
+  need_id: string | null;
+  company_id: string;
+  company_name: string;
+  company_industry?: string | null;
+  title: string;
+  description: string;
+  specialization_id: string;
+  target_grade: Grade;
+  work_mode: string;
+  city?: string | null;
+  workload_hours_per_week: number;
+  salary: { min_kopecks: number; max_kopecks: number; currency: string; basis: string };
+  status: string;
+  created_at: string;
+};
+
+export type CandidateApplication = {
+  id: string;
+  vacancy_id: string;
+  vacancy_title: string;
+  company_name: string;
+  specialization_id: string;
+  target_grade: string;
+  work_mode: string;
+  salary: { min_kopecks: number; max_kopecks: number };
+  status: 'submitted' | 'reviewed' | 'accepted' | 'declined';
+  cover_letter?: string | null;
+  created_at: string;
+};
 
 type Envelope<T> = { data: T };
 type ApiError = { error?: { code?: string; message?: string; field?: string; retryable?: boolean; eligible_at?: string | null; active_attempt_id?: string | null } };
+
 
 export class RequestError extends Error {
   code: string;
@@ -148,18 +196,40 @@ export const api = {
   put: <T>(path: string, body: ApiPayload, idempotencyKey?: string) => send<T>(path, 'PUT', body, idempotencyKey),
   patch: <T>(path: string, body: ApiPayload, idempotencyKey?: string) => send<T>(path, 'PATCH', body, idempotencyKey),
   delete: <T>(path: string) => send<T>(path, 'DELETE'),
-  download: async (path: string) => {
+  upload: async <T>(path: string, formData: FormData): Promise<T> => {
+    const token = await getCsrf();
+    const key = generateUUID();
+    const response = await fetch(`/api/v1${path}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+        ...(token ? { 'X-CSRF-Token': token } : {}),
+        'Idempotency-Key': key,
+      },
+      body: formData,
+    });
+    const body = (await response.json()) as Envelope<T> | ApiError;
+    if (!response.ok || !('data' in body)) throw new RequestError(response.status, body as ApiError);
+    return body.data;
+  },
+  download: async (path: string, filename?: string) => {
     const response = await fetch(`/api/v1${path}`, { credentials: 'include' });
     if (!response.ok) {
       let body: ApiError = {};
-      try { body = (await response.json()) as ApiError; } catch { /* PDF error has no JSON body. */ }
+      try { body = (await response.json()) as ApiError; } catch { /* download error has no JSON body */ }
       throw new RequestError(response.status, body);
     }
     const blob = await response.blob();
     const href = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = href;
-    anchor.download = 'profile.pdf';
+    const disposition = response.headers.get('content-disposition');
+    let name = filename;
+    if (!name && disposition && disposition.includes('filename=')) {
+      name = disposition.split('filename=')[1]?.replace(/["';]/g, '').trim();
+    }
+    anchor.download = name || 'download';
     anchor.click();
     URL.revokeObjectURL(href);
   },
