@@ -28,3 +28,6 @@ __pycache__/
 
 *.jar
 !backend/gradle/wrapper/gradle-wrapper.jar
+
+.idea/
+*.iml
