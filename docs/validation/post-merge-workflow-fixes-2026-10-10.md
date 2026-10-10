@@ -33,3 +33,11 @@ Base: `54f755b68c06583b912495dffaa6091840fc893b`; approved scope M01–M04.
 Simplification: the insights initial load/retry/recovery now share one guarded loader.
 Private browser proof, request logs, source hashes and review receipts are recorded in
 `local/post-merge-fixes/2026-10-10/verification.json` and sibling files.
+
+## Publication integration
+
+The separately requested commit/push integrates correction commit `536c7f8d798b788d2a7ff42df2d672673754c4e4` with
+upstream prototype `492965175e966b2dbb6a3cf12dda20189856414c` (dark theme and login icons). The three-way merge
+is automatic and preserves both changes. Fresh pre-push checks on the combined
+source:155/155 frontend tests, TypeScript, production build and diff-check pass.
+Combined JS623.98kB, gzip171.05kB; the existing chunk-size warning remains.
