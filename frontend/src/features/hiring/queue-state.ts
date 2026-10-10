@@ -7,24 +7,37 @@ export type QueueState = {
   generation: number;
   items: QueueItem[];
   nextCursor: string | null;
+  requestedDepth: number;
+  depthLimitReached: boolean;
   initialStatus: 'idle' | 'loading' | 'ready' | 'error';
   moreStatus: 'idle' | 'loading' | 'error';
   error: string;
 };
-export type QueueRequest = { identity: string; generation: number; kind: 'refresh' | 'more'; cursor: string | null };
+export type QueueRequest = { identity: string; generation: number; kind: 'refresh' | 'more'; cursor: string | null; limit: number; requestedDepth: number };
 
-export function createQueueState(identity: string, generation = 0): QueueState {
-  return { identity, generation, items: [], nextCursor: null, initialStatus: 'idle', moreStatus: 'idle', error: '' };
+const defaultPageSize = 5;
+const maxPageSize = 100;
+
+export function queueRefreshLimit(requestedDepth: number): number {
+  return Math.min(maxPageSize, Math.max(defaultPageSize, requestedDepth));
 }
 
-export function beginQueueRequest(state: QueueState, kind: QueueRequest['kind']): { state: QueueState; request: QueueRequest } {
+export function createQueueState(identity: string, generation = 0, requestedDepth = defaultPageSize): QueueState {
+  return { identity, generation, items: [], nextCursor: null, requestedDepth, depthLimitReached: false, initialStatus: 'idle', moreStatus: 'idle', error: '' };
+}
+
+export function beginQueueRequest(state: QueueState, kind: QueueRequest['kind'], requestedDepth?: number): { state: QueueState; request: QueueRequest } {
   const generation = state.generation + 1;
   const cursor = kind === 'more' ? state.nextCursor : null;
-  const request = { identity: state.identity, generation, kind, cursor };
+  const targetDepth = kind === 'refresh'
+    ? Math.max(defaultPageSize, requestedDepth ?? state.requestedDepth)
+    : state.requestedDepth + defaultPageSize;
+  const limit = kind === 'refresh' ? queueRefreshLimit(targetDepth) : defaultPageSize;
+  const request = { identity: state.identity, generation, kind, cursor, limit, requestedDepth: targetDepth };
   return {
     request,
     state: kind === 'refresh'
-      ? { ...createQueueState(state.identity, generation), initialStatus: 'loading' }
+      ? { ...createQueueState(state.identity, generation, targetDepth), initialStatus: 'loading' }
       : { ...state, generation, moreStatus: 'loading', error: '' },
   };
 }
@@ -52,7 +65,10 @@ export function applyQueuePage(state: QueueState, request: QueueRequest, page: Q
   if (!isCurrent(state, request)) return state;
   const items = request.kind === 'refresh' ? mergeItems([], page.items) : mergeItems(state.items, page.items);
   return {
-    ...state, items, nextCursor: page.next_cursor, initialStatus: 'ready', moreStatus: 'idle', error: '',
+    ...state, items, nextCursor: page.next_cursor,
+    requestedDepth: request.kind === 'more' ? Math.max(state.requestedDepth, items.length) : state.requestedDepth,
+    depthLimitReached: request.kind === 'refresh' && request.requestedDepth > request.limit && page.next_cursor !== null,
+    initialStatus: 'ready', moreStatus: 'idle', error: '',
   };
 }
 

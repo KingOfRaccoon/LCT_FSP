@@ -2,8 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, errorMessage, RequestError, type User } from '../../api';
 import { applyQueuePage, beginQueueRequest, clearQueue, createQueueState, handleQueueFailure, isQueueEmpty, type QueuePage, type QueueState } from './queue-state';
 
-const pageLimit = 5;
-
 export function useNextStepQueue(user: Pick<User, 'account_type' | 'user_id'>) {
   const role = user.account_type === 'candidate' ? 'candidate' : 'employer';
   const identity = `${role}:${user.user_id}`;
@@ -25,7 +23,7 @@ export function useNextStepQueue(user: Pick<User, 'account_type' | 'user_id'>) {
     request = started.request;
     commit(() => started.state);
     const cursor = request.cursor;
-    const path = `/me/next-steps?limit=${pageLimit}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
+    const path = `/me/next-steps?limit=${request.limit}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
     try {
       const page = await api.get<QueuePage>(path);
       commit((state) => applyQueuePage(state, request, page));

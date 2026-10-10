@@ -397,6 +397,11 @@ body .error-box {
   line-height: 1.55;
 }
 
+body .stat-card .error-box {
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+}
+
 body .auth-page {
   background: #fff;
 }

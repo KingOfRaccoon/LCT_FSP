@@ -20,6 +20,7 @@ import { useNextStepQueue } from './features/hiring/useNextStepQueue';
 import { isContactResponseCurrent, readContactIfAuthorized, reconcileAnswerDraft, runBoundedSave, selectedAnswerCount, snapshotMatches } from './features/recovery';
 import './features/case/case.css';
 import { candidateNextStep, isProfileDiscoverable, pendingInvitationCount } from './features/journey';
+import { installPressMotion } from './features/motion/press-motion';
 
 type Group<T> = { items: T[]; page?: { next_cursor: string | null; limit: number } };
 type MatchResult = Schemas['MatchResults'];
@@ -69,6 +70,7 @@ function Empty({ title, detail, action }: { title: string; detail: string; actio
 }
 
 function App() {
+  useEffect(() => installPressMotion(document), []);
   const location = useLocation();
   const isPractice = location.pathname === '/practice';
   const me = useQuery({ queryKey: ['me'], queryFn: () => api.get<User>('/auth/me'), enabled: !isPractice });
@@ -249,8 +251,8 @@ function CandidateHome({ user }: { user: User }) {
   </>;
 }
 
-function Stat({ label, value, detail, tone = '' }: { label: string; value: string; detail: string; tone?: string }) {
-  return <div className="stat-card"><div className="stat-top"><span>{label}</span><span className={`stat-dot ${tone}`} /></div><strong>{value}</strong><small>{detail}</small></div>;
+function Stat({ label, value, detail, tone = '', children }: { label: string; value: string; detail: string; tone?: string; children?: ReactNode }) {
+  return <div className="stat-card"><div className="stat-top"><span>{label}</span><span className={`stat-dot ${tone}`} /></div><strong>{value}</strong><small>{detail}</small>{children}</div>;
 }
 function Preference({ label, value }: { label: string; value: string }) { return <div className="preference-row"><span>{label}</span><strong>{value}</strong></div>; }
 
@@ -541,11 +543,42 @@ function CandidateContacts() {
 
 function EmployerHome({ user }: { user: User }) {
   const actionQueue = useNextStepQueue(user);
-  const needs = useQuery({ queryKey: ['needs'], queryFn: () => api.get<Group<Need>>('/needs') }); const sent = useQuery({ queryKey: ['sentInvitations'], queryFn: () => api.get<Group<Invitation>>('/invitations/sent') });
-  if (needs.isPending || sent.isPending) return <Loading />;
-  if (needs.isError || sent.isError) return <ErrorBlock error={needs.error ?? sent.error} retry={() => { void needs.refetch(); void sent.refetch(); }} />;
-  const activeNeeds = needs.data.items.filter((n) => n.status === 'active').length; const pending = sent.data.items.filter((i) => i.state === 'pending').length;
-  return <><PageHeader eyebrow="ПОДБОР В КОМПАНИИ" title={`Добро пожаловать, ${user.company?.name ?? 'команда'}`} description="Опишите потребность, подтвердите требования и изучайте объяснимую подборку специалистов." action={<Link to="/needs" className="button button-primary">Создать потребность <span>＋</span></Link>} /><NextStepQueue queue={actionQueue} role="employer" /><div className="stat-grid"><Stat label="Активные потребности" value={String(activeNeeds)} detail={`${needs.data.items.length} всего`} tone="highlight" /><Stat label="В ожидании" value={String(pending)} detail="Приглашения без ответа" tone={pending ? 'warm' : ''} /><Stat label="Компетенции" value="Проверяемые" detail="Навыки по методике платформы v1" /><Stat label="Контакты" value="По согласию" detail="После принятого приглашения" /></div><div className="dashboard-grid"><Card title="Потребности в работе" meta={<Link className="quiet-link" to="/needs">Все потребности →</Link>}>{needs.data.items.filter((n) => n.status !== 'archived').length ? <div className="need-mini-list">{needs.data.items.filter((n) => n.status !== 'archived').slice(0, 4).map((need) => <div className="need-mini" key={need.id}><span className="need-icon">⌕</span><div><strong>{need.title}</strong><small>{gradeName(need.target_grade)} · {need.work_mode === 'remote' ? 'Удалённо' : need.work_mode === 'hybrid' ? 'Гибрид' : 'Офис'} · {need.status === 'draft' ? 'Черновик' : 'Активна'}</small></div><Link to={`/matches?need=${need.id}`} className="quiet-link">Подборка →</Link></div>)}</div> : <Empty title="Добавьте первую потребность" detail="Укажите уровень, формат, зарплатную вилку и обязательные компетенции." action={<Link className="button button-secondary button-small" to="/needs">Создать потребность</Link>} />}</Card><Card title="Быстрый переход"><div className="quick-links"><Link to="/company"><span>01</span><div><strong>Профиль компании</strong><small>Информация, видимая кандидатам</small></div><b>→</b></Link><Link to="/shortlists"><span>02</span><div><strong>Шорт-листы</strong><small>Сохранённые кандидаты на сервере</small></div><b>→</b></Link><Link to="/invitations"><span>03</span><div><strong>Приглашения</strong><small>Условия и ответы кандидатов</small></div><b>→</b></Link></div></Card></div></>;
+  const needs = useQuery({ queryKey: ['needs'], queryFn: () => api.get<Group<Need>>('/needs') });
+  const sent = useQuery({ queryKey: ['sentInvitations'], queryFn: () => api.get<Group<Invitation>>('/invitations/sent') });
+  const currentNeeds = needs.isSuccess ? needs.data.items : [];
+  const needsPartial = needs.isSuccess && Boolean(needs.data.page?.next_cursor);
+  const activeNeeds = needs.isSuccess ? currentNeeds.filter((need) => need.status === 'active').length : null;
+  const workingNeeds = currentNeeds.filter((need) => need.status !== 'archived');
+  const activeValue = activeNeeds === null || (needsPartial && activeNeeds === 0) ? '—' : `${needsPartial ? '≥' : ''}${activeNeeds}`;
+  const activeDetail = needs.isPending ? 'Загружаем потребности…' : !needs.isSuccess ? 'Не удалось проверить потребности' : needsPartial ? 'Показана часть списка' : `${currentNeeds.length} всего`;
+  const pending = sent.isSuccess ? pendingInvitationCount([sent.data]) : null;
+  const sentPartial = sent.isSuccess && Boolean(sent.data.page?.next_cursor);
+  const pendingValue = pending === null ? '—' : `${sentPartial ? '≥' : ''}${pending}`;
+  const pendingDetail = sent.isPending ? 'Загружаем приглашения…' : !sent.isSuccess ? 'Не удалось проверить приглашения' : pending === null ? 'Есть ещё приглашения · число пока неизвестно' : sentPartial ? `Не менее ${pending} · есть ещё приглашения` : 'Приглашения без ответа';
+
+  return <>
+    <PageHeader eyebrow="ПОДБОР В КОМПАНИИ" title={`Добро пожаловать, ${user.company?.name ?? 'команда'}`} description="Опишите потребность, подтвердите требования и изучайте объяснимую подборку специалистов." action={<Link to="/needs" className="button button-primary">Создать потребность <span>＋</span></Link>} />
+    <NextStepQueue queue={actionQueue} role="employer" />
+    <div className="stat-grid">
+      <Stat label="Активные потребности" value={activeValue} detail={activeDetail} tone="highlight" />
+      <Stat label="В ожидании" value={pendingValue} detail={pendingDetail} tone={pending ? 'warm' : ''}>
+        {sent.isError && <ErrorBlock error={sent.error} retry={() => void sent.refetch()} />}
+      </Stat>
+      <Stat label="Компетенции" value="Проверяемые" detail="Навыки по методике платформы v1" />
+      <Stat label="Контакты" value="По согласию" detail="После принятого приглашения" />
+    </div>
+    <div className="dashboard-grid">
+      <Card title="Потребности в работе" meta={<Link className="quiet-link" to="/needs">Все потребности →</Link>}>
+        {needs.isPending ? <Loading label="Загружаем потребности" /> : needs.isError ? <ErrorBlock error={needs.error} retry={() => void needs.refetch()} /> : <>
+          {workingNeeds.length ? <div className="need-mini-list">{workingNeeds.slice(0, 4).map((need) => <div className="need-mini" key={need.id}><span className="need-icon">⌕</span><div><strong>{need.title}</strong><small>{gradeName(need.target_grade)} · {workModeName(need.work_mode)} · {need.status === 'draft' ? 'Черновик' : 'Активна'}</small></div><Link to={`/matches?need=${need.id}`} className="quiet-link">Подборка →</Link></div>)}</div>
+            : needsPartial ? <Empty title="На этой странице потребностей в работе нет" detail="Список загружен не полностью. Это ещё не означает, что рабочих потребностей нет." action={<Link className="button button-secondary button-small" to="/needs">Открыть потребности</Link>} />
+            : <Empty title="Добавьте первую потребность" detail="Укажите уровень, формат, зарплатную вилку и обязательные компетенции." action={<Link className="button button-secondary button-small" to="/needs">Создать потребность</Link>} />}
+          {needsPartial && workingNeeds.length > 0 && <p className="field-hint">Показана часть списка потребностей.</p>}
+        </>}
+      </Card>
+      <Card title="Быстрый переход"><div className="quick-links"><Link to="/company"><span>01</span><div><strong>Профиль компании</strong><small>Информация, видимая кандидатам</small></div><b>→</b></Link><Link to="/shortlists"><span>02</span><div><strong>Шорт-листы</strong><small>Сохранённые кандидаты на сервере</small></div><b>→</b></Link><Link to="/invitations"><span>03</span><div><strong>Приглашения</strong><small>Условия и ответы кандидатов</small></div><b>→</b></Link></div></Card>
+    </div>
+  </>;
 }
 
 function CompanyPage({ company: initial }: { company: Company | null }) {
