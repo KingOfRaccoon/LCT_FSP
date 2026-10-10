@@ -7,6 +7,8 @@ import ts from 'typescript';
 // Deterministic hook/JSX host for real component callbacks. Browser smoke tests
 // separately cover React rendering and effects; HTTP is injected at the boundary.
 export function componentHarness(file, name, mocks = {}) {
+  const originalDocument = globalThis.document;
+  if (!originalDocument) globalThis.document = { addEventListener() {}, removeEventListener() {} };
   const slots = [];
   const modules = new Map();
   let index = 0;
@@ -15,6 +17,7 @@ export function componentHarness(file, name, mocks = {}) {
   let tree;
   let props;
   let mounted = true;
+  let idSequence = 0;
   const changed = (before, after) => !before || !after || before.length !== after.length || after.some((value, i) => !Object.is(value, before[i]));
   const react = {
     useState(initial) {
@@ -30,6 +33,11 @@ export function componentHarness(file, name, mocks = {}) {
       const position = index++;
       slots[position] ??= { current: initial };
       return slots[position];
+    },
+    useId() {
+      const position = index++;
+      slots[position] ??= { value: `test-id-${++idSequence}` };
+      return slots[position].value;
     },
     useCallback(callback, deps) {
       const position = index++;
@@ -83,7 +91,11 @@ export function componentHarness(file, name, mocks = {}) {
       for (let i = 0; i < 12; i++) { await Promise.resolve(); if (dirty) render(); }
       return tree;
     },
-    unmount() { mounted = false; slots.forEach((slot) => slot?.cleanup?.()); },
+    unmount() {
+      mounted = false;
+      slots.forEach((slot) => slot?.cleanup?.());
+      if (!originalDocument) delete globalThis.document;
+    },
   };
 }
 

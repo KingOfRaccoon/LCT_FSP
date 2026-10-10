@@ -87,7 +87,7 @@ class ProfilePdfService(
                 if (contacts.isNotEmpty()) {
                     drawContactsSection(contacts)
                 }
-                drawVerificationFooter(candidate)
+                drawProfileLinkFooter(candidate)
             } finally {
                 stream.close()
             }
@@ -489,10 +489,10 @@ class ProfilePdfService(
             currentY -= 12f
         }
 
-        private fun drawVerificationFooter(candidate: Map<String, Any?>) {
+        private fun drawProfileLinkFooter(candidate: Map<String, Any?>) {
             val candidateId = candidate["id"]?.toString()
-            val verificationUrl = if (!candidateId.isNullOrBlank()) {
-                "${publicOrigin.trimEnd('/')}/candidates/$candidateId"
+            val profileUrl = if (!candidateId.isNullOrBlank()) {
+                "${publicOrigin.trimEnd('/')}/invitations?candidate_id=$candidateId"
             } else {
                 publicOrigin
             }
@@ -508,9 +508,9 @@ class ProfilePdfService(
             val qrSize = 54f
             val qrX = marginX + 8f
             val qrY = boxY + 7f
-            drawVectorQrCode(verificationUrl, qrX, qrY, qrSize)
+            drawVectorQrCode(profileUrl, qrX, qrY, qrSize)
 
-            // Verification Text alongside QR
+            // Link to the current profile; access still requires employer permissions.
             val textX = qrX + qrSize + 14f
             var vTextY = boxY + footerHeight - 16f
 
@@ -518,7 +518,7 @@ class ProfilePdfService(
             stream.setFont(boldFont, 8.5f)
             stream.setNonStrokingColor(BRAND_BLUE[0], BRAND_BLUE[1], BRAND_BLUE[2])
             stream.newLineAtOffset(textX, vTextY)
-            stream.showText("ПРОВЕРКА ПОДЛИННОСТИ ЦИФРОВОГО ПАСПОРТА")
+            stream.showText("АКТУАЛЬНЫЙ ПРОФИЛЬ НА ПЛАТФОРМЕ")
             stream.endText()
 
             vTextY -= 12f
@@ -526,7 +526,7 @@ class ProfilePdfService(
             stream.setFont(regularFont, 7.5f)
             stream.setNonStrokingColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2])
             stream.newLineAtOffset(textX, vTextY)
-            stream.showText("Отсканируйте QR-код для верификации цифрового паспорта в реестре ФСП.")
+            stream.showText("QR открывает профиль работодателю после входа и проверки видимости.")
             stream.endText()
 
             vTextY -= 11f
@@ -543,7 +543,7 @@ class ProfilePdfService(
             stream.setFont(regularFont, 7f)
             stream.setNonStrokingColor(BRAND_BLUE[0], BRAND_BLUE[1], BRAND_BLUE[2])
             stream.newLineAtOffset(textX, vTextY)
-            stream.showText(cleanText(verificationUrl, regularFont))
+            stream.showText(cleanText(profileUrl, regularFont))
             stream.endText()
 
             currentY = boxY - 10f

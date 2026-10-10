@@ -1,5 +1,5 @@
-FSP MVP 1.2 - resolved components
-Generated from final bootJar and frontend/package.json.
+FSP MVP 1.3 - resolved components (review corrections, 2026-10-11)
+Generated from backend bootJar and frontend/package.json.
 
 Backend runtime: Java 21 / Spring Boot 3.5.9 / Kotlin 2.2.20 / PostgreSQL 17
 
@@ -11,6 +11,7 @@ bcprov-jdk18on-1.81.jar
 checker-qual-3.49.5.jar
 classmate-1.7.1.jar
 commons-logging-1.3.5.jar
+core-3.5.3.jar
 flyway-core-11.7.2.jar
 flyway-database-postgresql-11.7.2.jar
 fontbox-3.0.6.jar

@@ -1,6 +1,29 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { api, errorMessage, type Candidate, type Schemas } from '../../api';
 
+const EMPTY_RECORDS: Schemas['RecruitingRecord'][] = [];
+
+function candidateFromRecord(record: Schemas['RecruitingRecord']): CandidateOption {
+  if (record.candidate_visibility === 'hidden') {
+    return {
+      id: record.candidate_id,
+      displayName: 'Профиль скрыт',
+      headline: null,
+      verifiedGrade: null,
+      declaredGrade: null,
+      visibility: 'hidden',
+      demo: false,
+    };
+  }
+  return {
+    id: record.candidate_id,
+    displayName: record.candidate_display_name || 'Профиль скрыт',
+    headline: null,
+    visibility: record.candidate_visibility,
+    demo: false,
+  };
+}
+
 export interface CandidateOption {
   id: string;
   displayName: string;
@@ -63,7 +86,7 @@ export function CandidateAvatar({ name, size = 32 }: { name: string; size?: numb
 export function CandidateAutocomplete({
   value,
   onChange,
-  existingRecords = [],
+  existingRecords = EMPTY_RECORDS,
   selectedCandidate,
   placeholder = 'Поиск кандидата по имени или направлению…',
   disabled = false,
@@ -84,9 +107,27 @@ export function CandidateAutocomplete({
   const [candidates, setCandidates] = useState<CandidateOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const existingRecordsRef = useRef(existingRecords);
+  existingRecordsRef.current = existingRecords;
+
+  useEffect(() => {
+    setCandidates((current) => {
+      const map = new Map(current.map((candidate) => [candidate.id, candidate]));
+      existingRecords
+        .filter((record) => record.candidate_id)
+        .forEach((record) => {
+          const current = map.get(record.candidate_id);
+          if (record.candidate_visibility === 'hidden' || !current || current.visibility === 'hidden') {
+            map.set(record.candidate_id, candidateFromRecord(record));
+          }
+        });
+      return Array.from(map.values());
+    });
+  }, [existingRecords]);
 
   // Load public candidates from candidate bank
   useEffect(() => {
@@ -94,83 +135,105 @@ export function CandidateAutocomplete({
     setLoading(true);
     setError('');
 
-    const payload = {
+    const basePayload = {
       specialization_id: null,
       grade: null,
       category_status: 'any',
       skill_ids: [],
       fsp_status: 'any',
       limit: 50,
-      cursor: null,
     };
 
-    api.post<{ items: Candidate[] }>('/candidates/search', payload)
-      .then((response) => {
-        if (!active) return;
-        const fetchedOptions: CandidateOption[] = (response.items || []).map((c) => ({
-          id: c.id,
-          displayName: c.display_name,
-          headline: c.headline,
-          verifiedGrade: c.verified_grade,
-          declaredGrade: c.declared_grade,
-          visibility: 'public',
-          demo: Boolean(c.demo),
-        }));
+    const recordCandidates: CandidateOption[] = existingRecordsRef.current
+      .filter((rec) => rec.candidate_id)
+      .map(candidateFromRecord);
+    const optionsById = new Map<string, CandidateOption>();
+    recordCandidates.forEach((candidate) => optionsById.set(candidate.id, candidate));
+    const fetchedIds = new Set<string>();
+    setCandidates(Array.from(optionsById.values()));
 
-        // Merge candidates from existing records
-        const recordCandidates: CandidateOption[] = existingRecords
-          .filter((rec) => rec.candidate_id && rec.candidate_display_name)
-          .map((rec) => ({
-            id: rec.candidate_id,
-            displayName: rec.candidate_display_name || 'Профиль скрыт',
-            headline: null,
-            visibility: rec.candidate_visibility,
-            demo: false,
-          }));
+    const loadCandidates = async () => {
+      const requestedCursors = new Set<string | null>();
+      let cursor: string | null = null;
+      let failure = '';
+      try {
+        while (active && !requestedCursors.has(cursor)) {
+          requestedCursors.add(cursor);
+          const response: { items: Candidate[]; next_cursor: string | null } = await api.post<{
+            items: Candidate[];
+            next_cursor: string | null;
+          }>(
+            '/candidates/search',
+            { ...basePayload, cursor },
+          );
+          if (!active) return;
 
-        // Deduplicate by ID
-        const map = new Map<string, CandidateOption>();
-        fetchedOptions.forEach((c) => map.set(c.id, c));
-        recordCandidates.forEach((c) => {
-          if (!map.has(c.id)) {
-            map.set(c.id, c);
+          (response.items || []).forEach((candidate) => {
+            const ownRecord = existingRecordsRef.current.find((record) => record.candidate_id === candidate.id);
+            if (ownRecord?.candidate_visibility === 'hidden') {
+              optionsById.set(candidate.id, candidateFromRecord(ownRecord));
+              fetchedIds.add(candidate.id);
+              return;
+            }
+            if (fetchedIds.has(candidate.id)) return;
+            fetchedIds.add(candidate.id);
+            optionsById.set(candidate.id, {
+              id: candidate.id,
+              displayName: candidate.display_name,
+              headline: candidate.headline,
+              verifiedGrade: candidate.verified_grade,
+              declaredGrade: candidate.declared_grade,
+              visibility: 'public',
+              demo: Boolean(candidate.demo),
+            });
+          });
+          setCandidates(Array.from(optionsById.values()));
+
+          const nextCursor: string | null = response.next_cursor ?? null;
+          if (nextCursor === null) break;
+          if (!nextCursor) {
+            failure = 'Список кандидатов загружен частично: сервер вернул пустой курсор.';
+            break;
           }
-        });
-
-        setCandidates(Array.from(map.values()));
-      })
-      .catch((err: unknown) => {
-        if (!active) return;
-        // If candidate search is restricted or fails, still use existing records
-        const recordCandidates: CandidateOption[] = existingRecords
-          .filter((rec) => rec.candidate_id)
-          .map((rec) => ({
-            id: rec.candidate_id,
-            displayName: rec.candidate_display_name || 'Кандидат',
-            headline: null,
-            visibility: rec.candidate_visibility,
-            demo: false,
-          }));
-
-        if (recordCandidates.length > 0) {
-          const map = new Map<string, CandidateOption>();
-          recordCandidates.forEach((c) => map.set(c.id, c));
-          setCandidates(Array.from(map.values()));
-        } else {
-          setError(errorMessage(err));
+          if (requestedCursors.has(nextCursor)) {
+            failure = 'Список кандидатов загружен частично: сервер повторил страницу.';
+            break;
+          }
+          cursor = nextCursor;
         }
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+      } catch (err) {
+        if (!active) return;
+        failure = fetchedIds.size > 0
+          ? `Список кандидатов загружен частично. ${errorMessage(err)}`
+          : recordCandidates.length > 0
+            ? `Не удалось загрузить полный список кандидатов. Показаны только кандидаты из уже сохранённых записей. ${errorMessage(err)}`
+            : errorMessage(err);
+      }
+
+      if (active) setError(failure);
+    };
+
+    void loadCandidates().finally(() => {
+      if (active) setLoading(false);
+    });
 
     return () => {
       active = false;
     };
-  }, [existingRecords]);
+  }, [retryCount]);
+
+  const retryCandidateSearch = () => {
+    setRetryCount((count) => count + 1);
+  };
+
+  const candidateLoadError = error;
 
   // Derive currently chosen candidate
+  const selectedId = value || selectedCandidate?.id;
+  const hiddenSelectedRecord = existingRecords.find((record) =>
+    record.candidate_id === selectedId && record.candidate_visibility === 'hidden');
   const currentSelected: CandidateOption | null =
+    (hiddenSelectedRecord ? candidateFromRecord(hiddenSelectedRecord) : null) ||
     selectedCandidate ||
     candidates.find((c) => c.id === value) ||
     (value
@@ -193,7 +256,11 @@ export function CandidateAutocomplete({
   }, []);
 
   // Filter candidates based on search query
-  const filteredCandidates = candidates.filter((item) => {
+  const candidatesForDisplay = new Map(candidates.map((candidate) => [candidate.id, candidate]));
+  existingRecords
+    .filter((record) => record.candidate_visibility === 'hidden')
+    .forEach((record) => candidatesForDisplay.set(record.candidate_id, candidateFromRecord(record)));
+  const filteredCandidates = Array.from(candidatesForDisplay.values()).filter((item) => {
     if (!query.trim()) return true;
     const lower = query.toLowerCase();
     const matchesName = item.displayName.toLowerCase().includes(lower);
@@ -378,13 +445,16 @@ export function CandidateAutocomplete({
             </li>
           )}
 
-          {error && candidates.length === 0 && (
-            <li className="candidate-option-empty" role="status">
-              {error}
+          {candidateLoadError && (
+            <li className="candidate-option-empty" role="alert">
+              <span>{candidateLoadError}</span>{' '}
+              <button type="button" className="button button-secondary button-small" onClick={retryCandidateSearch}>
+                Повторить
+              </button>
             </li>
           )}
 
-          {!loading && filteredCandidates.length === 0 && (
+          {!loading && !candidateLoadError && filteredCandidates.length === 0 && (
             <li className="candidate-option-empty" role="status">
               Кандидаты не найдены
             </li>

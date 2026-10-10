@@ -1,5 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { api, errorMessage, type ApiPayload, type Schemas } from '../../api';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { api, errorMessage, RequestError, type ApiPayload, type Schemas } from '../../api';
 import { CandidateAutocomplete, type CandidateOption } from './CandidateAutocomplete';
 import { NeedSelect } from './NeedSelect';
 import {
@@ -31,6 +31,13 @@ export function RecruitingWorkspacePage() {
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
   const [pendingRecordIds, setPendingRecordIds] = useState<Set<string>>(new Set());
+  const stageRequestSequence = useRef(0);
+  const stageRequests = useRef(new Map<string, number>());
+  const recordsScopeKey = JSON.stringify([cursor, applied.candidate, applied.need, revision]);
+  const recordsScope = useRef({ key: recordsScopeKey, generation: 0 });
+  if (recordsScope.current.key !== recordsScopeKey) {
+    recordsScope.current = { key: recordsScopeKey, generation: recordsScope.current.generation + 1 };
+  }
 
   // Editing dialog state
   const [editing, setEditing] = useState<{ candidateId: string; needId: string | null }>();
@@ -82,10 +89,13 @@ export function RecruitingWorkspacePage() {
 
   // Optimistic 1-click stage advancement
   const handleStageChange = async (record: RecruitingRecord, nextStage: Stage) => {
-    if (record.stage === nextStage) return;
+    if (record.stage === nextStage || stageRequests.current.has(record.id)) return;
 
-    // Optimistically update records
-    const previousRecords = [...records];
+    const requestId = ++stageRequestSequence.current;
+    const scopeGeneration = recordsScope.current.generation;
+    stageRequests.current.set(record.id, requestId);
+
+    // Optimistically update only the row being changed.
     setRecords((prev) =>
       prev.map((r) =>
         r.id === record.id
@@ -114,18 +124,62 @@ export function RecruitingWorkspacePage() {
         payload as ApiPayload,
       );
 
-      // Reconcile with authoritative server response
-      setRecords((prev) => prev.map((r) => (r.id === record.id ? updated : r)));
+      // Reconcile only with the list that initiated the mutation.
+      if (stageRequests.current.get(record.id) === requestId) {
+        if (recordsScope.current.generation === scopeGeneration) {
+          setRecords((prev) => prev.map((r) => (r.id === record.id ? updated : r)));
+        } else {
+          // The mutation may have committed after navigation; reload the active filter from the server.
+          setCursor(null);
+          setRevision((current) => current + 1);
+        }
+      }
     } catch (err) {
-      // Revert optimistic update on failure
-      setRecords(previousRecords);
-      setError(errorMessage(err));
+      // A failed mutation must not restore another request's results or another row's successful update.
+      if (stageRequests.current.get(record.id) === requestId
+        && recordsScope.current.generation === scopeGeneration) {
+        const rollbackStage = () => setRecords((prev) => prev.map((current) => current.id === record.id
+          && current.stage === nextStage
+          && current.version === record.version + 1
+          ? { ...current, stage: record.stage, updated_at: record.updated_at, version: record.version }
+          : current));
+
+        if (err instanceof RequestError && err.code === 'VERSION_CONFLICT') {
+          const query = new URLSearchParams({ limit: '100', candidate_id: record.candidate_id });
+          try {
+            const page = await api.get<Schemas['RecruitingRecordPage']>(`/recruiting/records?${query.toString()}`);
+            if (stageRequests.current.get(record.id) !== requestId
+              || recordsScope.current.generation !== scopeGeneration) return;
+            const refreshed = page.items.find((item) => item.id === record.id);
+            if (refreshed) {
+              setRecords((prev) => applied.need && refreshed.need_id !== applied.need
+                ? prev.filter((current) => current.id !== record.id)
+                : prev.map((current) => current.id === record.id ? refreshed : current));
+              return;
+            }
+            rollbackStage();
+            setError('Запись не найдена после конфликта версии. Обновите воронку и попробуйте ещё раз.');
+          } catch (refreshError) {
+            if (stageRequests.current.get(record.id) === requestId
+              && recordsScope.current.generation === scopeGeneration) {
+              rollbackStage();
+              setError(`${errorMessage(err)} ${errorMessage(refreshError)}`);
+            }
+          }
+        } else {
+          rollbackStage();
+          setError(errorMessage(err));
+        }
+      }
     } finally {
-      setPendingRecordIds((prev) => {
-        const next = new Set(prev);
-        next.delete(record.id);
-        return next;
-      });
+      if (stageRequests.current.get(record.id) === requestId) {
+        stageRequests.current.delete(record.id);
+        setPendingRecordIds((prev) => {
+          const next = new Set(prev);
+          next.delete(record.id);
+          return next;
+        });
+      }
     }
   };
 
