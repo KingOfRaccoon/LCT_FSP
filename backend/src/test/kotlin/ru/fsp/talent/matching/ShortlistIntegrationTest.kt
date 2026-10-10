@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
 import ru.fsp.talent.core.DbTestBase
 import ru.fsp.talent.core.TestActor
+import java.time.Instant
 import java.util.UUID
 
 class ShortlistIntegrationTest : DbTestBase() {
@@ -31,12 +32,22 @@ class ShortlistIntegrationTest : DbTestBase() {
         assertEquals(setOf(second.id), ids(refreshed.body!!))
         assertEquals(2, jdbc.queryForObject("SELECT jsonb_array_length(data->'candidate_ids') FROM shortlists WHERE id=?::uuid", Int::class.java, shortlistId))
 
+        val oldUpdatedAt = "2000-01-01T00:00:00Z"
+        jdbc.update(
+            "UPDATE shortlists SET data=jsonb_set(data, '{updated_at}', to_jsonb(?::text), true) WHERE id=?::uuid",
+            oldUpdatedAt,
+            shortlistId,
+        )
         val restored = request(company, HttpMethod.PATCH, "/api/v1/shortlists/$shortlistId", mapOf("expected_version" to 1, "name" to "Updated shortlist"), UUID.randomUUID().toString())
         assertEquals(200, restored.statusCode.value())
         assertEquals("Updated shortlist", restored.body!!.path("data").path("name").asText())
+        val patchedUpdatedAt = restored.body!!.path("data").path("updated_at").asText()
+        assertTrue(Instant.parse(patchedUpdatedAt).isAfter(Instant.parse(oldUpdatedAt)), "a successful shortlist edit must advance updated_at")
         assertEquals(setOf(second.id), ids(restored.body!!))
         val stale = request(company, HttpMethod.PATCH, "/api/v1/shortlists/$shortlistId", mapOf("expected_version" to 1, "candidate_ids" to listOf(second.id)), UUID.randomUUID().toString())
         assertEquals(409, stale.statusCode.value())
+        val afterConflict = request(company, HttpMethod.GET, "/api/v1/shortlists/$shortlistId")
+        assertEquals(patchedUpdatedAt, afterConflict.body!!.path("data").path("updated_at").asText(), "a version conflict must not change updated_at")
 
         val removed = request(company, HttpMethod.PATCH, "/api/v1/shortlists/$shortlistId", mapOf("expected_version" to 2, "candidate_ids" to listOf(second.id)), UUID.randomUUID().toString())
         assertEquals(200, removed.statusCode.value())

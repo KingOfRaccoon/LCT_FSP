@@ -9,14 +9,14 @@ internal object ShortTaskRules {
     const val SHARING_NOTICE_VERSION = "short-task-sharing-v1"
     const val SHARING_NOTICE_TEXT = "Я отдельно разрешаю показать этой компании моё решение и обратную связь по этой задаче. Это не открывает контакты; доступ к решению можно отозвать."
 
-    fun validateCreate(body: Map<String, Any?>): ValidatedShortTaskCreate {
+    fun validateCreate(body: Map<String, Any?>, now: Instant = Instant.now()): ValidatedShortTaskCreate {
         val title = requiredText(body, "title", 160)
         val purpose = requiredText(body, "purpose", 500)
         val instructions = requiredText(body, "instructions", 8000)
         val estimatedMinutes = number(body["estimated_minutes"], "estimated_minutes")
         if (estimatedMinutes !in 1..480) fail("estimated_minutes", "Estimated time must be from 1 to 480 minutes")
         val dueAt = parseInstant(body["due_at"], "due_at")
-        if (!dueAt.isAfter(Instant.now())) fail("due_at", "Deadline must be in the future")
+        if (!dueAt.isAfter(now)) fail("due_at", "Deadline must be in the future")
         val mode = body["evaluation_mode"]?.toString()
         val criteria = (body["rubric"] as? Iterable<*>)?.map { item ->
             val criterion = item as? Map<*, *> ?: fail("rubric", "Each rubric criterion must be an object")

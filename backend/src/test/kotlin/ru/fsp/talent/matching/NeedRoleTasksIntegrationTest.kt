@@ -2,12 +2,17 @@ package ru.fsp.talent.matching
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpMethod
 import ru.fsp.talent.core.Actor
 import ru.fsp.talent.core.ApiException
 import ru.fsp.talent.core.DbTestBase
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class NeedRoleTasksIntegrationTest : DbTestBase() {
     @Autowired
@@ -62,6 +67,36 @@ class NeedRoleTasksIntegrationTest : DbTestBase() {
             ))
         }
         assertEquals("VALIDATION_ERROR", error.code)
+    }
+
+    @Test
+    fun `concurrent need edits with the same expected version allow only one update`() {
+        val employer = seedActor("employer")
+        val created = request(employer, HttpMethod.POST, "/api/v1/needs", createBody(), UUID.randomUUID().toString())
+        assertEquals(201, created.statusCode.value(), created.body.toString())
+        val needId = created.body!!.path("data").path("id").asText()
+        val ready = CountDownLatch(2)
+        val start = CountDownLatch(1)
+        val edits = listOf("First concurrent edit", "Second concurrent edit").map { title ->
+            CompletableFuture.supplyAsync {
+                ready.countDown()
+                check(start.await(10, TimeUnit.SECONDS)) { "Timed out waiting to start concurrent edits" }
+                request(employer, HttpMethod.PATCH, "/api/v1/needs/$needId", mapOf(
+                    "expected_version" to 1,
+                    "title" to title,
+                ), UUID.randomUUID().toString())
+            }
+        }
+
+        val bothReady = ready.await(10, TimeUnit.SECONDS)
+        start.countDown()
+        assertTrue(bothReady, "Both edit requests should be ready before release")
+        val responses = edits.map { it.get(30, TimeUnit.SECONDS) }
+
+        assertEquals(listOf(200, 409), responses.map { it.statusCode.value() }.sorted())
+        assertEquals(2, jdbc.queryForObject("SELECT version FROM employer_needs WHERE id=?::uuid", Int::class.java, needId))
+        val storedTitle = jdbc.queryForObject("SELECT data->>'title' FROM employer_needs WHERE id=?::uuid", String::class.java, needId)
+        assertTrue(storedTitle in setOf("First concurrent edit", "Second concurrent edit"))
     }
 
     private fun owner(): Actor {

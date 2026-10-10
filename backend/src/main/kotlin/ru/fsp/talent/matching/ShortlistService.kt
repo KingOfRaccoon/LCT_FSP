@@ -76,10 +76,14 @@ class ShortlistService(
             data["candidate_ids"] = ids
         }
         data["updated_at"] = store.now().toString()
-        store.exec(
+        val updated = store.exec(
             "UPDATE shortlists SET data = :data, version = version + 1 WHERE id = :id AND company_id = :companyId AND version = :version",
             mapOf("data" to store.json(data), "id" to id, "companyId" to actor.companyId, "version" to expectedVersion),
         )
+        if (updated == 0) {
+            val current = (getRow(id, actor.companyId!!)["version"] as? Number)?.toInt() ?: 0
+            throw ApiException(409, "VERSION_CONFLICT", "Shortlist has changed", currentVersion = current)
+        }
         return shortlistDto(getRow(id, actor.companyId!!))
     }
 

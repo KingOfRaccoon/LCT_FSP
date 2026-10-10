@@ -24,7 +24,7 @@ class ShortTaskService(
     fun create(actor: Actor, body: Map<String, Any?>): Map<String, Any?> {
         val companyId = requireCompany(actor)
         contracts.validate("ShortTaskCreateRequest", body)
-        val validated = ShortTaskRules.validateCreate(body)
+        val validated = ShortTaskRules.validateCreate(body, store.now())
         val needId = requireUuid(body["need_id"]?.toString() ?: "", "need_id")
         val candidateId = requireUuid(body["candidate_id"]?.toString() ?: "", "candidate_id")
         val expectedNeedVersion = (body["expected_need_version"] as? Number)?.toInt()

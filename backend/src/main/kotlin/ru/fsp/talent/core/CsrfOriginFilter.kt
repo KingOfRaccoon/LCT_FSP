@@ -24,15 +24,19 @@ class CsrfOriginFilter(
         val origin = request.getHeader("Origin") ?: request.getHeader("Referer")?.let {
             runCatching { URI(it).let { uri -> "${uri.scheme}://${uri.rawAuthority}" } }.getOrNull()
         }
-        val baseOrigin = publicOrigin.removeSuffix(":8080").removeSuffix(":80")
+        val normalizedPublicOrigin = publicOrigin.trimEnd('/')
+        val baseOrigin = normalizedPublicOrigin.removeSuffix(":8080").removeSuffix(":80")
         val allowedOrigins = setOf(
-            publicOrigin,
+            normalizedPublicOrigin,
             baseOrigin,
             "$baseOrigin:8080",
             "$baseOrigin:80",
             "http://localhost:8080",
             "http://localhost:5173",
+            "http://localhost:4173",
             "http://127.0.0.1:8080",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:4173",
         )
         if (origin !in allowedOrigins) {
             reject(response, 403, "CSRF_ORIGIN_INVALID", "Request origin is not allowed")
