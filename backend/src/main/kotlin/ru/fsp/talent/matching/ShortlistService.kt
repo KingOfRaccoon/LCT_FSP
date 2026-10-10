@@ -75,6 +75,7 @@ class ShortlistService(
             requireVisible(ids)
             data["candidate_ids"] = ids
         }
+        data["updated_at"] = store.now().toString()
         val updated = store.exec(
             "UPDATE shortlists SET data = :data, version = version + 1 WHERE id = :id AND company_id = :companyId AND version = :version",
             mapOf("data" to store.json(data), "id" to id, "companyId" to actor.companyId, "version" to expectedVersion),

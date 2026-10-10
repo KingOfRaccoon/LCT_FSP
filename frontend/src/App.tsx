@@ -333,7 +333,8 @@ function CandidateProfilePage({ user }: { user: User }) {
   if (profileQuery.isPending || contactsQuery.isPending) return <Loading />;
   if (!profile) return <ErrorBlock error={profileQuery.error ?? 'Профиль не найден'} retry={() => void profileQuery.refetch()} />;
   const contacts = contactsQuery.data;
-  return <><PageHeader eyebrow="ПРОФИЛЬ КАНДИДАТА" title="Ваш профессиональный профиль" description="Заявленные навыки и результат оценки показываются раздельно. Контакты доступны компании после принятия вами приглашения или передачи выбранных каналов при самостоятельном отклике." action={<button className="button button-secondary" onClick={() => void api.download('/me/profile.pdf')}>Скачать PDF ↓</button>} />
+  const downloadPdf = async () => { setError(''); try { await api.download('/me/profile.pdf'); } catch (e) { setError(errorMessage(e)); } };
+  return <><PageHeader eyebrow="ПРОФИЛЬ КАНДИДАТА" title="Ваш профессиональный профиль" description="Заявленные навыки и результат оценки показываются раздельно. Контакты доступны компании после принятия вами приглашения или передачи выбранных каналов при самостоятельном отклике." action={<button className="button button-secondary" onClick={() => void downloadPdf()}>Скачать PDF ↓</button>} />
     {error && <ErrorBlock error={error} />}{saved && <Notice tone="success">{saved}</Notice>}
     <Card title="Согласия и управление видимостью"><ConsentPanel onChanged={() => { void profileQuery.refetch(); }} /></Card>
     {profileFormDirty && <Notice>Сохраните изменения основной анкеты перед переносом резюме или обновлением ожиданий, чтобы сохранить введённые поля.</Notice>}
