@@ -40,6 +40,36 @@ export class RequestError extends Error {
   }
 }
 
+export function generateUUID(): string {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+  } catch { /* ignore */ }
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c: any) =>
+      (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
+    );
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+if (typeof crypto !== 'undefined' && typeof crypto.randomUUID !== 'function') {
+  try {
+    Object.defineProperty(crypto, 'randomUUID', {
+      value: generateUUID,
+      configurable: true,
+      writable: true,
+    });
+  } catch {
+    (crypto as any).randomUUID = generateUUID;
+  }
+}
+
 let csrfToken: string | undefined;
 let csrfPromise: Promise<string> | undefined;
 const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -66,7 +96,7 @@ export function rotateCsrf(): void {
 
 async function send<T>(path: string, method: string, payload?: ApiPayload, idempotencyKey?: string): Promise<T> {
   const mutating = !['GET', 'HEAD'].includes(method);
-  const key = mutating ? (idempotencyKey ?? crypto.randomUUID()) : undefined;
+  const key = mutating ? (idempotencyKey ?? generateUUID()) : undefined;
   let attempts = 0;
   while (true) {
     try {
@@ -136,7 +166,10 @@ export const api = {
 };
 
 export function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Что-то пошло не так. Попробуйте ещё раз.';
+  if (error instanceof RequestError) return error.message;
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error !== null && 'message' in error) return String((error as any).message);
+  return 'Что-то пошло не так. Попробуйте ещё раз.';
 }
 
 export const skillLabels: Record<SkillId, string> = {
