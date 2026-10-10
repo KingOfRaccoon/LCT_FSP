@@ -22,6 +22,7 @@ export type PublicVacancy = {
   need_id: string | null;
   company_id: string;
   company_name: string;
+  company_verification?: import('./features/company-ops').PublicCompanyVerificationSummary;
   company_industry?: string | null;
   title: string;
   description: string;

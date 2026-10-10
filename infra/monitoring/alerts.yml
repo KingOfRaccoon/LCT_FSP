@@ -1,0 +1,56 @@
+groups:
+  - name: fsp-operations
+    rules:
+      - alert: FspApiScrapeUnavailable
+        expr: up{job="fsp-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: FSP API metrics endpoint is unavailable
+          description: Prometheus cannot scrape the protected API metrics endpoint.
+
+      - alert: FspDatabaseUnavailable
+        expr: absent(fsp_database_available) or fsp_database_available == 0 or fsp_database_available != fsp_database_available
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: FSP database snapshot is unavailable
+          description: The API could not read its database health snapshot.
+
+      - alert: FspHttpServerErrors
+        expr: sum(rate(fsp_http_server_errors_total[5m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: FSP API is returning HTTP 5xx responses
+          description: The API has sustained HTTP 5xx traffic for five minutes.
+
+      - alert: FspOutboxQueueAging
+        expr: fsp_outbox_oldest_due_age_seconds > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: An outbox event has been due for over five minutes
+          description: Check the worker heartbeat and SMTP availability.
+
+      - alert: FspOutboxWorkerHeartbeatMissing
+        expr: absent(fsp_outbox_worker_last_tick_timestamp_seconds) or fsp_outbox_worker_last_tick_timestamp_seconds != fsp_outbox_worker_last_tick_timestamp_seconds
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: FSP outbox worker has not published a heartbeat
+          description: The shared database has no readable heartbeat for the headless worker.
+
+      - alert: FspOutboxWorkerHeartbeatStale
+        expr: time() - fsp_outbox_worker_last_tick_timestamp_seconds > 60
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: FSP outbox worker heartbeat is stale
+          description: The shared database heartbeat is over one minute old.

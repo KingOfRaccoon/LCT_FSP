@@ -14,6 +14,8 @@ import ru.fsp.talent.core.MutationService
 import ru.fsp.talent.core.RateLimits
 import ru.fsp.talent.core.SessionSupport
 import ru.fsp.talent.core.Store
+import ru.fsp.talent.operations.OperationsAccess
+import ru.fsp.talent.companyverification.CompanyVerificationService
 import java.security.MessageDigest
 import java.time.Duration
 import java.util.Locale
@@ -32,6 +34,8 @@ class IdentityService(
     private val rateLimits: RateLimits,
     private val replay: AuthReplay,
     private val mutations: MutationService,
+    private val operations: OperationsAccess,
+    private val companyVerification: CompanyVerificationService,
     @Value("\${fsp.session-secret}") private val sessionSecret: String,
 ) {
     private val dummyPasswordHash = passwords.encode("unusable-login-dummy-${UUID.randomUUID()}")
@@ -208,6 +212,7 @@ class IdentityService(
             "candidate_profile" to candidateProfile,
             "company" to company,
             "membership_role" to if (candidate) null else "owner",
+            "operations_permissions" to if (user["email_verified_at"] != null) operations.getPermissions(userId) else emptyList<String>(),
             "methodist_access" to ((user["email_verified_at"] != null) &&
                 (store.one("SELECT active FROM assessment_methodists WHERE user_id = :id", mapOf("id" to userId))?.get("active") == true)),
         )
@@ -221,6 +226,12 @@ class IdentityService(
             "name" to data["name"],
             "description" to data["description"],
             "website" to data["website"],
+            "industry" to data["industry"],
+            "contact_email" to data["contact_email"],
+            "contact_phone" to data["contact_phone"],
+            "inn" to data["inn"],
+            "legal_name" to data["legal_name"],
+            "verification" to companyVerification.getPublicSummary(row.getValue("id").toString()),
             "updated_at" to asInstant(row["updated_at"]).toString(),
         )
     }

@@ -66,6 +66,11 @@ export function MethodistWorkspace() {
   const [pending, setPending] = useState<PendingOperation>();
   const requestGeneration = useRef(0);
   const accessGeneration = useRef(0);
+  const reportRequestGeneration = useRef(0);
+  const exportRequestGeneration = useRef(0);
+  const reportSelectionGeneration = useRef<number | undefined>(undefined);
+  const exportSelectionGeneration = useRef<number | undefined>(undefined);
+  const selectionGeneration = useRef<{ id: string | undefined; version: number | undefined; value: number }>({ id: undefined, version: undefined, value: 0 });
 
   const clearProtectedState = useCallback(() => {
     accessGeneration.current += 1;
@@ -109,11 +114,23 @@ export function MethodistWorkspace() {
 
   useEffect(() => {
     void refreshDrafts();
-    return () => { requestGeneration.current += 1; accessGeneration.current += 1; };
+    return () => {
+      requestGeneration.current += 1; accessGeneration.current += 1;
+      reportRequestGeneration.current += 1; exportRequestGeneration.current += 1;
+    };
   }, [refreshDrafts]);
 
   const selected = drafts.find((draft) => draft.id === selectedId);
-  const resetDraftPanels = () => { setPilotReport(undefined); setDraftExport(undefined); setLatestConflict(undefined); };
+  if (selectionGeneration.current.id !== selected?.id || selectionGeneration.current.version !== selected?.version) {
+    selectionGeneration.current = { id: selected?.id, version: selected?.version, value: selectionGeneration.current.value + 1 };
+  }
+  const currentSelectionGeneration = selectionGeneration.current.value;
+  const visiblePilotReport = reportSelectionGeneration.current === currentSelectionGeneration ? pilotReport : undefined;
+  const visibleDraftExport = exportSelectionGeneration.current === currentSelectionGeneration ? draftExport : undefined;
+  const resetDraftPanels = () => {
+    reportSelectionGeneration.current = undefined; exportSelectionGeneration.current = undefined;
+    setPilotReport(undefined); setDraftExport(undefined); setLatestConflict(undefined);
+  };
   const startNew = () => {
     setSelectedId(''); setBaseVersion(undefined); setForm(emptyForm); setEditing(true); setPending(undefined);
     setReviewOutcome('approved'); setReviewMarks(emptyMarks); setReviewComment('');
@@ -198,24 +215,44 @@ export function MethodistWorkspace() {
 
   const loadReport = async () => {
     if (!selected) return;
+    const request = ++reportRequestGeneration.current;
     const access = accessGeneration.current;
+    const { id, version } = selected;
+    const selectedGeneration = currentSelectionGeneration;
+    const isCurrent = () => request === reportRequestGeneration.current
+      && access === accessGeneration.current
+      && selectionGeneration.current.value === selectedGeneration;
+    reportSelectionGeneration.current = undefined;
+    setPilotReport(undefined);
     try {
-      setPilotReport(await api.get<PilotReport>(`${draftPath(selected.id)}/pilot-report`));
-      if (access !== accessGeneration.current) setPilotReport(undefined);
-      else setError('');
+      const result = await api.get<PilotReport>(`${draftPath(id)}/pilot-report`);
+      if (!isCurrent() || result.draft_id !== id || result.version !== version) return;
+      reportSelectionGeneration.current = selectedGeneration;
+      setPilotReport(result); setError('');
     } catch (reason) {
+      if (!isCurrent()) return;
       if ([401, 403, 404].includes(reason instanceof RequestError ? reason.status : 0)) { clearProtectedState(); setError('Доступ к отчёту пилота закрыт. Предыдущие данные мастерской скрыты.'); }
       else setError(errorMessage(reason));
     }
   };
   const loadExport = async () => {
     if (!selected) return;
+    const request = ++exportRequestGeneration.current;
     const access = accessGeneration.current;
+    const { id, version } = selected;
+    const selectedGeneration = currentSelectionGeneration;
+    const isCurrent = () => request === exportRequestGeneration.current
+      && access === accessGeneration.current
+      && selectionGeneration.current.value === selectedGeneration;
+    exportSelectionGeneration.current = undefined;
+    setDraftExport(undefined);
     try {
-      setDraftExport(await api.get<DraftExport>(`${draftPath(selected.id)}/export`));
-      if (access !== accessGeneration.current) setDraftExport(undefined);
-      else setError('');
+      const result = await api.get<DraftExport>(`${draftPath(id)}/export`);
+      if (!isCurrent() || result.draft_id !== id || result.version !== version) return;
+      exportSelectionGeneration.current = selectedGeneration;
+      setDraftExport(result); setError('');
     } catch (reason) {
+      if (!isCurrent()) return;
       if ([401, 403, 404].includes(reason instanceof RequestError ? reason.status : 0)) { clearProtectedState(); setError('Доступ к выгрузке закрыт. Предыдущие данные мастерской скрыты.'); }
       else setError(errorMessage(reason));
     }
@@ -294,13 +331,13 @@ export function MethodistWorkspace() {
               <label className="field"><span>Пакет CSV · source,correct</span><textarea className="methodist-csv" value={pilotInput} onChange={(event) => { setPilotInput(event.target.value); setPending(undefined); }} rows={4} spellCheck={false} /></label>
               {selected.status !== 'approved' && <p className="methodist-caution">Сначала одобрите текущую версию экспертом, чтобы добавить пилотные наблюдения и подготовить выгрузку.</p>}
               <div className="methodist-actions"><button type="button" className="button button-primary button-small" disabled={saving || Boolean(latestConflict) || selected.status !== 'approved'} onClick={addPilot}>Добавить наблюдения</button><button type="button" className="button button-secondary button-small" disabled={selected.status !== 'approved'} onClick={() => void loadReport()}>Загрузить отчёт пилота</button></div>
-              {pilotReport && <div className="methodist-report"><h3>Отчёт · версия {pilotReport.version}</h3><p>{pilotReport.source_title}: {pilotReport.correct_count} правильных из {pilotReport.sample_count} · точность {formatPilotPercent(pilotReport.accuracy, pilotReport.sample_count)}</p><p>Учебные данные: {pilotReport.source_counts.synthetic}; записи пилота: {pilotReport.source_counts.pilot_record}.</p><p>Разбивка точности: учебные данные — {formatPilotPercent(pilotReport.accuracy_by_source.synthetic, pilotReport.source_counts.synthetic)}; пилот — {formatPilotPercent(pilotReport.accuracy_by_source.pilot_record, pilotReport.source_counts.pilot_record)}.</p><p className="methodist-caution">Это экспериментальные наблюдения. Они не подтверждают валидность задания и грейд специалиста. Для статистики требуется минимум {pilotReport.minimum_sample_for_statistics} наблюдений; автоматического вывода или публикации нет.</p></div>}
+              {visiblePilotReport && <div className="methodist-report"><h3>Отчёт · версия {visiblePilotReport.version}</h3><p>{visiblePilotReport.source_title}: {visiblePilotReport.correct_count} правильных из {visiblePilotReport.sample_count} · точность {formatPilotPercent(visiblePilotReport.accuracy, visiblePilotReport.sample_count)}</p><p>Учебные данные: {visiblePilotReport.source_counts.synthetic}; записи пилота: {visiblePilotReport.source_counts.pilot_record}.</p><p>Разбивка точности: учебные данные — {formatPilotPercent(visiblePilotReport.accuracy_by_source.synthetic, visiblePilotReport.source_counts.synthetic)}; пилот — {formatPilotPercent(visiblePilotReport.accuracy_by_source.pilot_record, visiblePilotReport.source_counts.pilot_record)}.</p><p className="methodist-caution">Это экспериментальные наблюдения. Они не подтверждают валидность задания и грейд специалиста. Для статистики требуется минимум {visiblePilotReport.minimum_sample_for_statistics} наблюдений; автоматического вывода или публикации нет.</p></div>}
             </section>
             <section className="card methodist-export">
               <div className="methodist-section-head"><div><p className="methodist-eyebrow">РАЗДЕЛЬНЫЕ АРТЕФАКТЫ</p><h2>Подготовить выгрузку</h2></div><button type="button" className="button button-secondary button-small" disabled={selected.status !== 'approved'} onClick={() => void loadExport()}>Загрузить выгрузку</button></div>
               {selected.status !== 'approved' && <p className="methodist-caution">Выгрузка доступна после экспертного одобрения текущей версии.</p>}
               <p>Форма для слепой проверки и закрытый ключ для методиста представлены в разных блоках. Живая база и грейды не меняются.</p>
-              {draftExport && <><div className="methodist-candidate-export"><h3>Форма кандидата · без ключа, выдержки и критерия</h3><p>{draftExport.candidate_form.question}</p><ol>{draftExport.candidate_form.options.map((option, index) => <li key={index}>{option}</li>)}</ol><p>Компетенция: {draftExport.candidate_form.competency_id} · {draftExport.candidate_form.grade}</p><p>Источник: {draftExport.candidate_form.source.title} · {draftExport.candidate_form.source.reference}</p><button type="button" className="button button-secondary button-small" onClick={() => downloadJsonFile(`draft-v${draftExport.version}-candidate-form.json`, candidateFormArtifact(draftExport))}>Скачать форму кандидата · JSON</button></div><details className="methodist-private-export"><summary>Закрытый ключ, выдержка и критерий · только для методиста</summary><p><strong>Правильный вариант:</strong> {draftExport.private_answer_key.correct_option + 1}</p><p><strong>Источник:</strong> {draftExport.candidate_form.source.title} · {draftExport.candidate_form.source.reference}</p><blockquote>{draftExport.private_answer_key.source_excerpt}</blockquote><p><strong>Критерий проверки:</strong> {draftExport.private_answer_key.rubric}</p><button type="button" className="button button-secondary button-small" onClick={() => downloadJsonFile(`draft-v${draftExport.version}-private-methodist-key.json`, privateAnswerKeyArtifact(draftExport))}>Скачать закрытый ключ · JSON</button></details><p className="methodist-caution">Выгрузка относится к черновику v{draftExport.version}. Задание не включено в рабочий банк.</p></>}
+              {visibleDraftExport && <><div className="methodist-candidate-export"><h3>Форма кандидата · без ключа, выдержки и критерия</h3><p>{visibleDraftExport.candidate_form.question}</p><ol>{visibleDraftExport.candidate_form.options.map((option, index) => <li key={index}>{option}</li>)}</ol><p>Компетенция: {visibleDraftExport.candidate_form.competency_id} · {visibleDraftExport.candidate_form.grade}</p><p>Источник: {visibleDraftExport.candidate_form.source.title} · {visibleDraftExport.candidate_form.source.reference}</p><button type="button" className="button button-secondary button-small" onClick={() => downloadJsonFile(`draft-v${visibleDraftExport.version}-candidate-form.json`, candidateFormArtifact(visibleDraftExport))}>Скачать форму кандидата · JSON</button></div><details className="methodist-private-export"><summary>Закрытый ключ, выдержка и критерий · только для методиста</summary><p><strong>Правильный вариант:</strong> {visibleDraftExport.private_answer_key.correct_option + 1}</p><p><strong>Источник:</strong> {visibleDraftExport.candidate_form.source.title} · {visibleDraftExport.candidate_form.source.reference}</p><blockquote>{visibleDraftExport.private_answer_key.source_excerpt}</blockquote><p><strong>Критерий проверки:</strong> {visibleDraftExport.private_answer_key.rubric}</p><button type="button" className="button button-secondary button-small" onClick={() => downloadJsonFile(`draft-v${visibleDraftExport.version}-private-methodist-key.json`, privateAnswerKeyArtifact(visibleDraftExport))}>Скачать закрытый ключ · JSON</button></details><p className="methodist-caution">Выгрузка относится к черновику v{visibleDraftExport.version}. Задание не включено в рабочий банк.</p></>}
             </section>
           </>}
         </> : <div className="card methodist-empty-detail"><h2>Выберите задание</h2><p>Или создайте черновик, чтобы привязать вопрос к источнику и критерию ответа.</p></div>}

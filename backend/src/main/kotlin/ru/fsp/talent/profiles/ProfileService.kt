@@ -10,6 +10,8 @@ import ru.fsp.talent.core.MutationService
 import ru.fsp.talent.core.Store
 import ru.fsp.talent.consents.ConsentService
 import ru.fsp.talent.identity.ProfileReader
+import ru.fsp.talent.companyverification.CompanyVerificationService
+import ru.fsp.talent.companyverification.CompanyVerificationRules
 import java.time.YearMonth
 
 @Service
@@ -20,6 +22,7 @@ class ProfileService(
     private val mutations: MutationService,
     private val assessment: AssessmentService,
     private val consents: ConsentService,
+    private val companyVerification: CompanyVerificationService,
 ) : ProfileReader {
     fun getOwnProfile(request: HttpServletRequest): Map<String, Any?> = privateProfile(auth.candidate(request).id)
 
@@ -120,7 +123,13 @@ class ProfileService(
         contracts.validate("CompanyPatch", body)
         val actor = auth.employer(request)
         val expected = (body["expected_version"] as Number).toInt()
-        val patch = body.filterKeys { it != "expected_version" }
+        val patch = body.filterKeys { it != "expected_version" }.toMutableMap()
+        if (patch.containsKey("inn")) {
+            val inn = (patch["inn"] as? String)?.let(CompanyVerificationRules::normalizeInn)?.takeIf(String::isNotBlank)
+            if (inn != null && !CompanyVerificationRules.isValidInn(inn)) throw ApiException(400, "VALIDATION_ERROR", "INN has an invalid checksum", "inn")
+            patch["inn"] = inn
+        }
+        if (patch.containsKey("legal_name")) patch["legal_name"] = (patch["legal_name"] as? String)?.trim()?.takeIf(String::isNotBlank)
         return mutations.run(request, "company:${actor.companyId}", body) {
             consents.requireProcessing(actor.id)
             val changed = store.exec(
@@ -132,6 +141,7 @@ class ProfileService(
                 val current = companyRow(actor.companyId!!)
                 throw ApiException(409, "VERSION_CONFLICT", "Company changed; reload before saving", currentVersion = (current["version"] as Number).toInt())
             }
+            companyVerification.invalidateForCompany(actor.companyId!!)
             companyDto(companyRow(actor.companyId!!))
         }.body!!.getValue("data") as Map<String, Any?>
     }
@@ -202,6 +212,9 @@ class ProfileService(
             "industry" to data["industry"],
             "contact_email" to data["contact_email"],
             "contact_phone" to data["contact_phone"],
+            "inn" to data["inn"],
+            "legal_name" to data["legal_name"],
+            "verification" to companyVerification.getPublicSummary(row.getValue("id").toString()),
             "updated_at" to asInstant(row["updated_at"]).toString(),
         )
     }

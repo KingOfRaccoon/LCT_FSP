@@ -1458,6 +1458,146 @@ export interface paths {
         patch: operations["update_vacancy_application_status"];
         trace?: never;
     };
+    "/me/company/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get own company verification status
+         * @description Returns the public verification summary plus private details for the authenticated company owner. INN, owner email, and captured criteria appear only in the owner history.
+         */
+        get: operations["get_my_company_verification"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/company/verification/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request company verification
+         * @description Requires the current company version, valid INN and legal name, a verified owner email, and processing consent. Requests are idempotently reused for unchanged criteria.
+         */
+        post: operations["request_company_verification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/company/verification/requests/{request_id}/registry-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check company details against the configured registry provider
+         * @description Optional server-configured provider check. The request version is required. Missing provider credentials produce an unavailable result; callers do not supply a URL or token.
+         */
+        post: operations["check_company_registry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/operations/company-verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List company verification requests
+         * @description Requires the company_review operational permission.
+         */
+        get: operations["list_company_verification_queue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/operations/company-verifications/{request_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record an operator decision for a company
+         * @description Requires company_review. Approval requires matching active registry evidence and explicit representative review. Operators cannot review their own company.
+         */
+        post: operations["review_company_verification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/operations/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get operational monitoring summary
+         * @description Requires the monitor_read operational permission. Database-derived values are null when the snapshot cannot be read.
+         */
+        get: operations["get_operations_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/operations/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Prometheus metrics
+         * @description Requires monitor_read session access or a configured machine bearer token. Metrics labels use bounded route templates and fixed enums.
+         */
+        get: operations["get_operations_prometheus_metrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1579,6 +1719,7 @@ export interface components {
             company: components["schemas"]["Company"] | null;
             membership_role: "owner" | null;
             methodist_access: boolean;
+            operations_permissions?: ("company_review" | "monitor_read")[];
         };
         Company: {
             id: components["schemas"]["UUID"];
@@ -1590,6 +1731,9 @@ export interface components {
             industry?: string | null;
             contact_email?: string | null;
             contact_phone?: string | null;
+            inn?: string | null;
+            legal_name?: string | null;
+            verification?: components["schemas"]["PublicCompanyVerificationSummary"];
         };
         SkillRequirement: {
             /** @enum {string} */
@@ -1870,6 +2014,7 @@ export interface components {
             company_contact_email?: string | null;
             company_contact_phone?: string | null;
             hiring_plan: components["schemas"]["HiringPlan"] | null;
+            company_verification?: components["schemas"]["PublicCompanyVerificationSummary"] | null;
         };
         /** @description Contact channels granted for the company-candidate pair. At most one active grant exists per pair; acceptance reuses it and revocation closes all pair reads. */
         ContactBundle: {
@@ -1954,6 +2099,8 @@ export interface components {
             industry?: string | null;
             contact_email?: string | null;
             contact_phone?: string | null;
+            inn?: string | null;
+            legal_name?: string | null;
         };
         FspLinkRequest: {
             external_id: string;
@@ -3032,6 +3179,140 @@ export interface components {
         };
         AtsExportEnvelope: {
             data: components["schemas"]["AtsExport"];
+        };
+        PublicCompanyVerificationSummary: {
+            /** @enum {string} */
+            status: "unverified" | "pending" | "registry_confirmed" | "reviewed" | "needs_changes" | "rejected" | "unavailable" | "expired" | "superseded" | "demo";
+            demo: boolean;
+            checked_at: components["schemas"]["Timestamp"] | null;
+            expires_at: components["schemas"]["Timestamp"] | null;
+            company_version: number;
+            checks: {
+                /** @enum {string} */
+                code: "registry" | "legal_name" | "corporate_email" | "representative";
+                /** @enum {string} */
+                status: "passed" | "failed" | "unknown";
+            }[];
+            /** @constant */
+            claims_legal_authority: false;
+        };
+        CompanyVerificationSnapshot: {
+            inn: string;
+            legal_name: string;
+            website: string;
+            contact_email: string;
+            owner_id: components["schemas"]["UUID"];
+            /** Format: email */
+            owner_email: string;
+            owner_email_verified: boolean;
+            owner_processing_consent: boolean;
+        };
+        CompanyVerificationRequest: {
+            id: components["schemas"]["UUID"];
+            version: number;
+            company_id: components["schemas"]["UUID"];
+            company_version: number;
+            criteria_current: boolean;
+            criteria_hash: string;
+            /** @enum {string} */
+            status: "pending" | "registry_confirmed" | "reviewed" | "needs_changes" | "rejected" | "unavailable" | "superseded";
+            demo: boolean;
+            inn: string;
+            legal_name: string;
+            snapshot: components["schemas"]["CompanyVerificationSnapshot"];
+            provider: string | null;
+            source_type: string | null;
+            source_label: string | null;
+            source_reference: string | null;
+            checked_at: components["schemas"]["Timestamp"] | null;
+            expires_at: components["schemas"]["Timestamp"] | null;
+            review_notes: string | null;
+            created_at: components["schemas"]["Timestamp"];
+        };
+        CompanyVerificationOwnerSummary: {
+            company_version: number;
+            /** @enum {string} */
+            current_status: "unverified" | "pending" | "registry_confirmed" | "reviewed" | "needs_changes" | "rejected" | "unavailable" | "superseded";
+            criteria_current: boolean;
+        };
+        CompanyVerificationOwnerView: {
+            summary: components["schemas"]["CompanyVerificationOwnerSummary"];
+            current_request: components["schemas"]["CompanyVerificationRequest"] | null;
+            history: components["schemas"]["CompanyVerificationRequest"][];
+        };
+        CompanyVerificationView: {
+            public: components["schemas"]["PublicCompanyVerificationSummary"];
+            owner: components["schemas"]["CompanyVerificationOwnerView"];
+        };
+        CompanyVerificationSubmitResult: {
+            public: components["schemas"]["PublicCompanyVerificationSummary"];
+            owner: components["schemas"]["CompanyVerificationOwnerView"];
+            current_request: components["schemas"]["CompanyVerificationRequest"];
+        };
+        CompanyVerificationReviewResult: {
+            request: components["schemas"]["CompanyVerificationRequest"];
+            public: components["schemas"]["PublicCompanyVerificationSummary"];
+        };
+        CompanyVerificationQueue: {
+            items: components["schemas"]["CompanyVerificationRequest"][];
+        };
+        CompanyVerificationRequestBody: {
+            expected_company_version: number;
+        };
+        CompanyVerificationRegistryCheckBody: {
+            expected_version: number;
+        };
+        CompanyVerificationReviewBody: {
+            expected_version: number;
+            /** @enum {string} */
+            outcome: "approve" | "request_changes" | "reject";
+            evidence_reference: string;
+            registry_inn: string | null;
+            registry_legal_name: string | null;
+            /** @enum {string} */
+            registry_status: "ACTIVE" | "LIQUIDATING" | "TERMINATED" | "UNKNOWN";
+            representative_reviewed: boolean;
+            comment: string;
+        };
+        OperationsCountSnapshot: {
+            pending: number;
+            delivered: number;
+            failed: number;
+            discarded: number;
+        };
+        OperationsSummary: {
+            generated_at: components["schemas"]["Timestamp"];
+            process: {
+                uptime_seconds: number;
+                heap_used_bytes: number;
+                heap_max_bytes: number | null;
+            };
+            database: {
+                available: boolean;
+            };
+            http: {
+                requests_total: number;
+                server_errors_total: number;
+                average_duration_seconds: number;
+            };
+            outbox: {
+                worker_enabled: boolean;
+                worker_last_tick_at: components["schemas"]["Timestamp"] | null;
+                counts: components["schemas"]["OperationsCountSnapshot"] | null;
+                oldest_due_age_seconds: number | null;
+            };
+            upstream: {
+                dadata: {
+                    success: number;
+                    timeout: number;
+                    error: number;
+                };
+                smtp: {
+                    success: number;
+                    timeout: number;
+                    error: number;
+                } | null;
+            };
         };
     };
     responses: never;
@@ -11133,6 +11414,555 @@ export interface operations {
                 };
             };
             /** @description Dependency unavailable; retry only when retryable is true. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_my_company_verification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current public status and owner-only request history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CompanyVerificationView"];
+                    };
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or precondition failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    request_company_verification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyVerificationRequestBody"];
+            };
+        };
+        responses: {
+            /** @description Verification request queued */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CompanyVerificationSubmitResult"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or precondition failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    check_company_registry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyVerificationRegistryCheckBody"];
+            };
+        };
+        responses: {
+            /** @description Registry result recorded, or provider marked unavailable */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CompanyVerificationSubmitResult"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or precondition failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_company_verification_queue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Requests available to an authorized company reviewer */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CompanyVerificationQueue"];
+                    };
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    review_company_verification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyVerificationReviewBody"];
+            };
+        };
+        responses: {
+            /** @description Review decision recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CompanyVerificationReviewResult"];
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not found or not visible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description State, idempotency, or optimistic-lock conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Policy or precondition failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_operations_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Process, HTTP, database, and outbox summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OperationsSummary"];
+                    };
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_operations_prometheus_metrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Prometheus text exposition format 0.0.4 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain; version=0.0.4; charset=utf-8": string;
+                };
+            };
+            /** @description Invalid or missing monitoring credential */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Monitoring permission required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Dependency unavailable */
             503: {
                 headers: {
                     [name: string]: unknown;

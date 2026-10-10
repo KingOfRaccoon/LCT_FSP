@@ -10,6 +10,23 @@ import java.util.TreeMap
 
 @Component
 class MutationService(private val store: Store, private val mapper: ObjectMapper) {
+    /** Validate the key before external I/O and replay only a previously committed response. */
+    fun replayIfPresent(request: HttpServletRequest, scope: String, body: Map<String, Any?>): ResponseEntity<Map<String, Any?>>? {
+        val key = request.getHeader("Idempotency-Key")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: throw ApiException(400, "VALIDATION_ERROR", "Idempotency-Key is required", "Idempotency-Key")
+        if (key.length !in 16..128) throw ApiException(400, "VALIDATION_ERROR", "Idempotency-Key must contain 16 to 128 characters", "Idempotency-Key")
+        val prior = store.one(
+            """SELECT request_hash, response, status_code FROM idempotency_records
+               WHERE scope = :scope AND operation = :operation AND key = :key""".trimIndent(),
+            mapOf("scope" to scope, "operation" to "${request.method} ${request.requestURI}", "key" to key),
+        ) ?: return null
+        if (prior["request_hash"].toString().trim() != sha256(mapper.writeValueAsString(canonical(body)))) {
+            throw ApiException(409, "IDEMPOTENCY_CONFLICT", "This key was used with a different request")
+        }
+        val response = (prior["response"] as Map<*, *>).entries.associate { it.key.toString() to it.value }
+        return ResponseEntity.status((prior["status_code"] as Number).toInt()).body(response)
+    }
+
     fun run(
         request: HttpServletRequest,
         scope: String,
