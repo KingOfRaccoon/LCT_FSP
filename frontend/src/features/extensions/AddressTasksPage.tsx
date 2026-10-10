@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { api, errorMessage, RequestError, type ApiPayload, type Candidate, type Need, type Schemas } from '../../api';
 import { canReviewShortTask, canRevokeTaskSharing, canShowTaskResults, createPendingRequest, flattenMatchCandidates, taskValidationErrors } from './task-helpers';
-import { CodeSandboxModal } from './CodeSandboxModal';
+import { SolutionEditorModal } from './SolutionEditorModal';
 import './extensions.css';
 
 type Role = 'candidate' | 'employer';
@@ -58,7 +58,7 @@ export function AddressTasksPage({ role }: { role: Role }) {
   const [reviewScores, setReviewScores] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState('');
   const [candidateFilter, setCandidateFilter] = useState('');
-  const [sandboxOpen, setSandboxOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
   const prefilledCandidateId = useRef(searchParams.get('candidate_id') ?? '');
   const matchRequestGeneration = useRef(0);
   const candidateRequestGeneration = useRef(0);
@@ -287,20 +287,22 @@ export function AddressTasksPage({ role }: { role: Role }) {
         {role === 'candidate' && selectedTask.status === 'accepted' && !selectedTask.sharing_revoked_at && <>
           <div style={{ marginBottom: '1rem', padding: '0.85rem', background: 'var(--surface-subtle, rgba(255,255,255,0.03))', borderRadius: '8px', border: '1px solid var(--border-subtle, rgba(255,255,255,0.08))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
-              <strong style={{ display: 'block', fontSize: '0.95rem' }}>Интерактивная песочница (Code Sandbox)</strong>
-              <small style={{ color: 'var(--muted, #888)' }}>Напишите код на Python и запустите автоматические тесты перед отправкой решения компании.</small>
+              <strong style={{ display: 'block', fontSize: '0.95rem' }}>Редактор черновика</strong>
+              <small style={{ color: 'var(--muted, #888)' }}>Подготовьте или отредактируйте текст решения. Здесь он не запускается и не проверяется.</small>
             </div>
-            <button type="button" className="button button-secondary" onClick={() => setSandboxOpen(true)}>
-              💻 Запустить песочницу и тесты
+            <button type="button" className="button button-secondary" onClick={() => setEditorOpen(true)}>
+              Открыть редактор
             </button>
           </div>
-          {sandboxOpen && <CodeSandboxModal
+          {editorOpen && <SolutionEditorModal
+            key={selectedTask.id}
             taskTitle={selectedTask.title}
             taskDescription={selectedTask.instructions}
-            onClose={() => setSandboxOpen(false)}
-            onSubmitSolution={(code) => {
+            initialCode={solution}
+            onClose={() => setEditorOpen(false)}
+            onApplyToDraft={(code) => {
               setSolution(code);
-              setNotice('Код из песочницы перенесён в форму ответа. Проверьте его и подтвердите отправку.');
+              setNotice('Текст перенесён в черновик ответа. Проверьте его и подтвердите отправку отдельно.');
             }}
           />}
           <form className="extension-submit-solution" onSubmit={submitSolution}><label className="field"><span>Ваш ответ</span><textarea value={solution} onChange={(event) => setSolution(event.target.value)} maxLength={20000} rows={7} required aria-describedby={'solution-hint-' + selectedTask.id} /><small id={'solution-hint-' + selectedTask.id}>До 20&nbsp;000 символов. Не включайте контакты или персональные данные.</small></label><label className="extension-consent"><input type="checkbox" checked={confirmReadyToSubmit} onChange={(event) => setConfirmReadyToSubmit(event.target.checked)} /><span>Я проверил решение и готов отправить его по ранее принятым условиям передачи</span></label><button type="submit" className="button button-primary" disabled={saving || !confirmReadyToSubmit || !solution.trim()}>{saving ? 'Отправляем…' : 'Отправить решение'}</button></form>

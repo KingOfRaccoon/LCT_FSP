@@ -1,10 +1,6 @@
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
-import { api, errorMessage, type Schemas, type CandidateProfile } from '../../api';
-import { CompetencyRadarChart } from './CompetencyRadarChart';
-import { DigitalPassportModal } from './DigitalPassportModal';
-import { ValidationMetricsModal } from './ValidationMetricsModal';
+import { api, errorMessage, type Schemas } from '../../api';
 import './candidate.css';
 import './QualificationPortfolio.css';
 
@@ -12,12 +8,6 @@ const dateLabel = (value: string) => new Intl.DateTimeFormat('ru-RU', { dateStyl
 const gradeLabels: Record<string, string> = { junior: 'Junior', middle: 'Middle' };
 
 export function QualificationPortfolio() {
-  const [passportOpen, setPassportOpen] = useState(false);
-  const [validationOpen, setValidationOpen] = useState(false);
-  const profileQuery = useQuery({
-    queryKey: ['profile'],
-    queryFn: () => api.get<CandidateProfile>('/me/profile'),
-  });
   const portfolio = useQuery({
     queryKey: ['me', 'qualifications'],
     queryFn: () => api.get<Schemas['QualificationPortfolio']>('/me/qualifications'),
@@ -45,29 +35,7 @@ export function QualificationPortfolio() {
       <span className="candidate-eyebrow">ПРОФЕССИОНАЛЬНЫЕ ПОДТВЕРЖДЕНИЯ</span>
       <h1>Моя квалификация</h1>
       <p>Здесь показаны только записи оценки платформы. Опыт, навыки и уровень в профиле остаются заявлениями кандидата.</p>
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-        <button type="button" className="button button-primary" onClick={() => setPassportOpen(true)}>
-          🛡️ Цифровой Паспорт Компетенций
-        </button>
-        <button type="button" className="button button-secondary" onClick={() => setValidationOpen(true)}>
-          📊 Научная валидация методики (IRT 2PL)
-        </button>
-      </div>
     </header>
-
-    <article className="card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-      <div className="candidate-section-heading">
-        <div>
-          <span className="candidate-eyebrow">АНАЛИТИКА ПРОФИЛЯ</span>
-          <h2>Вектор компетенций (Competency Radar)</h2>
-        </div>
-        <span className="candidate-visibility-chip">Многомерный срез</span>
-      </div>
-      <p style={{ color: 'var(--muted, #888)', marginBottom: '1rem' }}>
-        Сравнение подтверждённых тестом компетенций, заявленных в резюме навыков и эталонного профиля роли.
-      </p>
-      <CompetencyRadarChart candidateId={profileQuery.data?.id} />
-    </article>
 
     {items.length === 0 ? <section className="card candidate-empty-state" aria-label="Подтверждения квалификации отсутствуют">
       <strong>Пока нет подтверждённых результатов</strong>
@@ -100,22 +68,5 @@ export function QualificationPortfolio() {
       <strong>Доступный каталог: {available.map((specialization) => specialization.label).join(', ') || 'пока пуст'}</strong>
       <span>{catalogNote}</span>
     </section>
-
-    {passportOpen && (
-      <DigitalPassportModal
-        isOpen={passportOpen}
-        onClose={() => setPassportOpen(false)}
-        candidateId={profileQuery.data?.id}
-        candidateName={profileQuery.data?.display_name}
-        verifiedGrade={profileQuery.data?.verified_grade}
-      />
-    )}
-
-    {validationOpen && (
-      <ValidationMetricsModal
-        isOpen={validationOpen}
-        onClose={() => setValidationOpen(false)}
-      />
-    )}
   </section>;
 }
