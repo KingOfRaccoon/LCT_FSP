@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import path from 'node:path';
-import { componentHarness, nodes, textContent } from './helpers/component-harness.mjs';
+import { componentHarness, deferred, nodes, textContent } from './helpers/component-harness.mjs';
 
 test('binary upload uses CSRF, idempotency, digest headers, and sends the original Blob body', async () => {
   const originalFetch = globalThis.fetch;
@@ -27,6 +27,38 @@ test('binary upload uses CSRF, idempotency, digest headers, and sends the origin
     assert.equal(calls[1].options.headers['X-Content-SHA256'], 'a'.repeat(64));
     assert.equal(calls[1].options.headers['Idempotency-Key'], 'chunk-key');
     assert.equal(calls[1].options.headers['Content-Type'].includes('application/json'), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('media access probe uses authenticated byte-range requests and cancels full-response bodies', async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  let canceled = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url: String(url), options });
+    return { ok: true, status: 200, body: { cancel: async () => { canceled++; } } };
+  };
+  try {
+    const { probeProctoringMedia } = await import('../src/features/proctoring/server-proctoring-client.ts');
+    await probeProctoringMedia('session/1', 'capture 1', 'camera');
+    assert.equal(calls[0].url, '/api/v1/proctoring/sessions/session%2F1/media/camera?capture_id=capture+1');
+    assert.equal(calls[0].options.credentials, 'include');
+    assert.equal(calls[0].options.cache, 'no-store');
+    assert.equal(calls[0].options.headers.Range, 'bytes=0-0');
+    assert.equal(canceled, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('media access probe returns HTTP denial for protected-state cleanup', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: false, status: 403, body: { cancel: async () => {} } });
+  try {
+    const { probeProctoringMedia } = await import('../src/features/proctoring/server-proctoring-client.ts');
+    await assert.rejects(probeProctoringMedia('session-1', 'capture-1', 'screen'), (error) => error.status === 403);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -621,6 +653,121 @@ test('operator decision notice is withheld when the queue refresh closes protect
     tree = await harness.flush();
     assert.match(textContent(tree), /Доступ к проверке закрыт/u);
     assert.doesNotMatch(textContent(tree), /Решение сохранено на сервере/u);
+  } finally {
+    harness.unmount();
+  }
+});
+
+test('switching channels aborts the previous media probe and ignores its late response', async () => {
+  const pagePath = path.resolve('src/features/proctoring/OperationsProctoringPage.tsx');
+  const cameraProbe = deferred();
+  const cameraSignals = [];
+  const review = {
+    session_id: 'session-switch-1', attempt_id: 'attempt-1', version: 3, attempt_version: 4, status: 'review_pending', provisional_result: null,
+    attempt: { attempt_id: 'attempt-1', version: 4, requested_grade: 'junior', status: 'submitted', started_at: null, deadline_at: null, submitted_at: null, tasks: [] },
+    recordings: [{ capture_id: 'capture-1', status: 'sealed', started_at: null, media: { camera: { bytes: 500, chunks: 2 }, screen: { bytes: 600, chunks: 2 } } }],
+  };
+  const harness = componentHarness(pagePath, 'OperationsProctoringPage', {
+    '../../api.ts': { RequestError: class RequestError extends Error {}, errorMessage: (error) => String(error) },
+    './server-proctoring-client.ts': {
+      getProctoringReviewQueue: async () => ({ items: [{ session_id: review.session_id, attempt_id: review.attempt_id, version: review.version, status: review.status, requested_grade: 'junior', submitted_at: null }], next_cursor: null }),
+      getProctoringReview: async () => review,
+      probeProctoringMedia: (sessionId, captureId, channel, signal) => {
+        if (channel === 'camera') {
+          cameraSignals.push(signal);
+          return cameraSignals.length === 1 ? cameraProbe.promise : Promise.resolve();
+        }
+        return Promise.resolve();
+      },
+      proctoringMediaUrl: (sessionId, captureId, channel) => `/api/v1/proctoring/sessions/${sessionId}/media/${channel}?capture_id=${captureId}`,
+      decideProctoringReview: async () => review,
+    },
+  });
+  try {
+    let tree = harness.render();
+    await harness.flush();
+    tree = harness.render();
+    nodes(tree, (node) => node.type === 'button' && textContent(node).includes(review.session_id))[0].props.onClick();
+    tree = await harness.flush();
+    nodes(tree, (node) => node.type === 'button' && /Открыть камеру/u.test(textContent(node)))[0].props.onClick();
+    tree = await harness.flush();
+    nodes(tree, (node) => node.type === 'button' && /Открыть экран/u.test(textContent(node)))[0].props.onClick();
+    tree = await harness.flush();
+    assert.equal(cameraSignals[0].aborted, true);
+    let video = nodes(tree, (node) => node.type === 'video')[0];
+    assert.match(video.props.src, /\/media\/screen\?/u);
+    const makeFakeVideo = () => ({ pauses: 0, removed: [], loads: 0, pause() { this.pauses++; }, removeAttribute(name) { this.removed.push(name); }, load() { this.loads++; } });
+    const screenVideo = makeFakeVideo();
+    video.props.ref.current = screenVideo;
+    cameraProbe.resolve();
+    tree = await harness.flush();
+    video = nodes(tree, (node) => node.type === 'video')[0];
+    assert.match(video.props.src, /\/media\/screen\?/u);
+    nodes(tree, (node) => node.type === 'button' && /Открыть камеру/u.test(textContent(node)))[0].props.onClick();
+    tree = await harness.flush();
+    assert.equal(screenVideo.pauses, 1);
+    assert.deepEqual(screenVideo.removed, ['src']);
+    assert.equal(screenVideo.loads, 1);
+    video = nodes(tree, (node) => node.type === 'video')[0];
+    assert.match(video.props.src, /\/media\/camera\?/u);
+    const cameraVideo = makeFakeVideo();
+    video.props.ref.current = cameraVideo;
+    nodes(tree, (node) => node.type === 'button' && /Обновить очередь/u.test(textContent(node)))[0].props.onClick();
+    tree = await harness.flush();
+    assert.equal(cameraVideo.pauses, 1);
+    assert.deepEqual(cameraVideo.removed, ['src']);
+    assert.equal(cameraVideo.loads, 1);
+    assert.equal(nodes(tree, (node) => node.type === 'video').length, 0);
+  } finally {
+    harness.unmount();
+  }
+});
+
+test('operator playback uses a same-origin video URL and clears detail after native HTTP denial', async () => {
+  const pagePath = path.resolve('src/features/proctoring/OperationsProctoringPage.tsx');
+  let blobFetches = 0;
+  let probes = 0;
+  class RequestError extends Error { constructor(status) { super('Access denied'); this.status = status; } }
+  const review = {
+    session_id: 'session-stream-1', attempt_id: 'attempt-1', version: 3, attempt_version: 4, status: 'review_pending', provisional_result: null,
+    attempt: { attempt_id: 'attempt-1', version: 4, requested_grade: 'junior', status: 'submitted', started_at: null, deadline_at: null, submitted_at: null, tasks: [] },
+    recordings: [{ capture_id: 'capture-1', status: 'sealed', started_at: null, media: { camera: { bytes: 500, chunks: 2 }, screen: { bytes: 0, chunks: 0 } } }],
+  };
+  const harness = componentHarness(pagePath, 'OperationsProctoringPage', {
+    '../../api.ts': { RequestError, errorMessage: (error) => String(error) },
+    './server-proctoring-client.ts': {
+      getProctoringReviewQueue: async () => ({ items: [{ session_id: review.session_id, attempt_id: review.attempt_id, version: review.version, status: review.status, requested_grade: 'junior', submitted_at: null }], next_cursor: null }),
+      getProctoringReview: async () => review,
+      probeProctoringMedia: async () => { probes++; if (probes > 1) throw new RequestError(403); },
+      proctoringMediaUrl: (sessionId, captureId, channel) => `/api/v1/proctoring/sessions/${sessionId}/media/${channel}?capture_id=${captureId}`,
+      fetchProctoringMedia: async () => { blobFetches++; return new Blob(); },
+      decideProctoringReview: async () => review,
+    },
+  });
+  try {
+    let tree = harness.render();
+    await harness.flush();
+    tree = harness.render();
+    nodes(tree, (node) => node.type === 'button' && textContent(node).includes(review.session_id))[0].props.onClick();
+    tree = await harness.flush();
+    nodes(tree, (node) => node.type === 'button' && /Открыть камеру/u.test(textContent(node)))[0].props.onClick();
+    tree = await harness.flush();
+    let video = nodes(tree, (node) => node.type === 'video')[0];
+    assert.ok(video);
+    assert.equal(video.props.src, '/api/v1/proctoring/sessions/session-stream-1/media/camera?capture_id=capture-1');
+    assert.equal(blobFetches, 0);
+    assert.equal(probes, 1);
+    const nativeVideo = { pauses: 0, removed: [], loads: 0, pause() { this.pauses++; }, removeAttribute(name) { this.removed.push(name); }, load() { this.loads++; } };
+    video.props.ref.current = nativeVideo;
+    video.props.onError();
+    tree = await harness.flush();
+    assert.equal(probes, 2);
+    assert.equal(nativeVideo.pauses, 1);
+    assert.deepEqual(nativeVideo.removed, ['src']);
+    assert.equal(nativeVideo.loads, 1);
+    assert.equal(nodes(tree, (node) => node.type === 'video').length, 0);
+    assert.match(textContent(tree), /Доступ к записи закрыт/u);
+    assert.equal(blobFetches, 0);
   } finally {
     harness.unmount();
   }

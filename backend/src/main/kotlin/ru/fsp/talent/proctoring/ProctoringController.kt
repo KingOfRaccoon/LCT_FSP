@@ -143,6 +143,7 @@ class ProctoringController(
             contentType = MediaType.parseMediaType("video/webm")
             set(HttpHeaders.CACHE_CONTROL, "private, no-store, no-cache, max-age=0")
             set("X-Content-Type-Options", "nosniff")
+            set("X-Accel-Buffering", "no")
             set(HttpHeaders.ACCEPT_RANGES, "bytes")
             set(HttpHeaders.CONTENT_LENGTH, payload.contentLength.toString())
             if (payload.partial) {

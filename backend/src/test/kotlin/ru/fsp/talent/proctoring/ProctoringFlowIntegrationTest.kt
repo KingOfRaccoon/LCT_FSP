@@ -128,6 +128,7 @@ class ProctoringFlowIntegrationTest : DbTestBase() {
         assertArrayEquals(webm.copyOfRange(2, 8), media.body)
         assertEquals("bytes 2-7/${webm.size}", media.headers.getFirst(HttpHeaders.CONTENT_RANGE))
         assertEquals("private, no-store", media.headers.getFirst(HttpHeaders.CACHE_CONTROL))
+        assertEquals("no", media.headers.getFirst("X-Accel-Buffering"))
 
         val storedTasks = objectMapper.readTree(jdbc.queryForObject("SELECT tasks::text FROM attempts WHERE id=?::uuid", String::class.java, attemptId))
         val correctAnswers = storedTasks.path("answer_keys").map { key -> mapOf(
@@ -176,6 +177,7 @@ class ProctoringFlowIntegrationTest : DbTestBase() {
         assertFalse(detail.body!!.path("data").toString().contains("correct_option_id"))
         val reviewerMedia = download(reviewer, "/api/v1/proctoring/sessions/$sessionId/media/camera?capture_id=$captureId", "bytes=0-3")
         assertEquals(206, reviewerMedia.statusCode.value(), String(reviewerMedia.body ?: byteArrayOf()))
+        assertEquals("no", reviewerMedia.headers.getFirst("X-Accel-Buffering"))
 
         val decisionBody = mapOf("expected_version" to detail.body!!.path("data").path("version").asInt(),
             "expected_attempt_version" to detail.body!!.path("data").path("attempt_version").asInt(),
