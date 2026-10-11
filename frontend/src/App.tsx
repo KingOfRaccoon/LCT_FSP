@@ -709,7 +709,7 @@ function AssessmentRun() {
       if (active && generation === proctoringAccessGeneration.current) adoptServerSession(session);
     }).catch((reason) => {
       if (!active || generation !== proctoringAccessGeneration.current) return;
-      if (reason instanceof RequestError && reason.status === 404) { adoptServerSession(null); return; }
+      if (reason instanceof RequestError && (reason.status === 404 || reason.status === 503)) { adoptServerSession(null); return; }
       if (reason instanceof RequestError && [401, 403].includes(reason.status)) {
         clearServerProctoringState('Доступ к серверной записи закрыт. Защищённые сведения очищены.');
       } else setServerSessionError(errorMessage(reason));
