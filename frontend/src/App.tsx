@@ -56,7 +56,7 @@ import {
   uploadProctoringChunk,
   type SessionDTO as ServerProctoringSession,
 } from './features/proctoring/server-proctoring-client.ts';
-import { assertServerCaptureReceiptsComplete, canStartServerCapture as canStartServerProctoring, canStartServerSession } from './features/proctoring/server-proctoring-policy.ts';
+import { assertServerCaptureReceiptsComplete, canStartServerCapture as canStartServerProctoring, canStartServerSession, preparedCaptureAfterSessionAdoption } from './features/proctoring/server-proctoring-policy.ts';
 import { SerialChunkUploadQueue } from './features/proctoring/proctoring-upload-queue.ts';
 import { useServerProctoringEvents } from './features/proctoring/useServerProctoringEvents.ts';
 
@@ -674,11 +674,18 @@ function AssessmentRun() {
   const preparedCaptureRef = useRef('');
   const pendingServerIdempotency = useRef(new Map<string, { fingerprint: string; key: string }>());
   const proctoringAccessGeneration = useRef(0);
-  const adoptServerSession = useCallback((next: ServerProctoringSession | null) => {
-    if (serverSessionRef.current?.session_id !== next?.session_id) {
+  const adoptServerSession = useCallback((next: ServerProctoringSession | null, newlyPreparedCaptureId?: string) => {
+    const previousSessionId = serverSessionRef.current?.session_id ?? null;
+    const nextSessionId = next?.session_id ?? null;
+    if (previousSessionId !== nextSessionId) {
       serverEventProgressRef.current = 0;
-      preparedCaptureRef.current = '';
     }
+    preparedCaptureRef.current = preparedCaptureAfterSessionAdoption(
+      previousSessionId,
+      nextSessionId,
+      preparedCaptureRef.current,
+      newlyPreparedCaptureId,
+    );
     serverSessionRef.current = next;
     setServerSession(next);
   }, []);
@@ -866,9 +873,8 @@ function AssessmentRun() {
       upload: (chunk, options) => uploadProctoringChunk(next.session_id, chunk, options.idempotencyKey, options.signal),
     });
     lastSequencesRef.current = { camera: -1, screen: -1 };
-    preparedCaptureRef.current = `${next.session_id}:${captureId}`;
     setServerCaptureError('');
-    adoptServerSession(next);
+    adoptServerSession(next, captureId);
     return next;
   };
   const handleServerProctoringReady = (session: { session_id: string; active_capture_id: string | null }, media: { cameraStream: MediaStream; screenStream: MediaStream }) => {

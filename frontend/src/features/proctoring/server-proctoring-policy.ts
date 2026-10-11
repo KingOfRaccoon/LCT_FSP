@@ -23,3 +23,13 @@ export function assertServerCaptureReceiptsComplete(lastSequences: Record<'camer
     throw new Error('Не получены подтверждения загрузки обоих каналов записи. Повторите запись или отзовите согласие.');
   }
 }
+
+export function preparedCaptureAfterSessionAdoption(
+  previousSessionId: string | null,
+  nextSessionId: string | null,
+  currentPreparedCapture: string,
+  newlyPreparedCaptureId?: string,
+): string {
+  if (nextSessionId && newlyPreparedCaptureId) return `${nextSessionId}:${newlyPreparedCaptureId}`;
+  return previousSessionId === nextSessionId ? currentPreparedCapture : '';
+}
