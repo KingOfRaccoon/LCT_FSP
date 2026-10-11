@@ -1598,6 +1598,230 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/proctoring/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recording capability and current versioned consent; verified candidate or recording-review permission.
+         * @description Recording capability and current versioned consent; verified candidate or recording-review permission. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        get: operations["proctoring_get_config"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attempts/{attempt_id}/proctoring/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Candidate-owned recording status and receipts; no raw bytes or storage keys.
+         * @description Candidate-owned recording status and receipts; no raw bytes or storage keys. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        get: operations["proctoring_get_own_session"];
+        put?: never;
+        /**
+         * Candidate explicitly accepts the exact recording document for their in-progress attempt. The ordinary attempt path remains available without a recording session.
+         * @description Candidate explicitly accepts the exact recording document for their in-progress attempt. The ordinary attempt path remains available without a recording session. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        post: operations["proctoring_start_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/proctoring/sessions/{session_id}/captures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Candidate starts a distinct WebM clip after interruption or reload; earlier clip is marked interrupted.
+         * @description Candidate starts a distinct WebM clip after interruption or reload; earlier clip is marked interrupted. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        post: operations["proctoring_rotate_capture"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/proctoring/sessions/{session_id}/media/{channel}/chunks/{sequence}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bounded candidate-owned binary chunk; server SHA256 receipt, sequence ownership and total quota; no raw media in JSON or database.
+         * @description Bounded candidate-owned binary chunk; server SHA256 receipt, sequence ownership and total quota; no raw media in JSON or database. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        post: operations["proctoring_upload_chunk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/proctoring/sessions/{session_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Append bounded untrusted browser observations without clipboard text, frames or arbitrary metadata.
+         * @description Append bounded untrusted browser observations without clipboard text, frames or arbitrary metadata. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        post: operations["proctoring_append_events"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/proctoring/sessions/{session_id}/seal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seal only after contiguous camera and screen receipts match the declared last sequences.
+         * @description Seal only after contiguous camera and screen receipts match the declared last sequences. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        post: operations["proctoring_seal_capture"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/proctoring/sessions/{session_id}/media/{channel}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Current consenting owner or recording-review permission can stream a private capture; ordinary employers are denied.
+         * @description Current consenting owner or recording-review permission can stream a private capture; ordinary employers are denied. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        get: operations["proctoring_read_media"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/proctoring/sessions/{session_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Owner may revoke even after processing consent or email verification is lost. Stop access immediately, erase recording bytes and invalidate only pending/in-progress recording attempts without changing prior qualification.
+         * @description Owner may revoke even after processing consent or email verification is lost. Stop access immediately, erase recording bytes and invalidate only pending/in-progress recording attempts without changing prior qualification. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        post: operations["proctoring_revoke_consent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/operations/proctoring/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Separately provisioned proctoring_review permission only; pending unexpired consenting attempts, excluding the reviewer own attempts.
+         * @description Separately provisioned proctoring_review permission only; pending unexpired consenting attempts, excluding the reviewer own attempts. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        get: operations["proctoring_review_queue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/operations/proctoring/reviews/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Private review projection for an authorized non-owner reviewer. Provisional scoring is not a published grade; answer keys are omitted.
+         * @description Private review projection for an authorized non-owner reviewer. Provisional scoring is not a published grade; answer keys are omitted. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        get: operations["proctoring_review_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/operations/proctoring/reviews/{session_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Auditable authorized decision. Uphold applies the existing fixed scorer and qualification transition atomically; invalidate/technical preserves prior qualification. No automatic browser-event penalty and no new 30-day ban.
+         * @description Auditable authorized decision. Uphold applies the existing fixed scorer and qualification transition atomically; invalidate/technical preserves prior qualification. No automatic browser-event penalty and no new 30-day ban. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.
+         */
+        post: operations["proctoring_review_decision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1608,7 +1832,7 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {string} */
-            code: "VALIDATION_ERROR" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "VERSION_CONFLICT" | "IDEMPOTENCY_CONFLICT" | "INVALID_STATE" | "EMAIL_UNCONFIRMED" | "POLICY_BLOCKED" | "ACTIVE_ATTEMPT_EXISTS" | "RATE_LIMITED" | "DEPENDENCY_UNAVAILABLE" | "ATTEMPT_DEADLINE_REACHED" | "BANK_UNAVAILABLE" | "CSRF_INVALID" | "CSRF_ORIGIN_INVALID" | "EMAIL_ALREADY_EXISTS" | "PROFILE_INCOMPLETE" | "INTERNAL_ERROR" | "INVITATION_COOLDOWN" | "CONSENT_REQUIRED" | "INVALID_UUID" | "INVALID_FILE" | "FILE_TOO_LARGE" | "ALREADY_APPLIED" | "INVALID_STATUS";
+            code: "VALIDATION_ERROR" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "VERSION_CONFLICT" | "IDEMPOTENCY_CONFLICT" | "INVALID_STATE" | "EMAIL_UNCONFIRMED" | "POLICY_BLOCKED" | "ACTIVE_ATTEMPT_EXISTS" | "RATE_LIMITED" | "DEPENDENCY_UNAVAILABLE" | "ATTEMPT_DEADLINE_REACHED" | "BANK_UNAVAILABLE" | "CSRF_INVALID" | "CSRF_ORIGIN_INVALID" | "EMAIL_ALREADY_EXISTS" | "PROFILE_INCOMPLETE" | "INTERNAL_ERROR" | "INVITATION_COOLDOWN" | "CONSENT_REQUIRED" | "INVALID_UUID" | "INVALID_FILE" | "FILE_TOO_LARGE" | "ALREADY_APPLIED" | "INVALID_STATUS" | "CAPTURE_LIMIT" | "CHUNK_CONFLICT" | "CHUNK_HASH_MISMATCH" | "CONSENT_VERSION_UNAVAILABLE" | "INCOMPLETE_CAPTURE" | "INVALID_RANGE" | "PROCTORING_CHUNK_TOO_LARGE" | "PROCTORING_EVENT_LIMIT" | "PROCTORING_SESSION_EXISTS" | "PROCTORING_SESSION_EXPIRED" | "PROCTORING_SESSION_LIMIT" | "PROCTORING_SESSION_UNAVAILABLE" | "UNSUPPORTED_MEDIA_TYPE";
             message: string;
             field?: string | null;
             retryable: boolean;
@@ -1719,7 +1943,7 @@ export interface components {
             company: components["schemas"]["Company"] | null;
             membership_role: "owner" | null;
             methodist_access: boolean;
-            operations_permissions?: ("company_review" | "monitor_read")[];
+            operations_permissions?: ("company_review" | "monitor_read" | "proctoring_review")[];
         };
         Company: {
             id: components["schemas"]["UUID"];
@@ -3313,6 +3537,138 @@ export interface components {
                     error: number;
                 } | null;
             };
+        };
+        /** @enum {string} */
+        ProctoringSessionStatus: "recording" | "sealed" | "review_pending" | "approved" | "invalidated" | "technical_failure" | "revoked" | "expired";
+        /** @enum {string} */
+        ProctoringChannel: "camera" | "screen";
+        ProctoringConfiguration: {
+            available: boolean;
+            reason: string | null;
+            consent_version: string;
+            consent_document_sha256: string;
+            consent_text: string;
+            retention_days: number;
+            max_chunk_bytes: number;
+            max_session_bytes: number;
+            channels: components["schemas"]["ProctoringChannel"][];
+        };
+        ProctoringStartRequest: {
+            consent_version: string;
+            consent_document_sha256: string;
+        };
+        ProctoringVersionRequest: {
+            expected_version: number;
+        };
+        ProctoringMediaCounters: {
+            bytes: number;
+            chunks: number;
+            next_sequence: number;
+        };
+        ProctoringCapture: {
+            capture_id: components["schemas"]["UUID"];
+            /** @enum {string} */
+            status: "recording" | "sealed" | "interrupted";
+            started_at: components["schemas"]["Timestamp"];
+            ended_at: components["schemas"]["Timestamp"] | null;
+            media: {
+                camera: components["schemas"]["ProctoringMediaCounters"];
+                screen: components["schemas"]["ProctoringMediaCounters"];
+            };
+        };
+        /** @enum {string} */
+        ProctoringDecisionOutcome: "uphold" | "invalidate" | "technical";
+        /** @enum {string} */
+        ProctoringReasonCode: "approved" | "unauthorized_assistance" | "identity_mismatch" | "recording_incomplete" | "technical_failure";
+        ProctoringDecision: {
+            outcome: components["schemas"]["ProctoringDecisionOutcome"];
+            reason_code: components["schemas"]["ProctoringReasonCode"];
+            note: string;
+            decided_at: components["schemas"]["Timestamp"];
+        };
+        ProctoringSession: {
+            session_id: components["schemas"]["UUID"];
+            attempt_id: components["schemas"]["UUID"];
+            version: number;
+            status: components["schemas"]["ProctoringSessionStatus"];
+            consent_version: string;
+            consent_document_sha256: string;
+            consent_accepted_at: components["schemas"]["Timestamp"];
+            retention_until: components["schemas"]["Timestamp"];
+            attempt_version: number;
+            active_capture_id: components["schemas"]["UUID"] | null;
+            captures: components["schemas"]["ProctoringCapture"][];
+            events_count: number;
+            decision: components["schemas"]["ProctoringDecision"] | null;
+        };
+        ProctoringChunkReceipt: {
+            session_id: components["schemas"]["UUID"];
+            capture_id: components["schemas"]["UUID"];
+            channel: components["schemas"]["ProctoringChannel"];
+            sequence: number;
+            sha256: string;
+            bytes: number;
+        };
+        /** @enum {string} */
+        ProctoringEventType: "tab_hidden" | "window_blur" | "fullscreen_exit" | "camera_disabled" | "screen_share_stopped";
+        ProctoringEvent: {
+            event_id: components["schemas"]["UUID"];
+            type: components["schemas"]["ProctoringEventType"];
+            occurred_at: components["schemas"]["Timestamp"];
+        };
+        ProctoringEventsRequest: {
+            expected_version: number;
+            events: components["schemas"]["ProctoringEvent"][];
+        };
+        ProctoringSealRequest: {
+            expected_version: number;
+            capture_id: components["schemas"]["UUID"];
+            last_sequences: {
+                camera: number;
+                screen: number;
+            };
+        };
+        ProctoringReviewRequest: {
+            expected_version: number;
+            expected_attempt_version: number;
+            outcome: components["schemas"]["ProctoringDecisionOutcome"];
+            reason_code: components["schemas"]["ProctoringReasonCode"];
+            note: string;
+        };
+        ProctoringReviewQueueItem: {
+            session_id: components["schemas"]["UUID"];
+            attempt_id: components["schemas"]["UUID"];
+            version: number;
+            status: components["schemas"]["ProctoringSessionStatus"];
+            /** @enum {string} */
+            requested_grade: "junior" | "middle";
+            submitted_at: components["schemas"]["Timestamp"] | null;
+        };
+        ProctoringReviewQueue: {
+            items: components["schemas"]["ProctoringReviewQueueItem"][];
+            next_cursor: string | null;
+        };
+        ProctoringReviewAttempt: {
+            attempt_id: components["schemas"]["UUID"];
+            version: number;
+            /** @enum {string} */
+            requested_grade: "junior" | "middle";
+            /** @enum {string} */
+            status: "submitted";
+            started_at: components["schemas"]["Timestamp"];
+            deadline_at: components["schemas"]["Timestamp"];
+            submitted_at: components["schemas"]["Timestamp"] | null;
+            tasks: components["schemas"]["TaskPublic"][];
+        };
+        ProctoringReview: {
+            session_id: components["schemas"]["UUID"];
+            attempt_id: components["schemas"]["UUID"];
+            version: number;
+            attempt_version: number;
+            status: components["schemas"]["ProctoringSessionStatus"];
+            provisional_result: components["schemas"]["AttemptResult"] | null;
+            attempt: components["schemas"]["ProctoringReviewAttempt"];
+            recordings: components["schemas"]["ProctoringCapture"][];
         };
     };
     responses: never;
@@ -11963,6 +12319,1530 @@ export interface operations {
                 };
             };
             /** @description Dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_get_config: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful authorized operation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProctoringConfiguration"];
+                    };
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_get_own_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful authorized operation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProctoringSession"];
+                    };
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_start_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProctoringStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful authorized operation */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProctoringSession"];
+                    };
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_rotate_capture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProctoringVersionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful authorized operation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProctoringSession"];
+                    };
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_upload_chunk: {
+        parameters: {
+            query: {
+                capture_id: components["schemas"]["UUID"];
+            };
+            header: {
+                "X-Content-SHA256": string;
+                "Idempotency-Key": string;
+            };
+            path: {
+                session_id: components["schemas"]["UUID"];
+                channel: "camera" | "screen";
+                sequence: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "video/webm": string;
+            };
+        };
+        responses: {
+            /** @description Successful authorized operation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProctoringChunkReceipt"];
+                    };
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_append_events: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProctoringEventsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful authorized operation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProctoringSession"];
+                    };
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_seal_capture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProctoringSealRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful authorized operation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProctoringSession"];
+                    };
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_read_media: {
+        parameters: {
+            query: {
+                capture_id: components["schemas"]["UUID"];
+            };
+            header?: {
+                Range?: string;
+            };
+            path: {
+                session_id: components["schemas"]["UUID"];
+                channel: "camera" | "screen";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized capture bytes, private no-store. No static object key is disclosed. */
+            200: {
+                headers: {
+                    "Cache-Control"?: "private, no-store";
+                    "X-Content-Type-Options"?: "nosniff";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "video/webm": string;
+                };
+            };
+            /** @description Authorized partial video range */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "video/webm": string;
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_revoke_consent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProctoringVersionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful authorized operation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProctoringSession"];
+                    };
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_review_queue: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful authorized operation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProctoringReviewQueue"];
+                    };
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_review_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful authorized operation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProctoringReview"];
+                    };
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    proctoring_review_decision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProctoringReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful authorized operation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProctoringSession"];
+                    };
+                };
+            };
+            /** @description Malformed or unsupported fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Permission or active consent required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Owned/private resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Version, state, hash or idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Configured media cap exceeded */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported recording media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Requested range is not satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Verified email or declared policy required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bounded request limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Secure private storage or dependency unavailable */
             503: {
                 headers: {
                     [name: string]: unknown;

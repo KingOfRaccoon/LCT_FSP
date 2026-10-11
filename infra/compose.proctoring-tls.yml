@@ -1,0 +1,21 @@
+# Optional same-IP HTTPS ingress. Apply only after the trusted certificate exists.
+# The default compose.yml remains HTTP-only and does not require certificate files.
+services:
+  api:
+    environment:
+      PUBLIC_ORIGIN: https://${TLS_HOST:?Set TLS_HOST to the public IP}
+      SESSION_COOKIE_SECURE: "true"
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      FSP_PROCTORING_ENABLED: ${FSP_PROCTORING_ENABLED:-false}
+
+  web:
+    ports:
+      - "${TLS_BIND_ADDRESS:-0.0.0.0}:${TLS_HTTP_PORT:-80}:80"
+      - "${TLS_BIND_ADDRESS:-0.0.0.0}:${TLS_HTTPS_PORT:-443}:443"
+    environment:
+      TLS_HOST: ${TLS_HOST:?Set TLS_HOST to the public IP}
+      NGINX_ENVSUBST_FILTER: ^TLS_HOST$
+    volumes:
+      - ./infra/nginx.proctoring-tls.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ${TLS_LETSENCRYPT_DIR:-./local/tls/letsencrypt}:/etc/letsencrypt:ro
+      - ${TLS_ACME_WEBROOT:-./local/tls/webroot}:/var/www/certbot:ro

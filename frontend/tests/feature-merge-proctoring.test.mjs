@@ -26,7 +26,7 @@ async function loadPolicy(flag) {
   }
 }
 
-async function renderApp(flag, route) {
+async function renderApp(flag, route, operationsPermissions = []) {
   const server = await createServer({
     root: frontendRoot,
     configFile: false,
@@ -37,7 +37,7 @@ async function renderApp(flag, route) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryOnMount: false, staleTime: Infinity, gcTime: Infinity } } });
   client.setQueryData(['me'], {
     user_id: 'synthetic-employer', account_type: 'employer', email: 'employer@example.test', email_verified: true,
-    company: { name: 'Demo employer' }, candidate_profile: null, operations_permissions: [],
+    company: { name: 'Demo employer' }, candidate_profile: null, operations_permissions: operationsPermissions,
   });
   try {
     const { default: App } = await server.ssrLoadModule('/src/App.tsx');
@@ -81,6 +81,13 @@ test('proctoring route is absent by default and available only in the explicit d
   assert.doesNotMatch(disabledNav, /href="\/proctoring"|Демо-журнал наблюдений/u);
   assert.match(enabledNav, /href="\/proctoring"[^>]*>.*Демо-журнал наблюдений/u);
   assert.doesNotMatch(disabledNav, /Сменить роль: Кандидат|Сменить на: Эксперт|Сменить на: Сдающий/u);
+});
+
+test('server review queue is exposed only to the operator review permission', async () => {
+  const withoutPermission = await renderApp('false', '/operations/proctoring');
+  const withPermission = await renderApp('false', '/operations/proctoring', ['proctoring_review']);
+  assert.doesNotMatch(withoutPermission, /Очередь серверной проверки/u);
+  assert.match(withPermission, /Очередь серверной проверки/u);
 });
 
 test('local demo fraud observations do not hide server assessment feedback', () => {

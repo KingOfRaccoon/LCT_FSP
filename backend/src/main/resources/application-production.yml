@@ -1,6 +1,6 @@
 server:
-  # Enable forwarded-header processing only after configuring a trusted ingress.
-  forward-headers-strategy: none
+  # The deployment overlay enables framework mode only behind the trusted TLS ingress.
+  forward-headers-strategy: ${SERVER_FORWARD_HEADERS_STRATEGY:none}
 
 spring:
   datasource:

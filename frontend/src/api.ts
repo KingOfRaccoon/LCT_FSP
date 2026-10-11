@@ -251,8 +251,63 @@ async function send<T>(path: string, method: string, payload?: ApiPayload | Form
   }
 }
 
+async function sendBinary<T>(path: string, body: Blob, { sha256, idempotencyKey, signal }: {
+  sha256: string;
+  idempotencyKey: string;
+  signal?: AbortSignal;
+}): Promise<T> {
+  let attempts = 0;
+  while (true) {
+    try {
+      const token = await getCsrf();
+      const response = await fetch(`/api/v1${path}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': body.type || 'application/octet-stream',
+          'X-CSRF-Token': token,
+          'Idempotency-Key': idempotencyKey,
+          'X-Content-SHA256': sha256,
+        },
+        body,
+        signal,
+      });
+      if (response.status === 204) return undefined as T;
+      let result: Envelope<T> | ApiError;
+      try { result = (await response.json()) as Envelope<T> | ApiError; }
+      catch { result = {}; }
+      if (!response.ok) {
+        const error = new RequestError(response.status, result as ApiError);
+        if (response.status === 403 && attempts === 0) {
+          rotateCsrf();
+          attempts++;
+          continue;
+        }
+        if (error.retryable && attempts < 2) {
+          await sleep(350 * (attempts + 1));
+          attempts++;
+          continue;
+        }
+        throw error;
+      }
+      if (!('data' in result)) throw new RequestError(response.status, result as ApiError);
+      return result.data;
+    } catch (error) {
+      if (error instanceof RequestError || (error instanceof DOMException && error.name === 'AbortError')) throw error;
+      if (attempts < 2 && !signal?.aborted) {
+        await sleep(350 * (attempts + 1));
+        attempts++;
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
 export const api = {
   upload: <T>(path: string, body: FormData, idempotencyKey?: string) => send<T>(path, 'POST', body, idempotencyKey),
+  uploadBinary: <T>(path: string, body: Blob, options: { sha256: string; idempotencyKey: string; signal?: AbortSignal }) => sendBinary<T>(path, body, options),
   get: <T>(path: string) => send<T>(path, 'GET'),
   post: <T>(path: string, body?: ApiPayload, idempotencyKey?: string) => send<T>(path, 'POST', body, idempotencyKey),
   put: <T>(path: string, body: ApiPayload, idempotencyKey?: string) => send<T>(path, 'PUT', body, idempotencyKey),

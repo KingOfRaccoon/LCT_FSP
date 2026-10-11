@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component
 import ru.fsp.talent.core.ApiException
 import ru.fsp.talent.core.Store
 import ru.fsp.talent.consents.ConsentService
+import ru.fsp.talent.proctoring.ProctoringAttemptGate
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -24,6 +25,7 @@ class AssessmentService(
     private val store: Store,
     private val mapper: ObjectMapper,
     private val consents: ConsentService,
+    private val proctoringGate: ProctoringAttemptGate,
     @Value("\${fsp.demo-mode:true}") private val demoMode: Boolean,
     @Value("\${fsp.assessment.real-grade-enabled:false}") private val realGradeEnabled: Boolean,
 ) {
@@ -180,6 +182,7 @@ class AssessmentService(
         val current = loadAttempt(attemptId, userId) ?: notFound()
         if (isOpen(current) && !store.now().isBefore(current.instant("deadline_at"))) {
             store.tx.execute {
+                store.one("SELECT id FROM users WHERE id=:user FOR UPDATE", mapOf("user" to userId)) ?: notFound()
                 val locked = loadAttempt(attemptId, userId, lock = true) ?: notFound()
                 if (isOpen(locked) && !store.now().isBefore(locked.instant("deadline_at"))) {
                     finalizeAttempt(locked, store.now(), submitted = false)
@@ -194,7 +197,7 @@ class AssessmentService(
         store.tx.execute<Map<String, Any?>> {
             consents.requireProcessing(userId)
             val locked = loadAttempt(attemptId, userId, lock = true) ?: notFound()
-            if (!isOpen(locked)) throw ApiException(409, "INVALID_STATE", "The attempt is no longer editable")
+            if (locked["status"] != "in_progress") throw ApiException(409, "INVALID_STATE", "The attempt is no longer editable")
             if (store.now() >= locked.instant("deadline_at")) {
                 finalizeAttempt(locked, store.now(), submitted = false)
                 return@execute mapOf("__assessment_error_after_commit" to "ATTEMPT_DEADLINE_REACHED")
@@ -235,6 +238,17 @@ class AssessmentService(
             }
             finalizeAttempt(locked, now, submitted = true)
         } ?: throw ApiException(503, "DEPENDENCY_UNAVAILABLE", "Please retry", retryable = true)
+
+    /** Applies the frozen scorer and grade transition after a reviewer upholds a pending proctored attempt. */
+    fun upholdProctoredAttempt(attemptId: String): Map<String, Any?> = store.tx.execute<Map<String, Any?>> {
+        val row = store.one(
+            """SELECT id,user_id,specialization_id,requested_grade,status,form_version,rubric_version,policy_version,bank_version,
+               started_at,deadline_at,submitted_at,evaluated_at,version,tasks,answers,result,invalidity_reason
+               FROM attempts WHERE id=:id FOR UPDATE""".trimIndent(), mapOf("id" to requireUuid(attemptId)),
+        ) ?: notFound()
+        if (row["status"] != "submitted") throw ApiException(409, "INVALID_STATE", "Only a pending submitted attempt can be upheld")
+        finalizeAttempt(row, store.now(), submitted = false, skipProctoringGate = true)
+    } ?: throw ApiException(503, "DEPENDENCY_UNAVAILABLE", "Please retry", retryable = true)
 
     fun attemptHistory(userId: String, requestedLimit: Int?, cursor: String?): Map<String, Any?> {
         val limit = requestedLimit ?: 20
@@ -466,7 +480,7 @@ class AssessmentService(
         }
     }
 
-    private fun finalizeAttempt(row: Map<String, Any?>, evaluatedAt: Instant, submitted: Boolean): Map<String, Any?> {
+    private fun finalizeAttempt(row: Map<String, Any?>, evaluatedAt: Instant, submitted: Boolean, skipProctoringGate: Boolean = false): Map<String, Any?> {
         if (!demoMode) requireDemoGradeGate()
         val userId = row.getValue("user_id").toString()
         val attemptId = row.getValue("id").toString()
@@ -490,28 +504,17 @@ class AssessmentService(
             val invalidated = loadAttempt(attemptId, userId) ?: notFound()
             return attemptDto(invalidated, evaluatedAt)
         }
-        val priorQualification = store.one(
-            "SELECT grade, last_changed_at FROM qualifications WHERE user_id=:user AND specialization_id=:specialization FOR UPDATE",
-            mapOf("user" to userId, "specialization" to ASSESSMENT_SPECIALIZATION),
-        )
         val targetGrade = row.getValue("requested_grade").toString()
-        val transition = AssessmentPolicy.transition(
-            confirmedGrade = priorQualification?.get("grade")?.toString(),
-            targetGrade = targetGrade,
-            passed = score.passed,
-            evaluatedAt = evaluatedAt,
-            lastSuccessfulGradeChangeAt = priorQualification?.instantOrNull("last_changed_at"),
-        )
         val publicTasks = row.jsonMap("tasks")["items"] as? List<*> ?: emptyList<Any>()
         val taskVersions = publicTasks.map { item ->
             val task = item.mapObject()
             mapOf("task_id" to task["task_id"], "version" to task["task_version"])
         }
-        val result = mapOf(
+        fun assessmentResult(gradeAwarded: String?): Map<String, Any?> = mapOf(
             "passed" to score.passed,
             "total_score" to score.total,
             "max_score" to 24,
-            "grade_awarded" to if (score.passed && transition.confirmedGrade == targetGrade) targetGrade else null,
+            "grade_awarded" to gradeAwarded,
             "block_scores" to ASSESSMENT_COMPETENCIES.map { id ->
                 mapOf("block_id" to id, "score" to score.byCompetency.getValue(id), "max_score" to 6)
             },
@@ -529,6 +532,27 @@ class AssessmentService(
             },
             "task_versions" to taskVersions,
         )
+        // Lock the optional proctoring session before qualification state to preserve the candidate -> attempt -> session -> qualification order.
+        if (!skipProctoringGate && proctoringGate.withholdResult(userId, attemptId, assessmentResult(null), evaluatedAt)) {
+            store.exec(
+                """UPDATE attempts SET status='submitted',submitted_at=COALESCE(submitted_at,:at),version=version+1
+                   WHERE id=:id AND status='in_progress'""".trimIndent(),
+                mapOf("at" to evaluatedAt, "id" to attemptId),
+            )
+            return attemptDto(loadAttempt(attemptId, userId) ?: notFound(), evaluatedAt)
+        }
+        val priorQualification = store.one(
+            "SELECT grade, last_changed_at FROM qualifications WHERE user_id=:user AND specialization_id=:specialization FOR UPDATE",
+            mapOf("user" to userId, "specialization" to ASSESSMENT_SPECIALIZATION),
+        )
+        val transition = AssessmentPolicy.transition(
+            confirmedGrade = priorQualification?.get("grade")?.toString(),
+            targetGrade = targetGrade,
+            passed = score.passed,
+            evaluatedAt = evaluatedAt,
+            lastSuccessfulGradeChangeAt = priorQualification?.instantOrNull("last_changed_at"),
+        )
+        val result = assessmentResult(if (score.passed && transition.confirmedGrade == targetGrade) targetGrade else null)
         store.exec(
             """UPDATE attempts SET status='evaluated', submitted_at=COALESCE(submitted_at, :submittedAt),
                evaluated_at=:evaluatedAt, result=:result, version=version+1
@@ -599,7 +623,7 @@ class AssessmentService(
             "saved_answers" to answerItems,
             "result" to result,
             "next_action" to when (row.getValue("status").toString()) {
-                "in_progress", "submitted" -> if (remaining == 0L) "submit" else "answer"
+                "in_progress" -> if (remaining == 0L) "submit" else "answer"
                 "evaluated" -> if (isRetakeWait(row)) "wait_retry" else "none"
                 else -> "none"
             },

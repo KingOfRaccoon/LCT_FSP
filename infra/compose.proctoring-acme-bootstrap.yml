@@ -1,0 +1,12 @@
+# Temporary HTTP-only ingress used to complete Certbot's webroot challenge.
+# It has no TLS certificate dependency and keeps public recording disabled.
+services:
+  web:
+    ports:
+      - "${TLS_BIND_ADDRESS:-0.0.0.0}:${TLS_HTTP_PORT:-80}:80"
+    environment:
+      TLS_HOST: ${TLS_HOST:?Set TLS_HOST to the public IP}
+      NGINX_ENVSUBST_FILTER: ^TLS_HOST$
+    volumes:
+      - ./infra/nginx.proctoring-acme-bootstrap.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ${TLS_ACME_WEBROOT:-./local/tls/webroot}:/var/www/certbot:ro

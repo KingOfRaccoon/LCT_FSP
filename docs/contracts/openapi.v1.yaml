@@ -50,6 +50,9 @@
     },
     {
       "name": "Operations"
+    },
+    {
+      "name": "Proctoring"
     }
   ],
   "paths": {
@@ -12445,6 +12448,1988 @@
           }
         ]
       }
+    },
+    "/proctoring/config": {
+      "get": {
+        "operationId": "proctoring_get_config",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Recording capability and current versioned consent; verified candidate or recording-review permission.",
+        "description": "Recording capability and current versioned consent; verified candidate or recording-review permission. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful authorized operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProctoringConfiguration"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/attempts/{attempt_id}/proctoring/session": {
+      "post": {
+        "operationId": "proctoring_start_session",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Candidate explicitly accepts the exact recording document for their in-progress attempt. The ordinary attempt path remains available without a recording session.",
+        "description": "Candidate explicitly accepts the exact recording document for their in-progress attempt. The ordinary attempt path remains available without a recording session. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [
+          {
+            "name": "attempt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Successful authorized operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProctoringSession"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProctoringStartRequest"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "proctoring_get_own_session",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Candidate-owned recording status and receipts; no raw bytes or storage keys.",
+        "description": "Candidate-owned recording status and receipts; no raw bytes or storage keys. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [
+          {
+            "name": "attempt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful authorized operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProctoringSession"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proctoring/sessions/{session_id}/captures": {
+      "post": {
+        "operationId": "proctoring_rotate_capture",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Candidate starts a distinct WebM clip after interruption or reload; earlier clip is marked interrupted.",
+        "description": "Candidate starts a distinct WebM clip after interruption or reload; earlier clip is marked interrupted. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful authorized operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProctoringSession"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProctoringVersionRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proctoring/sessions/{session_id}/media/{channel}/chunks/{sequence}": {
+      "post": {
+        "operationId": "proctoring_upload_chunk",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Bounded candidate-owned binary chunk; server SHA256 receipt, sequence ownership and total quota; no raw media in JSON or database.",
+        "description": "Bounded candidate-owned binary chunk; server SHA256 receipt, sequence ownership and total quota; no raw media in JSON or database. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "channel",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "camera",
+                "screen"
+              ]
+            }
+          },
+          {
+            "name": "sequence",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2000
+            }
+          },
+          {
+            "name": "capture_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "X-Content-SHA256",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$",
+              "minLength": 64,
+              "maxLength": 64
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful authorized operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProctoringChunkReceipt"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "video/webm": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proctoring/sessions/{session_id}/events": {
+      "post": {
+        "operationId": "proctoring_append_events",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Append bounded untrusted browser observations without clipboard text, frames or arbitrary metadata.",
+        "description": "Append bounded untrusted browser observations without clipboard text, frames or arbitrary metadata. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful authorized operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProctoringSession"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProctoringEventsRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proctoring/sessions/{session_id}/seal": {
+      "post": {
+        "operationId": "proctoring_seal_capture",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Seal only after contiguous camera and screen receipts match the declared last sequences.",
+        "description": "Seal only after contiguous camera and screen receipts match the declared last sequences. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful authorized operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProctoringSession"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProctoringSealRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proctoring/sessions/{session_id}/media/{channel}": {
+      "get": {
+        "operationId": "proctoring_read_media",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Current consenting owner or recording-review permission can stream a private capture; ordinary employers are denied.",
+        "description": "Current consenting owner or recording-review permission can stream a private capture; ordinary employers are denied. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "channel",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "camera",
+                "screen"
+              ]
+            }
+          },
+          {
+            "name": "capture_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Authorized capture bytes, private no-store. No static object key is disclosed.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string",
+                  "const": "nosniff"
+                }
+              }
+            },
+            "content": {
+              "video/webm": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Authorized partial video range",
+            "content": {
+              "video/webm": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proctoring/sessions/{session_id}/revoke": {
+      "post": {
+        "operationId": "proctoring_revoke_consent",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Owner may revoke even after processing consent or email verification is lost. Stop access immediately, erase recording bytes and invalidate only pending/in-progress recording attempts without changing prior qualification.",
+        "description": "Owner may revoke even after processing consent or email verification is lost. Stop access immediately, erase recording bytes and invalidate only pending/in-progress recording attempts without changing prior qualification. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful authorized operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProctoringSession"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProctoringVersionRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/operations/proctoring/reviews": {
+      "get": {
+        "operationId": "proctoring_review_queue",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Separately provisioned proctoring_review permission only; pending unexpired consenting attempts, excluding the reviewer own attempts.",
+        "description": "Separately provisioned proctoring_review permission only; pending unexpired consenting attempts, excluding the reviewer own attempts. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful authorized operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProctoringReviewQueue"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/operations/proctoring/reviews/{session_id}": {
+      "get": {
+        "operationId": "proctoring_review_detail",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Private review projection for an authorized non-owner reviewer. Provisional scoring is not a published grade; answer keys are omitted.",
+        "description": "Private review projection for an authorized non-owner reviewer. Provisional scoring is not a published grade; answer keys are omitted. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful authorized operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProctoringReview"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/operations/proctoring/reviews/{session_id}/decision": {
+      "post": {
+        "operationId": "proctoring_review_decision",
+        "tags": [
+          "Proctoring"
+        ],
+        "summary": "Auditable authorized decision. Uphold applies the existing fixed scorer and qualification transition atomically; invalidate/technical preserves prior qualification. No automatic browser-event penalty and no new 30-day ban.",
+        "description": "Auditable authorized decision. Uphold applies the existing fixed scorer and qualification transition atomically; invalidate/technical preserves prior qualification. No automatic browser-event penalty and no new 30-day ban. All mutations require same-origin session authentication, CSRF and a stable Idempotency-Key. Active ownership/consent/grants are checked before cached replay and private I/O. Browser events are untrusted observations; they never automatically invalidate an attempt or change a qualification.",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unsupported fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or active consent required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owned/private resource unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, state, hash or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Configured media cap exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported recording media type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Requested range is not satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Verified email or declared policy required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded request limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Secure private storage or dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successful authorized operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProctoringSession"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProctoringReviewRequest"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12500,7 +14485,20 @@
               "INVALID_FILE",
               "FILE_TOO_LARGE",
               "ALREADY_APPLIED",
-              "INVALID_STATUS"
+              "INVALID_STATUS",
+              "CAPTURE_LIMIT",
+              "CHUNK_CONFLICT",
+              "CHUNK_HASH_MISMATCH",
+              "CONSENT_VERSION_UNAVAILABLE",
+              "INCOMPLETE_CAPTURE",
+              "INVALID_RANGE",
+              "PROCTORING_CHUNK_TOO_LARGE",
+              "PROCTORING_EVENT_LIMIT",
+              "PROCTORING_SESSION_EXISTS",
+              "PROCTORING_SESSION_EXPIRED",
+              "PROCTORING_SESSION_LIMIT",
+              "PROCTORING_SESSION_UNAVAILABLE",
+              "UNSUPPORTED_MEDIA_TYPE"
             ],
             "maxLength": 64
           },
@@ -13233,7 +15231,8 @@
               "type": "string",
               "enum": [
                 "company_review",
-                "monitor_read"
+                "monitor_read",
+                "proctoring_review"
               ]
             },
             "uniqueItems": true
@@ -21451,6 +23450,687 @@
           "http",
           "outbox",
           "upstream"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringSessionStatus": {
+        "type": "string",
+        "enum": [
+          "recording",
+          "sealed",
+          "review_pending",
+          "approved",
+          "invalidated",
+          "technical_failure",
+          "revoked",
+          "expired"
+        ]
+      },
+      "ProctoringChannel": {
+        "type": "string",
+        "enum": [
+          "camera",
+          "screen"
+        ]
+      },
+      "ProctoringConfiguration": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "consent_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32
+          },
+          "consent_document_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "minLength": 64,
+            "maxLength": 64
+          },
+          "consent_text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000
+          },
+          "retention_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          },
+          "max_chunk_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4194304
+          },
+          "max_session_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1073741824
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProctoringChannel"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "available",
+          "reason",
+          "consent_version",
+          "consent_document_sha256",
+          "consent_text",
+          "retention_days",
+          "max_chunk_bytes",
+          "max_session_bytes",
+          "channels"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringStartRequest": {
+        "type": "object",
+        "properties": {
+          "consent_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32
+          },
+          "consent_document_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "minLength": 64,
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "consent_version",
+          "consent_document_sha256"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringVersionRequest": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringMediaCounters": {
+        "type": "object",
+        "properties": {
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "chunks": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "next_sequence": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "bytes",
+          "chunks",
+          "next_sequence"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringCapture": {
+        "type": "object",
+        "properties": {
+          "capture_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "recording",
+              "sealed",
+              "interrupted"
+            ]
+          },
+          "started_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "media": {
+            "type": "object",
+            "properties": {
+              "camera": {
+                "$ref": "#/components/schemas/ProctoringMediaCounters"
+              },
+              "screen": {
+                "$ref": "#/components/schemas/ProctoringMediaCounters"
+              }
+            },
+            "required": [
+              "camera",
+              "screen"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "capture_id",
+          "status",
+          "started_at",
+          "ended_at",
+          "media"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringDecisionOutcome": {
+        "type": "string",
+        "enum": [
+          "uphold",
+          "invalidate",
+          "technical"
+        ]
+      },
+      "ProctoringReasonCode": {
+        "type": "string",
+        "enum": [
+          "approved",
+          "unauthorized_assistance",
+          "identity_mismatch",
+          "recording_incomplete",
+          "technical_failure"
+        ]
+      },
+      "ProctoringDecision": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/ProctoringDecisionOutcome"
+          },
+          "reason_code": {
+            "$ref": "#/components/schemas/ProctoringReasonCode"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "decided_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "outcome",
+          "reason_code",
+          "note",
+          "decided_at"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringSession": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "attempt_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProctoringSessionStatus"
+          },
+          "consent_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32
+          },
+          "consent_document_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "minLength": 64,
+            "maxLength": 64
+          },
+          "consent_accepted_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "retention_until": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "attempt_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "active_capture_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UUID"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "captures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProctoringCapture"
+            },
+            "maxItems": 100
+          },
+          "events_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2000
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProctoringDecision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "session_id",
+          "attempt_id",
+          "version",
+          "status",
+          "consent_version",
+          "consent_document_sha256",
+          "consent_accepted_at",
+          "retention_until",
+          "attempt_version",
+          "active_capture_id",
+          "captures",
+          "events_count",
+          "decision"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringChunkReceipt": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "capture_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/ProctoringChannel"
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2000
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "minLength": 64,
+            "maxLength": 64
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4194304
+          }
+        },
+        "required": [
+          "session_id",
+          "capture_id",
+          "channel",
+          "sequence",
+          "sha256",
+          "bytes"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringEventType": {
+        "type": "string",
+        "enum": [
+          "tab_hidden",
+          "window_blur",
+          "fullscreen_exit",
+          "camera_disabled",
+          "screen_share_stopped"
+        ]
+      },
+      "ProctoringEvent": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ProctoringEventType"
+          },
+          "occurred_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "event_id",
+          "type",
+          "occurred_at"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringEventsRequest": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProctoringEvent"
+            },
+            "minItems": 1,
+            "maxItems": 500
+          }
+        },
+        "required": [
+          "expected_version",
+          "events"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringSealRequest": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "capture_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "last_sequences": {
+            "type": "object",
+            "properties": {
+              "camera": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2000
+              },
+              "screen": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2000
+              }
+            },
+            "required": [
+              "camera",
+              "screen"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_version",
+          "capture_id",
+          "last_sequences"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringReviewRequest": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "expected_attempt_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/ProctoringDecisionOutcome"
+          },
+          "reason_code": {
+            "$ref": "#/components/schemas/ProctoringReasonCode"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "expected_version",
+          "expected_attempt_version",
+          "outcome",
+          "reason_code",
+          "note"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringReviewQueueItem": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "attempt_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProctoringSessionStatus"
+          },
+          "requested_grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle"
+            ]
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "session_id",
+          "attempt_id",
+          "version",
+          "status",
+          "requested_grade",
+          "submitted_at"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringReviewQueue": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProctoringReviewQueueItem"
+            },
+            "maxItems": 100
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringReviewAttempt": {
+        "type": "object",
+        "properties": {
+          "attempt_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "requested_grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "submitted"
+            ]
+          },
+          "started_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "deadline_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskPublic"
+            },
+            "minItems": 12,
+            "maxItems": 12
+          }
+        },
+        "required": [
+          "attempt_id",
+          "version",
+          "requested_grade",
+          "status",
+          "started_at",
+          "deadline_at",
+          "submitted_at",
+          "tasks"
+        ],
+        "additionalProperties": false
+      },
+      "ProctoringReview": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "attempt_id": {
+            "$ref": "#/components/schemas/UUID"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "attempt_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProctoringSessionStatus"
+          },
+          "provisional_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AttemptResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attempt": {
+            "$ref": "#/components/schemas/ProctoringReviewAttempt"
+          },
+          "recordings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProctoringCapture"
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "session_id",
+          "attempt_id",
+          "version",
+          "attempt_version",
+          "status",
+          "provisional_result",
+          "attempt",
+          "recordings"
         ],
         "additionalProperties": false
       }
