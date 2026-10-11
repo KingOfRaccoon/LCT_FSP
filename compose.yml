@@ -32,7 +32,7 @@ services:
       DADATA_TOKEN: ${DADATA_TOKEN:-}
       SMTP_HOST: mailpit
       SMTP_PORT: "1025"
-    command: ["java", "-jar", "/app/app.jar", "--fsp.seed-demo=true"]
+    command: ["/app/run-api.sh", "--fsp.seed-demo=true"]
     depends_on:
       db:
         condition: service_healthy
