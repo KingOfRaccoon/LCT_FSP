@@ -310,9 +310,8 @@ class ProctoringService(
         }
     }
 
-    fun prepareMedia(actorId: String, sessionId: String, captureId: String, channel: String,
+    internal fun prepareMedia(actorId: String, sessionId: String, captureId: String, channel: String,
                      rangeHeader: String?): MediaPayload {
-        if (!media.available) throw ApiException(503, "DEPENDENCY_UNAVAILABLE", "Private recording storage is unavailable", retryable = true)
         if (channel !in CHANNELS) invalid("channel")
         val session = loadSession(uuid(sessionId, "session_id")) ?: notFound()
         val userId = session.getValue("user_id").toString()
@@ -322,35 +321,66 @@ class ProctoringService(
             if (session["status"] != "review_pending") notFound()
         }
         requireReadable(session)
+        if (!media.available) throw ApiException(503, "DEPENDENCY_UNAVAILABLE", "Private recording storage is unavailable", retryable = true)
         val capture = store.one("SELECT id,status FROM proctoring_captures WHERE id=:captureId AND session_id=:session",
             mapOf("captureId" to uuid(captureId, "capture_id"), "session" to sessionId)) ?: notFound()
         if (capture["status"] == "recording") throw ApiException(409, "INVALID_STATE", "Recording is not available until capture is sealed")
-        val receipts = store.rows("SELECT sequence,byte_count FROM proctoring_media_receipts WHERE session_id=:session AND capture_id=:captureId AND channel=:channel ORDER BY sequence",
+        val receipts = store.rows("SELECT sequence,byte_count,sha256 FROM proctoring_media_receipts WHERE session_id=:session AND capture_id=:captureId AND channel=:channel ORDER BY sequence",
             mapOf("session" to sessionId, "captureId" to captureId, "channel" to channel))
         if (receipts.isEmpty()) notFound()
-        val paths = receipts.map { media.chunkPath(sessionId, captureId, channel, (it.getValue("sequence") as Number).toInt()) to (it.getValue("byte_count") as Number).toLong() }
-        val total = receipts.sumOf { (it.getValue("byte_count") as Number).toLong() }
+        if (receipts.size > MAX_CHUNK_SEQUENCE + 1 || receipts.withIndex().any { (index, row) ->
+                (row.getValue("sequence") as Number).toInt() != index
+            }) throw ApiException(409, "INVALID_STATE", "Recording chunks are not contiguous")
+        val files = receipts.map {
+            val sequence = (it.getValue("sequence") as Number).toInt()
+            MediaFileReceipt(sequence, media.chunkPath(sessionId, captureId, channel, sequence),
+                (it.getValue("byte_count") as Number).toLong(), it.getValue("sha256").toString())
+        }
+        val rawTotal = files.sumOf { it.byteCount }
+        val authorization = MediaPayload(actorId, reviewer, sessionId, captureId, channel, files, byteArrayOf(), 0, rawTotal,
+            0, 0, false)
+        val index = media.indexWebm(sessionId, captureId, channel, files) { path, size ->
+            openAuthorizedMedia(authorization, path, size)
+        }
+        authorizeMediaRead(authorization)
+        val total = index.totalBytes
         val range = parseRange(rangeHeader, total)
         audit(sessionId, actorId, "media_access", if (reviewer) "reviewer" else "owner",
             mapOf("capture_id" to captureId, "channel" to channel, "range" to rangeHeader))
-        return MediaPayload(actorId, reviewer, sessionId, captureId, channel, paths, total, range.first, range.second, rangeHeader != null)
+        return MediaPayload(actorId, reviewer, sessionId, captureId, channel, files, index.prefix, index.rawStart, total,
+            range.first, range.second, rangeHeader != null)
     }
 
-    fun streamMedia(payload: MediaPayload, output: java.io.OutputStream) {
-        var offset = payload.start
-        var remaining = payload.end - payload.start + 1
-        payload.paths.forEach { (path, length) ->
+    internal fun streamMedia(payload: MediaPayload, output: java.io.OutputStream) {
+        authorizeMediaRead(payload)
+        val prefixStart = payload.start.coerceAtMost(payload.prefix.size.toLong()).toInt()
+        val prefixEndExclusive = (payload.end + 1).coerceAtMost(payload.prefix.size.toLong()).toInt()
+        if (prefixEndExclusive > prefixStart) output.write(payload.prefix, prefixStart, prefixEndExclusive - prefixStart)
+        if (payload.end >= payload.prefix.size) {
+            val virtualRawStart = maxOf(payload.start, payload.prefix.size.toLong())
+            val rawOffset = payload.rawStart + virtualRawStart - payload.prefix.size
+            streamRawRange(payload, rawOffset, payload.end - virtualRawStart + 1, output)
+        }
+    }
+
+    private fun streamRawRange(payload: MediaPayload, start: Long, count: Long, output: java.io.OutputStream) {
+        var offset = start
+        var remaining = count
+        payload.files.forEach { file ->
             if (remaining <= 0) return
-            if (offset >= length) { offset -= length; return@forEach }
-            openAuthorizedMedia(payload, path, length).use { input ->
-                val startInFile = offset
-                var toSkip = startInFile
+            if (offset >= file.byteCount) { offset -= file.byteCount; return@forEach }
+            openAuthorizedMedia(payload, file.path, file.byteCount).use { input ->
+                val localStart = offset
+                var toSkip = localStart
                 while (toSkip > 0) {
                     val skipped = input.skip(toSkip)
-                    if (skipped <= 0) { if (input.read() < 0) break else toSkip-- } else toSkip -= skipped
+                    if (skipped <= 0) {
+                        if (input.read() < 0) throw java.io.EOFException("Private media file was truncated")
+                        toSkip--
+                    } else toSkip -= skipped
                 }
                 offset = 0
-                var leftInFile = minOf(remaining, length - startInFile)
+                var leftInFile = minOf(remaining, file.byteCount - localStart)
                 val buffer = ByteArray(64 * 1024)
                 while (leftInFile > 0) {
                     val read = input.read(buffer, 0, minOf(buffer.size.toLong(), leftInFile).toInt())
@@ -361,11 +391,11 @@ class ProctoringService(
                 }
             }
         }
+        if (remaining != 0L) throw java.io.EOFException("Private media range exceeds receipt files")
     }
 
     private fun openAuthorizedMedia(payload: MediaPayload, path: Path, expectedSize: Long): InputStream =
         store.tx.execute<InputStream> {
-            if (!media.available) throw ApiException(503, "DEPENDENCY_UNAVAILABLE", "Private recording storage is unavailable", retryable = true)
             val initial = loadSession(payload.sessionId) ?: notFound()
             val ownerId = initial.getValue("user_id").toString()
             lockUser(ownerId)
@@ -378,9 +408,28 @@ class ProctoringService(
                 if (session["status"] != "review_pending") notFound()
             }
             requireReadable(session)
+            if (!media.available) throw ApiException(503, "DEPENDENCY_UNAVAILABLE", "Private recording storage is unavailable", retryable = true)
             if (media.size(path) != expectedSize) throw ApiException(503, "DEPENDENCY_UNAVAILABLE", "Private recording receipt does not match its file", retryable = true)
             media.open(path)
         } ?: throw ApiException(503, "DEPENDENCY_UNAVAILABLE", "Please retry", retryable = true)
+
+    private fun authorizeMediaRead(payload: MediaPayload) {
+        store.tx.execute<Unit> {
+            val initial = loadSession(payload.sessionId) ?: notFound()
+            val ownerId = initial.getValue("user_id").toString()
+            lockUser(ownerId)
+            store.one("SELECT id FROM attempts WHERE id=:attempt AND user_id=:user FOR SHARE",
+                mapOf("attempt" to initial.getValue("attempt_id"), "user" to ownerId)) ?: notFound()
+            val session = store.one("SELECT id,user_id,status,retention_until FROM proctoring_sessions WHERE id=:id AND user_id=:user FOR SHARE",
+                mapOf("id" to payload.sessionId, "user" to ownerId)) ?: notFound()
+            if (payload.actorId != ownerId) {
+                requireReviewer(payload.actorId)
+                if (session["status"] != "review_pending") notFound()
+            }
+            requireReadable(session)
+            if (!media.available) throw ApiException(503, "DEPENDENCY_UNAVAILABLE", "Private recording storage is unavailable", retryable = true)
+        } ?: throw ApiException(503, "DEPENDENCY_UNAVAILABLE", "Please retry", retryable = true)
+    }
 
     fun revoke(userId: String, sessionId: String, expectedVersion: Int): Map<String, Any?> = store.tx.execute<Map<String, Any?>> {
         lockUser(userId)
@@ -703,13 +752,15 @@ class ProctoringService(
 data class StagedChunk(val path: Path, val sha256: String, val byteCount: Int)
 data class MediaOrphanCandidate(val sessionId: String, val captureId: String? = null, val channel: String? = null,
                                 val sequence: Int? = null, val stagedName: String? = null)
-data class MediaPayload(
+internal data class MediaPayload(
     val actorId: String,
     val reviewer: Boolean,
     val sessionId: String,
     val captureId: String,
     val channel: String,
-    val paths: List<Pair<Path, Long>>,
+    val files: List<MediaFileReceipt>,
+    val prefix: ByteArray,
+    val rawStart: Long,
     val totalBytes: Long,
     val start: Long,
     val end: Long,
@@ -726,6 +777,7 @@ class PrivateMediaStore(
     @Value("\${fsp.proctoring.max-session-bytes:268435456}") private val configuredMaxSessionBytes: Long,
 ) {
     private val activeStagedPaths = ConcurrentHashMap.newKeySet<Path>()
+    private val webmIndexer = WebmSeekableIndexer()
     val maxChunkBytes: Int = configuredMaxChunkBytes.coerceAtMost(ProctoringService.ABSOLUTE_MAX_CHUNK_BYTES)
     val maxSessionBytes: Long = configuredMaxSessionBytes.coerceAtMost(ProctoringService.ABSOLUTE_MAX_SESSION_BYTES)
     val consentText: String get() = ProctoringService.CONSENT_TEXT_TEMPLATE.format(retentionDays)
@@ -830,6 +882,9 @@ class PrivateMediaStore(
         size(path)
         return Files.newInputStream(path, StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS)
     }
+    internal fun indexWebm(session: String, capture: String, channel: String, files: List<MediaFileReceipt>,
+                           openAuthorized: (Path, Long) -> InputStream): SeekableWebmIndex =
+        webmIndexer.index(session, capture, channel, files, openAuthorized)
     fun findOrphanCandidates(olderThan: Instant): List<MediaOrphanCandidate> {
         if (!Files.isDirectory(root, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(root)) return emptyList()
         val candidates = mutableListOf<MediaOrphanCandidate>()
@@ -867,6 +922,7 @@ class PrivateMediaStore(
         return candidates.distinct()
     }
     fun deleteSession(session: String) {
+        webmIndexer.evictSession(session)
         val path = root.resolve(uuid(session)).normalize()
         if (!path.startsWith(root) || Files.isSymbolicLink(path)) return
         activeStagedPaths.removeIf { it.startsWith(path) }

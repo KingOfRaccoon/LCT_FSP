@@ -90,7 +90,7 @@ export function OperationsProctoringPage() {
   const loadDetail = useCallback(async (sessionId: string) => {
     const request = ++generation.current;
     stopMediaPlayback();
-    setDetail(null); setSelectedId(sessionId); setError(''); setNote('');
+    setLoading(false); setDetail(null); setSelectedId(sessionId); setError(''); setNote('');
     try {
       const result = await getProctoringReview(sessionId);
       if (request !== generation.current) return;

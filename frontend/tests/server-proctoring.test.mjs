@@ -72,6 +72,14 @@ test('capture policy never prompts for unsupported or insecure origins', async (
   assert.equal(canStartServerCapture({ available: true, secureContext: true, mediaApisAvailable: true }), true);
 });
 
+test('fresh session adoption keeps its prepared capture while reload adoption clears stale tokens', async () => {
+  const { preparedCaptureAfterSessionAdoption } = await import('../src/features/proctoring/server-proctoring-policy.ts');
+  assert.equal(preparedCaptureAfterSessionAdoption(null, 'session-1', '', 'capture-1'), 'session-1:capture-1');
+  assert.equal(preparedCaptureAfterSessionAdoption('session-1', 'session-1', 'session-1:capture-1'), 'session-1:capture-1');
+  assert.equal(preparedCaptureAfterSessionAdoption('session-1', 'session-2', 'session-1:capture-1'), '');
+  assert.equal(preparedCaptureAfterSessionAdoption('session-1', null, 'session-1:capture-1'), '');
+});
+
 test('real-session events retain only the minimal observation type, ID, and timestamp', async () => {
   const { toServerProctoringEvents } = await import('../src/features/proctoring/server-proctoring-client.ts');
   const input = [
@@ -613,6 +621,45 @@ test('operator decision notice remains visible after the queue refresh callback 
     assert.equal(decisions, 1);
     assert.equal(queueLoads, 2);
     assert.match(textContent(tree), /Решение сохранено на сервере/u);
+  } finally {
+    harness.unmount();
+  }
+});
+
+test('selecting a review row while queue refresh is pending releases the refresh spinner', async () => {
+  const pagePath = path.resolve('src/features/proctoring/OperationsProctoringPage.tsx');
+  const queueRefresh = deferred();
+  let queueLoads = 0;
+  const review = {
+    session_id: 'session-loading-race', attempt_id: 'attempt-race', version: 1, attempt_version: 1, status: 'review_pending', provisional_result: null,
+    attempt: { attempt_id: 'attempt-race', version: 1, requested_grade: 'junior', status: 'submitted', started_at: null, deadline_at: null, submitted_at: null, tasks: [] },
+    recordings: [],
+  };
+  const queueItem = { session_id: review.session_id, attempt_id: review.attempt_id, version: review.version, status: review.status, requested_grade: 'junior', submitted_at: null };
+  const harness = componentHarness(pagePath, 'OperationsProctoringPage', {
+    '../../api.ts': { RequestError: class RequestError extends Error {}, errorMessage: (error) => String(error) },
+    './server-proctoring-client.ts': {
+      getProctoringReviewQueue: async () => { queueLoads++; return queueLoads === 1 ? { items: [queueItem], next_cursor: null } : queueRefresh.promise; },
+      getProctoringReview: async () => review,
+      probeProctoringMedia: async () => {},
+      proctoringMediaUrl: () => '',
+      decideProctoringReview: async () => review,
+    },
+  });
+  try {
+    let tree = harness.render();
+    await harness.flush();
+    tree = harness.render();
+    nodes(tree, (node) => node.type === 'button' && /Обновить очередь/u.test(textContent(node)))[0].props.onClick();
+    tree = await harness.flush();
+    assert.equal(nodes(tree, (node) => node.type === 'button' && /Обновляем…/u.test(textContent(node)))[0].props.disabled, true);
+    nodes(tree, (node) => node.type === 'button' && textContent(node).includes(review.session_id))[0].props.onClick();
+    tree = await harness.flush();
+    const refreshButton = nodes(tree, (node) => node.type === 'button' && /Обновить очередь|Обновляем…/u.test(textContent(node)))[0];
+    assert.equal(refreshButton.props.disabled, false);
+    queueRefresh.resolve({ items: [queueItem], next_cursor: null });
+    tree = await harness.flush();
+    assert.match(textContent(tree), /Сессия session-loading-race/iu);
   } finally {
     harness.unmount();
   }
