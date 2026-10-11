@@ -480,26 +480,164 @@ function AssessmentHome({ user }: { user: User }) {
   const start = async () => {
     if (!profile) return; setBusy(true); setError('');
     try {
+      if (!processingAccepted) {
+        await api.post('/me/consents', { scope: 'processing', action: 'accept', version: '1.0' });
+        await query.invalidateQueries({ queryKey: ['consents'] });
+      }
       const attempt = await api.post<Attempt>('/attempts', { specialization_id: special, requested_grade: grade, policy_id: policyId, policy_version: '1.0.0' });
       await query.invalidateQueries({ queryKey: ['profile'] }); await query.invalidateQueries({ queryKey: ['attempts'] }); navigate(`/assessment/${attempt.id}`);
     } catch (e) {
+      if (e instanceof RequestError && e.activeAttemptId) {
+        navigate(`/assessment/${String(e.activeAttemptId)}`);
+        return;
+      }
+      if (profile?.active_attempt_id) {
+        navigate(`/assessment/${profile.active_attempt_id}`);
+        return;
+      }
       setError(errorMessage(e));
-      if (e instanceof Error && 'activeAttemptId' in e && e.activeAttemptId) navigate(`/assessment/${String(e.activeAttemptId)}`);
     } finally { setBusy(false); }
   };
   if (profileQuery.isPending || attemptsQuery.isPending || taxonomyQuery.isPending || consentsQuery.isPending) return <Loading />;
   if (profileQuery.isError || attemptsQuery.isError || taxonomyQuery.isError || consentsQuery.isError) return <ErrorBlock error={profileQuery.error ?? attemptsQuery.error ?? taxonomyQuery.error ?? consentsQuery.error} retry={() => { void profileQuery.refetch(); void attemptsQuery.refetch(); void taxonomyQuery.refetch(); void consentsQuery.refetch(); }} />;
   const processingAccepted = consentsQuery.data.states.some((consent) => consent.scope === 'processing' && consent.accepted);
   const history = attemptsQuery.data.pages.flatMap((page) => page.items);
+  const activeAttemptId = profile?.active_attempt_id || (eligibility?.[grade]?.reason === 'attempt_active' ? history.find((h) => h.status === 'in_progress')?.id : null);
   const assessmentRelease = taxonomyQuery.data.assessment_release;
   const demoReleaseNotice = assessmentRelease?.status === 'published_demo' || assessmentRelease?.real_grade_release_ready === false;
   return <><PageHeader eyebrow="ОЦЕНКА КОМПЕТЕНЦИЙ" title="Подтвердите уровень знаний" description="Обычная оценка состоит из 12 заданий по четырём блокам. Ответы сохраняются на сервере; срок — 30 минут." />
     {demoReleaseNotice && <Notice>Текущий банк предназначен для демонстрации. Человеческая проверка квалификации ещё не проведена; результат демо-оценки не подтверждает профессиональный грейд.</Notice>}
     {error && <ErrorBlock error={error} />}
-    <div className="assessment-layout"><Card title="Новая оценка" className="assessment-start">{!processingAccepted && <div className="notice notice-warm">Для новой оценки примите согласие на обработку данных. <Link to="/consents">Открыть условия →</Link></div>}<div className="assessment-callout"><span>30</span><div><strong>минут на прохождение</strong><small>12 заданий · 24 ответа · 4 блока</small></div></div><label className="field"><span>Уровень оценки</span><select value={grade} onChange={(e) => setGrade(e.target.value as Grade)}>{grades.map((g) => <option key={g} value={g}>{gradeName(g)}</option>)}</select></label><div className="eligibility"><div><span className="eligibility-indicator" /> {eligibility?.[grade].allowed ? 'Можно начать сейчас' : eligibility?.[grade].reason === 'attempt_active' ? 'Уже есть активная попытка' : 'Пока недоступно'}</div>{!eligibility?.[grade].allowed && eligibility?.[grade].eligible_at && <small>Повтор доступен {date(eligibility[grade].eligible_at)}.</small>}{processingAccepted && !eligibility?.[grade].allowed && eligibility?.[grade].reason === 'attempt_active' && profile?.active_attempt_id && <Link to={`/assessment/${profile.active_attempt_id}`}>Продолжить попытку →</Link>}</div><button className="button button-primary button-wide" onClick={() => void start()} disabled={busy || !processingAccepted || !profile?.profile_complete || !eligibility?.[grade].allowed}>{busy ? 'Подготавливаем…' : 'Начать оценку'} <span>→</span></button>{!profile?.profile_complete && <p className="field-hint">Сначала заполните обязательные поля профиля.</p>}<p className="field-hint">Если профиль синтетический, сервер отметит результат как demo. Порог v1: 18/24 и не менее 3/6 в каждом блоке.</p><p className="field-hint"><Link to="/practice">Сначала посмотреть формат на тренировочных вопросах →</Link></p></Card>
-      <div className="assessment-side"><Card title="Состав оценки"><div className="block-list">{(taxonomyQuery.data.skills.filter((s) => ['python-basics', 'http-api', 'sql-transactions', 'reliability'].includes(s.id))).map((skill, i) => <div className="block-row" key={skill.id}><span className="block-number">0{i + 1}</span><div><strong>{skillLabels[skill.id as keyof typeof skillLabels] ?? skill.id}</strong><small>3 задания · 6 баллов</small></div><Badge tone="neutral">Блок</Badge></div>)}</div></Card><Card title="История оценок" meta={<span className="card-index">{history.length}</span>}>{history.length ? <><div className="history-list">{history.map((item) => {
-        return <div className="history-row" key={item.id}><div><strong>{gradeName(item.requested_grade)}</strong><small>{date(item.evaluated_at ?? item.deadline_at)}</small></div><span>{item.total_score ?? '—'} / 24</span><Badge tone={item.status === 'evaluated' ? (item.passed ? 'good' : 'warm') : item.status === 'in_progress' ? 'neutral' : ''}>{item.status === 'in_progress' ? 'Идёт' : item.status === 'evaluated' ? item.passed ? 'Пройдена' : 'Завершена' : item.status === 'submitted' ? 'На проверке' : 'Аннулирована'}</Badge><Link className="quiet-link" to={`/assessment/${encodeURIComponent(item.id)}`}>{item.status === 'in_progress' ? 'Продолжить →' : item.status === 'submitted' ? 'Открыть попытку →' : 'Посмотреть результат →'}</Link></div>;
-      })}</div>{attemptsQuery.hasNextPage && <button className="button button-secondary button-small load-more" onClick={() => void attemptsQuery.fetchNextPage()} disabled={attemptsQuery.isFetchingNextPage}>{attemptsQuery.isFetchingNextPage ? 'Загружаем…' : 'Показать ещё'}</button>}</> : <Empty title="История пока пуста" detail="Завершённые попытки появятся здесь." />}</Card></div>
+    <div className="assessment-layout">
+      <Card title="Новая оценка" className="assessment-start">
+        {!processingAccepted && (
+          <div className="notice notice-warm" style={{ marginBottom: '1rem' }}>
+            <strong>Требуется согласие на обработку данных</strong>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem' }}>
+              Вы можете принять его прямо сейчас нажатием на кнопку ниже или{' '}
+              <Link to="/consents">ознакомиться с полным текстом условий →</Link>
+            </p>
+          </div>
+        )}
+        <div className="assessment-callout">
+          <span>30</span>
+          <div><strong>минут на прохождение</strong><small>12 заданий · 24 ответа · 4 блока</small></div>
+        </div>
+        <label className="field">
+          <span>Уровень оценки</span>
+          <select value={grade} onChange={(e) => setGrade(e.target.value as Grade)}>
+            {grades.map((g) => <option key={g} value={g}>{gradeName(g)}</option>)}
+          </select>
+        </label>
+        <div className="eligibility">
+          <div>
+            <span className="eligibility-indicator" />{' '}
+            {activeAttemptId
+              ? 'Уже есть активная попытка'
+              : eligibility?.[grade]?.allowed
+              ? 'Можно начать сейчас'
+              : 'Пока недоступно'}
+          </div>
+          {!eligibility?.[grade]?.allowed && eligibility?.[grade]?.eligible_at && (
+            <small>Повтор доступен {date(eligibility[grade].eligible_at)}.</small>
+          )}
+        </div>
+
+        {activeAttemptId ? (
+          <button
+            type="button"
+            className="button button-primary button-wide"
+            onClick={() => navigate(`/assessment/${activeAttemptId}`)}
+          >
+            Продолжить активную попытку <span>→</span>
+          </button>
+        ) : !profile?.profile_complete ? (
+          <>
+            <button
+              type="button"
+              className="button button-secondary button-wide"
+              onClick={() => navigate('/profile')}
+            >
+              Заполнить обязательные поля профиля <span>→</span>
+            </button>
+            <div className="notice notice-warm" style={{ marginTop: '0.75rem', fontSize: '0.82rem' }}>
+              <strong>Для допуска к оценке заполните в профиле:</strong>
+              <ul style={{ margin: '0.25rem 0 0 1.2rem', padding: 0 }}>
+                {profile?.missing_required_fields?.map((f) => (
+                  <li key={f}>
+                    {f === 'display_name' ? 'Имя' :
+                     f === 'declared_grade' ? 'Заявленный грейд (Junior/Middle)' :
+                     f === 'allowed_work_modes' ? 'Формат работы (Удалённо / Гибрид / Офис)' :
+                     f === 'max_weekly_hours' ? 'Максимум часов в неделю' :
+                     f === 'cities' ? 'Город (обязателен для гибрида и офиса)' : f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        ) : (
+          <button
+            type="button"
+            className="button button-primary button-wide"
+            onClick={() => void start()}
+            disabled={busy || (!eligibility?.[grade]?.allowed && !activeAttemptId)}
+          >
+            {busy ? 'Подготавливаем…' : !processingAccepted ? 'Принять согласие и начать оценку' : 'Начать оценку'} <span>→</span>
+          </button>
+        )}
+
+        <p className="field-hint" style={{ marginTop: '0.75rem' }}>
+          Если профиль синтетический, сервер отметит результат как demo. Порог v1: 18/24 и не менее 3/6 в каждом блоке.
+        </p>
+        <p className="field-hint">
+          <Link to="/practice">Сначала посмотреть формат на тренировочных вопросах →</Link>
+        </p>
+      </Card>
+      <div className="assessment-side">
+        <Card title="Состав оценки">
+          <div className="block-list">
+            {(taxonomyQuery.data.skills.filter((s) => ['python-basics', 'http-api', 'sql-transactions', 'reliability'].includes(s.id))).map((skill, i) => (
+              <div className="block-row" key={skill.id}>
+                <span className="block-number">0{i + 1}</span>
+                <div><strong>{skillLabels[skill.id as keyof typeof skillLabels] ?? skill.id}</strong><small>3 задания · 6 баллов</small></div>
+                <Badge tone="neutral">Блок</Badge>
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card title="История оценок" meta={<span className="card-index">{history.length}</span>}>
+          {history.length ? (
+            <>
+              <div className="history-list">
+                {history.map((item) => (
+                  <div className="history-row" key={item.id}>
+                    <div><strong>{gradeName(item.requested_grade)}</strong><small>{date(item.evaluated_at ?? item.deadline_at)}</small></div>
+                    <span>{item.total_score ?? '—'} / 24</span>
+                    <Badge tone={item.status === 'evaluated' ? (item.passed ? 'good' : 'warm') : item.status === 'in_progress' ? 'neutral' : ''}>
+                      {item.status === 'in_progress' ? 'Идёт' : item.status === 'evaluated' ? item.passed ? 'Пройдена' : 'Завершена' : item.status === 'submitted' ? 'На проверке' : 'Аннулирована'}
+                    </Badge>
+                    <Link className="quiet-link" to={`/assessment/${encodeURIComponent(item.id)}`}>
+                      {item.status === 'in_progress' ? 'Продолжить →' : item.status === 'submitted' ? 'Открыть попытку →' : 'Посмотреть результат →'}
+                    </Link>
+                  </div>
+                ))}
+              </div>
+              {attemptsQuery.hasNextPage && (
+                <button
+                  type="button"
+                  className="button button-secondary button-small load-more"
+                  onClick={() => void attemptsQuery.fetchNextPage()}
+                  disabled={attemptsQuery.isFetchingNextPage}
+                >
+                  {attemptsQuery.isFetchingNextPage ? 'Загружаем…' : 'Показать ещё'}
+                </button>
+              )}
+            </>
+          ) : (
+            <Empty title="История пока пуста" detail="Завершённые попытки появятся здесь." />
+          )}
+        </Card>
+      </div>
     </div>
   </>;
 }
