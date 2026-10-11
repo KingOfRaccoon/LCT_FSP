@@ -1,0 +1,399 @@
+/* Proctoring styles conforming to FSP brand guidelines */
+
+.proctoring-setup-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(27, 28, 33, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+.proctoring-setup-card {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #c8c9ca);
+  border-radius: 12px;
+  max-width: 620px;
+  width: 100%;
+  padding: 2rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.proctoring-setup-header {
+  border-bottom: 1px solid #ededed;
+  padding-bottom: 1rem;
+}
+
+.proctoring-setup-header h2 {
+  font-size: 1.4rem;
+  margin: 0.25rem 0 0.5rem 0;
+  color: #1b1c21;
+}
+
+.proctoring-preview-box {
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.proctoring-preview-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror selfie view */
+}
+
+.proctoring-preview-placeholder {
+  color: #c8c9ca;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.proctoring-checks-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.proctoring-check-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+}
+
+.proctoring-check-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.proctoring-check-status-badge {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.proctoring-check-status-badge.ok {
+  background: #e6f9ed;
+  color: #0e8345;
+}
+
+.proctoring-check-status-badge.pending {
+  background: #fff4e5;
+  color: #b76e00;
+}
+
+.proctoring-consent-box {
+  background: #f4f4f7;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #55565d;
+}
+
+.proctoring-consent-box label {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  cursor: pointer;
+  color: #1b1c21;
+  font-weight: 500;
+}
+
+/* Floating overlay during exam */
+.proctoring-floating-overlay {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 220px;
+  background: #ffffff;
+  border: 2px solid #402fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+}
+
+.proctoring-overlay-bar {
+  background: #1b1c21;
+  color: #ffffff;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.proctoring-rec-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #ec1d35;
+  font-weight: bold;
+}
+
+.proctoring-rec-dot {
+  width: 8px;
+  height: 8px;
+  background: #ec1d35;
+  border-radius: 50%;
+  animation: pulse-rec 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse-rec {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.85); }
+}
+
+.proctoring-overlay-cam {
+  width: 100%;
+  height: 125px;
+  background: #000000;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.proctoring-overlay-alert {
+  background: #fff0f1;
+  color: #ec1d35;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  border-top: 1px solid #ffd1d5;
+  line-height: 1.3;
+}
+
+/* Proctoring Report Styles */
+.proctoring-report-card {
+  margin-top: 1.5rem;
+}
+
+.proctoring-score-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.proctoring-score-banner.clean {
+  background: #e6f9ed;
+  border: 1px solid #a3e6be;
+  color: #0e8345;
+}
+
+.proctoring-score-banner.suspicious {
+  background: #fff4e5;
+  border: 1px solid #fed7aa;
+  color: #b76e00;
+}
+
+.proctoring-score-banner.fraud {
+  background: #fff0f1;
+  border: 1px solid #fca5a5;
+  color: #ec1d35;
+}
+
+.proctoring-score-val {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.proctoring-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.proctoring-stat-box {
+  background: #f4f4f7;
+  padding: 0.85rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.proctoring-stat-box span {
+  display: block;
+  font-size: 0.75rem;
+  color: #55565d;
+  margin-bottom: 0.25rem;
+}
+
+.proctoring-stat-box strong {
+  font-size: 1.3rem;
+  color: #1b1c21;
+}
+
+.proctoring-events-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.proctoring-timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #ededed;
+  border-left: 4px solid #c8c9ca;
+  border-radius: 6px;
+}
+
+.proctoring-timeline-item.high,
+.proctoring-timeline-item.critical {
+  border-left-color: #ec1d35;
+  background: #fffcfc;
+}
+
+.proctoring-timeline-item.medium {
+  border-left-color: #f59e0b;
+}
+
+.proctoring-timeline-time {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #55565d;
+  white-space: nowrap;
+}
+
+.proctoring-timeline-desc strong {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.15rem;
+}
+
+.proctoring-timeline-desc small {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.proctoring-timeline-item.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.proctoring-timeline-item.clickable:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #38bdf8;
+}
+
+.proctoring-timeline-item.active {
+  border: 2px solid #38bdf8 !important;
+  background: #f0f9ff !important;
+}
+
+/* Interactive Timeline Scrubber */
+.proctoring-scrub-container {
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #1e293b;
+}
+
+.proctoring-scrub-bar-wrapper {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.proctoring-scrub-track {
+  width: 100%;
+  height: 6px;
+  background: #334155;
+  border-radius: 3px;
+  position: relative;
+}
+
+.proctoring-scrub-progress {
+  height: 100%;
+  background: #38bdf8;
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+
+.proctoring-scrub-pin {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  z-index: 2;
+  border: 2px solid #0f172a;
+}
+
+.proctoring-scrub-pin:hover {
+  transform: translate(-50%, -50%) scale(1.6);
+  z-index: 3;
+}
+
+.proctoring-scrub-pin.high {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+
+.proctoring-scrub-pin.medium {
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+}
+
+.proctoring-scrub-pin.low {
+  background: #38bdf8;
+}
+
+/* Security Dynamic Watermark Overlay */
+.anti-cheat-watermark-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  z-index: 999;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-gap: 40px;
+  padding: 20px;
+  overflow: hidden;
+  opacity: 0.08;
+}
+
+.anti-cheat-watermark-item {
+  transform: rotate(-22deg);
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #000000;
+  white-space: nowrap;
+}

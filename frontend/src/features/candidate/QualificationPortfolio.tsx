@@ -28,7 +28,9 @@ export function QualificationPortfolio() {
     </section>;
   }
 
-  const { items, available_specializations: available, catalog_note: catalogNote } = portfolio.data;
+  const items = portfolio.data?.items ?? [];
+  const available = portfolio.data?.available_specializations ?? [];
+  const catalogNote = portfolio.data?.catalog_note ?? '';
 
   return <section className="candidate-feature-stack">
     <header className="candidate-feature-heading">

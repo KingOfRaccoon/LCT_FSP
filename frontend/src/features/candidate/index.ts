@@ -4,5 +4,6 @@ export {
   ProfileEvidenceEditor,
   PublicProfilePreview,
   ResultCompetencyFeedback,
+  AssessmentResultPanel,
   AssessmentReviewDialog,
 } from './candidate';

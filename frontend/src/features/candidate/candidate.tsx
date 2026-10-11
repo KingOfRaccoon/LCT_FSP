@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { useQuery } from '@tanstack/react-query';
 import { api, errorMessage, skillLabels, type Attempt, type CandidateProfile, type Schemas } from '../../api';
 import { ThemeToggle } from '../../theme';
+import { CodeRunnerSandbox } from '../sandbox/CodeRunnerSandbox';
 import './candidate.css';
 
 type ExperienceInput = Schemas['ExperienceEntryInput'];
@@ -55,33 +56,90 @@ const practiceQuestions = [
   },
 ] as const;
 
-export function PracticePage() {
+export function PracticePage({ defaultTab = 'theory' }: { defaultTab?: 'theory' | 'sandbox' }) {
+  const [tab, setTab] = useState<'theory' | 'sandbox'>(defaultTab);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   return <main className="candidate-practice">
     <ThemeToggle />
     <header className="candidate-feature-heading">
-      <span className="candidate-eyebrow">ПОДГОТОВКА К ФОРМАТУ ОЦЕНКИ</span>
-      <h1>Попробуйте тренировочные вопросы</h1>
-      <p>Это отдельная демонстрация интерфейса. Ответы не оцениваются платформой, не сохраняются и не влияют на профиль, грейд или право на повторную оценку.</p>
+      <span className="candidate-eyebrow">ПОДГОТОВКА И ТРЕНИРОВКА</span>
+      <h1>{tab === 'sandbox' ? 'Черновик кода Python' : 'Попробуйте тренировочные вопросы'}</h1>
+      <p>
+        {tab === 'sandbox'
+          ? 'Изучите примеры Python и подготовьте текстовый черновик. Код не запускается и не проверяется.'
+          : 'Отдельная демонстрация формата вопросов. Ответы не оцениваются платформой, не сохраняются и не влияют на профиль, грейд или право на повторную оценку.'}
+      </p>
     </header>
-    <div className="candidate-practice-banner" role="note"><strong>Тренировка интерфейса · без присвоения грейда</strong><span>Выберите вариант, чтобы увидеть разбор. Вы увидите статус сохранения выбора в этой тренировке, но ответы останутся только в памяти открытой страницы.</span></div>
-    {practiceQuestions.map((item, index) => {
-      const selected = answers[item.id];
-      return <section className="card candidate-practice-card" key={item.id}>
-        <div className="candidate-practice-meta"><span>{String(index + 1).padStart(2, '0')} · {item.block}</span><span>Тренировка</span></div>
-        <h2>{item.prompt}</h2>
-        <fieldset className="candidate-practice-options">
-          <legend className="candidate-visually-hidden">Варианты ответа: {item.prompt}</legend>
-          {item.options.map((option, optionIndex) => <label className={`candidate-practice-option ${selected === optionIndex ? 'is-selected' : ''}`} key={option}>
-            <input type="radio" name={item.id} value={optionIndex} checked={selected === optionIndex} onChange={() => setAnswers((current) => ({ ...current, [item.id]: optionIndex }))} />
-            <span className="candidate-option-key" aria-hidden="true">{String.fromCharCode(65 + optionIndex)}</span><span>{option}</span>
-          </label>)}
-        </fieldset>
-        {selected !== undefined && <div className={`candidate-practice-explanation ${selected === item.correct ? 'is-correct' : 'is-review'}`} aria-live="polite"><strong>{selected === item.correct ? 'Верно для этого тренировочного вопроса' : 'Посмотрите разбор'}</strong><p>{item.explanation}</p></div>}
-        {selected !== undefined && <p className="candidate-practice-save-state" role="status">✓ Выбор сохранён в этой тренировке; сервер его не получал</p>}
-      </section>;
-    })}
-    <p className="candidate-practice-footnote">После закрытия страницы выборы и разборы исчезнут. Эта тренировка не использует вопросы зачётного банка.</p>
+
+    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+      <button
+        type="button"
+        className={`button button-small ${tab === 'theory' ? 'button-primary' : 'button-secondary'}`}
+        onClick={() => setTab('theory')}
+      >
+        Теоретические вопросы
+      </button>
+      <button
+        type="button"
+        className={`button button-small ${tab === 'sandbox' ? 'button-primary' : 'button-secondary'}`}
+        onClick={() => setTab('sandbox')}
+      >
+        📝 Примеры Python без запуска
+      </button>
+    </div>
+
+    {tab === 'sandbox' ? (
+      <CodeRunnerSandbox />
+    ) : (
+      <>
+        <div className="candidate-practice-banner" role="note">
+          <strong>Тренировка интерфейса · без присвоения грейда</strong>
+          <span>Выберите вариант, чтобы увидеть разбор. Вы увидите статус сохранения выбора в этой тренировке, но ответы останутся только в памяти открытой страницы.</span>
+        </div>
+        {practiceQuestions.map((item, index) => {
+          const selected = answers[item.id];
+          return (
+            <section className="card candidate-practice-card" key={item.id}>
+              <div className="candidate-practice-meta">
+                <span>{String(index + 1).padStart(2, '0')} · {item.block}</span>
+                <span>Тренировка</span>
+              </div>
+              <h2>{item.prompt}</h2>
+              <fieldset className="candidate-practice-options">
+                <legend className="candidate-visually-hidden">Варианты ответа: {item.prompt}</legend>
+                {item.options.map((option, optionIndex) => (
+                  <label className={`candidate-practice-option ${selected === optionIndex ? 'is-selected' : ''}`} key={option}>
+                    <input
+                      type="radio"
+                      name={item.id}
+                      value={optionIndex}
+                      checked={selected === optionIndex}
+                      onChange={() => setAnswers((current) => ({ ...current, [item.id]: optionIndex }))}
+                    />
+                    <span className="candidate-option-key" aria-hidden="true">{String.fromCharCode(65 + optionIndex)}</span>
+                    <span>{option}</span>
+                  </label>
+                ))}
+              </fieldset>
+              {selected !== undefined && (
+                <div className={`candidate-practice-explanation ${selected === item.correct ? 'is-correct' : 'is-review'}`} aria-live="polite">
+                  <strong>{selected === item.correct ? 'Верно для этого тренировочного вопроса' : 'Посмотрите разбор'}</strong>
+                  <p>{item.explanation}</p>
+                </div>
+              )}
+              {selected !== undefined && (
+                <p className="candidate-practice-save-state" role="status">
+                  ✓ Выбор сохранён в этой тренировке; сервер его не получал
+                </p>
+              )}
+            </section>
+          );
+        })}
+        <p className="candidate-practice-footnote">
+          После закрытия страницы выборы и разборы исчезнут. Эта тренировка не использует вопросы зачётного банка.
+        </p>
+      </>
+    )}
   </main>;
 }
 
@@ -226,7 +284,7 @@ export function AssessmentReviewDialog({ open, answered, total = 24, savedCount,
 }) {
   const dialog = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
-  const confirmedAllowed = !saving && !error && !hasUnsavedChanges && savedCount >= answered;
+  const confirmedAllowed = !saving;
   useEffect(() => {
     if (!open) {
       previouslyFocused.current?.focus(); previouslyFocused.current = null;
@@ -254,9 +312,9 @@ export function AssessmentReviewDialog({ open, answered, total = 24, savedCount,
       <p id="candidate-review-description">После отправки изменить эту попытку нельзя. Оценка будет рассчитана по сохранённым ответам.</p>
       <dl className="candidate-review-counts"><div><dt>Ответов дано</dt><dd>{answered} из {total}</dd></div><div><dt>Сохранено на сервере</dt><dd>{savedCount} из {total}</dd></div><div><dt>Срок попытки</dt><dd>{dateLabel(deadline)}</dd></div></dl>
       {total - answered > 0 && <p className="candidate-review-warning" role="note">Без ответа: {total - answered}. Такие пункты получат 0 баллов.</p>}
-      {saving && <p className="candidate-inline-info" role="status">Сохраняем последний черновик перед отправкой…</p>}
+      {(saving || hasUnsavedChanges) && <p className="candidate-inline-info" role="status">Сохраняем последний черновик перед отправкой…</p>}
       {error && <p className="candidate-inline-error" role="alert">{error}</p>}
-      <div className="candidate-dialog-actions"><button className="button button-secondary" type="button" onClick={onCancel}>Вернуться к ответам</button><button className="button button-primary" type="button" disabled={!confirmedAllowed} onClick={onConfirm}>{saving ? 'Сохраняем…' : 'Отправить ответы'}</button></div>
+      <div className="candidate-dialog-actions"><button className="button button-secondary" type="button" onClick={onCancel}>Вернуться к ответам</button><button className="button button-primary" type="button" disabled={!confirmedAllowed} onClick={onConfirm}>{saving ? 'Сохраняем…' : error ? 'Повторить отправку' : 'Отправить ответы'}</button></div>
     </div>
   </div>;
 }
@@ -281,4 +339,19 @@ export function ResultCompetencyFeedback({ attempt, eligibility }: { attempt: At
     <div className="candidate-next-step"><strong>{result.passed ? 'Следующий шаг' : 'Повторная оценка'}</strong><p>{result.passed ? 'Порог оценки выполнен. Дальнейший уровень и срок определяются сервером по правилам допуска.' : 'До следующей попытки нужно дождаться срока допуска, который определяет сервер.'}</p>{eligibility && <ul>{(['junior', 'middle'] as const).map((grade) => { const item = eligibility[grade]; return <li key={grade}><span>{grades[grade]}:</span> {item.allowed ? 'доступна' : item.eligible_at ? `с ${dateLabel(item.eligible_at)}` : 'пока недоступна'}</li>; })}</ul>}</div>
     <p className="candidate-method-footnote">Специализация Backend Python · уровень для этой попытки: {grades[attempt.requested_grade]} · форма {attempt.form_version} · методика {attempt.rubric_version}. Итог не оценивает интервью или рабочую эффективность.</p>
   </section>;
+}
+
+export function AssessmentResultPanel({ attempt, eligibility, demoObservationCount }: {
+  attempt: Attempt;
+  eligibility?: Schemas['AssessmentEligibility'];
+  demoObservationCount?: number;
+}) {
+  return <>
+    <ResultCompetencyFeedback attempt={attempt} eligibility={eligibility} />
+    {demoObservationCount !== undefined && <section className="card" aria-label="Локальный демонстрационный журнал наблюдений">
+      <span className="candidate-eyebrow">DEMO · ЛОКАЛЬНЫЙ ЖУРНАЛ НАБЛЮДЕНИЙ</span>
+      <p>Журнал не подтверждает нарушение человеком, не меняет серверную оценку и не ограничивает допуск к следующей попытке.</p>
+      <small>Записано событий: {demoObservationCount}. Это отдельная техническая демонстрация.</small>
+    </section>}
+  </>;
 }

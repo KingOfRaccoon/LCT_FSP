@@ -141,13 +141,15 @@ export function ConsentPanel({ onChanged, includePublication = true }: { onChang
   if (consents.isError || !consents.data) return <div className="error-box" role="alert"><span>{errorMessage(consents.error)}</span><button className="button button-secondary button-small" onClick={() => void consents.refetch()}>Повторить</button></div>;
   return <div className="case-consent-panel">{error && <div className="error-box" role="alert">{error}</div>}{notice && <div className="notice notice-success" role="status">{notice}</div>}
     {(['processing', ...(includePublication ? ['publication' as const] : [])] as ConsentScope[]).map((scope) => {
-      const document = consents.data!.documents.find((item) => item.scope === scope);
+      const documents = consents.data?.documents ?? [];
+      const document = documents.find((item) => item.scope === scope);
       if (!document) return null;
-      const state = consents.data!.states.find((item) => item.scope === scope);
+      const states = consents.data?.states ?? [];
+      const state = states.find((item) => item.scope === scope);
       const accepted = state?.accepted ?? false;
       return <section className="case-consent-document" key={scope}><div className="case-consent-heading"><div><div className="eyebrow">ВЕРСИЯ {document.version}</div><h3>{document.title}</h3></div><span className={`badge ${accepted ? 'badge-good' : 'badge-warm'}`}>{accepted ? 'Действует' : 'Не принято'}</span></div><div className="case-consent-text">{document.text}</div>{!accepted && <label className="case-consent-check"><input type="checkbox" checked={read[scope]} onChange={(event) => setRead((current) => ({ ...current, [scope]: event.target.checked }))} />Я прочитал(а) этот текст и принимаю его</label>}<div className="case-consent-actions">{accepted ? <button className="button button-secondary button-small" disabled={busyScope === scope} onClick={() => void mutate(scope, 'revoke')}>Отозвать согласие</button> : <button className="button button-primary button-small" disabled={!read[scope] || busyScope === scope} onClick={() => void mutate(scope, 'accept')}>{busyScope === scope ? 'Сохраняем…' : 'Принять условия'}</button>}</div></section>;
     })}
-    {consents.data.events.length > 0 && <div className="case-consent-history"><h3>История действий</h3>{consents.data.events.map((event) => <p key={event.id}>{event.scope === 'processing' ? 'Обработка данных' : 'Публикация профиля'} · {event.action === 'accept' ? 'принято' : 'отозвано'} · версия {event.version} · {new Date(event.occurred_at).toLocaleString('ru-RU')}</p>)}</div>}
+    {(consents.data?.events ?? []).length > 0 && <div className="case-consent-history"><h3>История действий</h3>{(consents.data?.events ?? []).map((event) => <p key={event.id}>{event.scope === 'processing' ? 'Обработка данных' : 'Публикация профиля'} · {event.action === 'accept' ? 'принято' : 'отозвано'} · версия {event.version} · {new Date(event.occurred_at).toLocaleString('ru-RU')}</p>)}</div>}
     <p className="field-hint">Текст согласия представлен как проект для оператора платформы и не является юридическим заключением.</p>
   </div>;
 }
