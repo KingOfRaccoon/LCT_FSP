@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { RequestError, errorMessage } from '../../api.ts';
 import {
   decideProctoringReview,
-  fetchProctoringMedia,
   getProctoringReview,
   getProctoringReviewQueue,
+  probeProctoringMedia,
+  proctoringMediaUrl,
   type ProctoringReviewDTO,
   type ProctoringReviewListItem,
   type ServerProctoringStatus,
@@ -15,6 +16,7 @@ import './proctoring.css';
 type Outcome = 'uphold' | 'invalidate' | 'technical';
 type ReasonCode = 'approved' | 'unauthorized_assistance' | 'identity_mismatch' | 'recording_incomplete' | 'technical_failure';
 type PendingDecision = { fingerprint: string; idempotencyKey: string };
+type MediaSelection = { sessionId: string; captureId: string; channel: ProctoringChannel; request: number };
 
 const statusLabel: Record<ServerProctoringStatus, string> = {
   recording: 'Записывается', sealed: 'Запись завершена', review_pending: 'Ожидает проверки', approved: 'Проверена',
@@ -39,22 +41,35 @@ export function OperationsProctoringPage() {
   const [notice, setNotice] = useState('');
   const [mediaUrl, setMediaUrl] = useState('');
   const [mediaLabel, setMediaLabel] = useState('');
+  const [mediaSelection, setMediaSelection] = useState<MediaSelection | null>(null);
   const generation = useRef(0);
   const mediaAbort = useRef<AbortController | null>(null);
-  const mediaUrlRef = useRef('');
+  const activeMediaSelection = useRef<MediaSelection | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const pendingDecision = useRef<PendingDecision | undefined>(undefined);
+
+  const stopMediaPlayback = useCallback(() => {
+    mediaAbort.current?.abort(); mediaAbort.current = null;
+    activeMediaSelection.current = null;
+    const video = videoRef.current;
+    if (video) {
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+    }
+    setMediaUrl(''); setMediaLabel(''); setMediaSelection(null);
+  }, []);
 
   const clearProtectedState = useCallback(() => {
     generation.current++;
-    mediaAbort.current?.abort(); mediaAbort.current = null;
-    if (mediaUrlRef.current) URL.revokeObjectURL(mediaUrlRef.current);
-    mediaUrlRef.current = '';
-    setMediaUrl(''); setMediaLabel(''); setQueue([]); setSelectedId(''); setDetail(null); setNote('');
+    stopMediaPlayback();
+    setQueue([]); setSelectedId(''); setDetail(null); setNote('');
     setLoading(false); setSaving(false); pendingDecision.current = undefined;
-  }, []);
+  }, [stopMediaPlayback]);
 
   const loadQueue = useCallback(async (): Promise<boolean> => {
     const request = ++generation.current;
+    stopMediaPlayback();
     setLoading(true); setError(''); setNotice(''); setDetail(null);
     try {
       const result = await getProctoringReviewQueue(50);
@@ -70,13 +85,12 @@ export function OperationsProctoringPage() {
       setError(errorMessage(reason));
       return true;
     } finally { if (request === generation.current) setLoading(false); }
-  }, [clearProtectedState]);
+  }, [clearProtectedState, stopMediaPlayback]);
 
   const loadDetail = useCallback(async (sessionId: string) => {
     const request = ++generation.current;
-    mediaAbort.current?.abort(); mediaAbort.current = null;
-    if (mediaUrlRef.current) URL.revokeObjectURL(mediaUrlRef.current);
-    mediaUrlRef.current = ''; setMediaUrl(''); setMediaLabel(''); setDetail(null); setSelectedId(sessionId); setError(''); setNote('');
+    stopMediaPlayback();
+    setDetail(null); setSelectedId(sessionId); setError(''); setNote('');
     try {
       const result = await getProctoringReview(sessionId);
       if (request !== generation.current) return;
@@ -87,28 +101,45 @@ export function OperationsProctoringPage() {
         clearProtectedState(); setError('Запись больше недоступна для этой учётной записи.');
       } else setError(errorMessage(reason));
     }
-  }, [clearProtectedState]);
+  }, [clearProtectedState, stopMediaPlayback]);
 
   useEffect(() => { void loadQueue(); return () => { clearProtectedState(); }; }, [loadQueue, clearProtectedState]);
 
   const openMedia = async (captureId: string, channel: ProctoringChannel) => {
     if (!detail) return;
-    mediaAbort.current?.abort();
-    if (mediaUrlRef.current) URL.revokeObjectURL(mediaUrlRef.current);
-    mediaUrlRef.current = ''; setMediaUrl(''); setError('');
+    stopMediaPlayback(); setError('');
     const controller = new AbortController(); mediaAbort.current = controller;
     const request = generation.current;
+    const selection: MediaSelection = { sessionId: detail.session_id, captureId, channel, request };
     setMediaLabel(`${channel === 'camera' ? 'Камера' : 'Экран'} · ${captureId}`);
     try {
-      const blob = await fetchProctoringMedia(detail.session_id, captureId, channel, controller.signal);
+      await probeProctoringMedia(detail.session_id, captureId, channel, controller.signal);
       if (request !== generation.current || controller.signal.aborted) return;
-      const url = URL.createObjectURL(blob); mediaUrlRef.current = url; setMediaUrl(url);
+      activeMediaSelection.current = selection;
+      setMediaSelection(selection);
+      setMediaUrl(proctoringMediaUrl(detail.session_id, captureId, channel));
     } catch (reason) {
       if (controller.signal.aborted || request !== generation.current) return;
       if (reason instanceof RequestError && [401, 403, 404].includes(reason.status)) {
         clearProtectedState(); setError('Доступ к записи закрыт. Медиа и сведения проверки очищены.');
       } else setError(errorMessage(reason));
-    }
+    } finally { if (mediaAbort.current === controller) mediaAbort.current = null; }
+  };
+
+  const handleMediaError = async (selection: MediaSelection) => {
+    if (activeMediaSelection.current !== selection || selection.request !== generation.current) return;
+    const controller = new AbortController();
+    mediaAbort.current?.abort(); mediaAbort.current = controller;
+    try {
+      await probeProctoringMedia(selection.sessionId, selection.captureId, selection.channel, controller.signal);
+      if (controller.signal.aborted || activeMediaSelection.current !== selection || selection.request !== generation.current) return;
+      setError('Не удалось воспроизвести серверную запись. Попробуйте открыть файл ещё раз.');
+    } catch (reason) {
+      if (controller.signal.aborted || selection.request !== generation.current || activeMediaSelection.current !== selection) return;
+      if (reason instanceof RequestError && [401, 403, 404].includes(reason.status)) {
+        clearProtectedState(); setError('Доступ к записи закрыт. Медиа и сведения проверки очищены.');
+      } else setError(errorMessage(reason));
+    } finally { if (mediaAbort.current === controller) mediaAbort.current = null; }
   };
 
   const decide = async () => {
@@ -126,6 +157,7 @@ export function OperationsProctoringPage() {
     try {
       await decideProctoringReview(detail.session_id, body, pendingDecision.current.idempotencyKey);
       pendingDecision.current = undefined;
+      stopMediaPlayback();
       setDetail(null);
       const queueIsSafeToUpdate = await loadQueue();
       if (queueIsSafeToUpdate) setNotice('Решение сохранено на сервере. Обновите очередь для следующей записи.');
@@ -154,7 +186,7 @@ export function OperationsProctoringPage() {
             <p>События браузера сами по себе не подтверждают нарушение; решение основывайте на проверке записи и серверного результата.</p>
             <section aria-label="Задания попытки"><h3>Задания попытки</h3><p>Этот обзор не содержит ключи и выбор ответов. Проверьте запись и предварительную оценку сервера.</p>{detail.attempt.tasks.map((task) => <article className="card" key={task.task_id}><strong>{task.competency_block}</strong><p>{task.prompt}</p>{task.subquestions.map((question) => <div key={question.subquestion_id}><h4>{question.prompt}</h4><ul>{question.options.map((option) => <li key={option.id}>{option.text}</li>)}</ul></div>)}</article>)}</section>
           </section>
-          <section className="card"><h3>Записи медиа</h3>{detail.recordings.map((capture) => <article key={capture.capture_id}><p>Фрагмент {capture.capture_id} · {capture.status} · {capture.started_at ? new Date(capture.started_at).toLocaleString('ru-RU') : 'Дата неизвестна'}</p><div className="button-row">{(['camera', 'screen'] as const).filter((channel) => capture.media[channel].bytes > 0).map((channel) => <button key={channel} type="button" className="button button-secondary button-small" onClick={() => void openMedia(capture.capture_id, channel)}>Открыть {channel === 'camera' ? 'камеру' : 'экран'} · {capture.media[channel].chunks} фрагм.</button>)}</div></article>)}{mediaUrl && <div><p>{mediaLabel}</p><video controls preload="metadata" src={mediaUrl} style={{ width: '100%', maxHeight: '65vh' }} /></div>}</section>
+          <section className="card"><h3>Записи медиа</h3>{detail.recordings.map((capture) => <article key={capture.capture_id}><p>Фрагмент {capture.capture_id} · {capture.status} · {capture.started_at ? new Date(capture.started_at).toLocaleString('ru-RU') : 'Дата неизвестна'}</p><div className="button-row">{(['camera', 'screen'] as const).filter((channel) => capture.media[channel].bytes > 0).map((channel) => <button key={channel} type="button" className="button button-secondary button-small" onClick={() => void openMedia(capture.capture_id, channel)}>Открыть {channel === 'camera' ? 'камеру' : 'экран'} · {capture.media[channel].chunks} фрагм.</button>)}</div></article>)}{mediaUrl && mediaSelection && <div><p>{mediaLabel}</p><video key={`${mediaSelection.sessionId}:${mediaSelection.captureId}:${mediaSelection.channel}`} ref={videoRef} controls preload="metadata" src={mediaUrl} onError={() => void handleMediaError(mediaSelection)} style={{ width: '100%', maxHeight: '65vh' }} /></div>}</section>
           <form className="card" onSubmit={(event) => { event.preventDefault(); void decide(); }}><h3>Решение оператора</h3><label className="field"><span>Решение</span><select value={outcome} onChange={(event) => { const next = event.target.value as Outcome; setOutcome(next); setReasonCode(outcomeReasons[next][0].value); }}><option value="uphold">Подтвердить серверный результат</option><option value="invalidate">Аннулировать попытку</option><option value="technical">Техническая ошибка</option></select></label><label className="field"><span>Основание</span><select value={reasonCode} onChange={(event) => setReasonCode(event.target.value as ReasonCode)}>{outcomeReasons[outcome].map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><label className="field"><span>Комментарий оператора</span><textarea value={note} onChange={(event) => setNote(event.target.value)} minLength={1} maxLength={2000} rows={4} required /></label><button type="submit" className="button button-primary" disabled={saving || !note.trim()}>{saving ? 'Сохраняем…' : 'Сохранить решение на сервере'}</button></form>
         </> : <section className="card"><h2>Выберите попытку</h2><p>Видео и сведения о попытке доступны только при действующем серверном разрешении оператора.</p></section>}
       </div>

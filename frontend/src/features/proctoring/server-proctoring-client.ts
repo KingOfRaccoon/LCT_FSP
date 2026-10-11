@@ -129,17 +129,22 @@ export function decideProctoringReview(sessionId: string, body: {
   return api.post<SessionDTO>(`/operations/proctoring/reviews/${encodeURIComponent(sessionId)}/decision`, body, idempotencyKey);
 }
 
-export async function fetchProctoringMedia(sessionId: string, captureId: string, channel: ProctoringChannel, signal?: AbortSignal): Promise<Blob> {
+export function proctoringMediaUrl(sessionId: string, captureId: string, channel: ProctoringChannel): string {
   const query = new URLSearchParams({ capture_id: captureId });
-  const response = await fetch(`/api/v1/proctoring/sessions/${encodeURIComponent(sessionId)}/media/${channel}?${query.toString()}`, {
+  return `/api/v1/proctoring/sessions/${encodeURIComponent(sessionId)}/media/${channel}?${query.toString()}`;
+}
+
+export async function probeProctoringMedia(sessionId: string, captureId: string, channel: ProctoringChannel, signal?: AbortSignal): Promise<void> {
+  const response = await fetch(proctoringMediaUrl(sessionId, captureId, channel), {
     credentials: 'include',
     cache: 'no-store',
+    headers: { Range: 'bytes=0-0' },
     signal,
   });
   if (!response.ok) {
-    let body: { error?: { message?: string } } = {};
-    try { body = await response.json(); } catch { /* preserve a generic denial message */ }
-    throw new RequestError(response.status, body);
+    await response.body?.cancel();
+    throw new RequestError(response.status, {});
   }
-  return response.blob();
+  // Some servers ignore Range and return the whole WebM with 200. Never buffer or drain it here.
+  await response.body?.cancel();
 }
