@@ -37,6 +37,7 @@ class IdentityService(
     private val operations: OperationsAccess,
     private val companyVerification: CompanyVerificationService,
     @Value("\${fsp.session-secret}") private val sessionSecret: String,
+    @Value("\${fsp.email-verification-required:false}") private val emailVerificationRequired: Boolean,
 ) {
     private val dummyPasswordHash = passwords.encode("unusable-login-dummy-${UUID.randomUUID()}")
 
@@ -66,8 +67,10 @@ class IdentityService(
             }
             val userId = store.id()
             store.exec(
-                "INSERT INTO users(id, email, password_hash, role) VALUES (:id, :email, :password, :role)",
-                mapOf("id" to userId, "email" to email, "password" to passwords.encode(password), "role" to accountType),
+                "INSERT INTO users(id, email, password_hash, role, email_verified_at) " +
+                    "VALUES (:id, :email, :password, :role, CASE WHEN :required THEN NULL ELSE now() END)",
+                mapOf("id" to userId, "email" to email, "password" to passwords.encode(password), "role" to accountType,
+                    "required" to emailVerificationRequired),
             )
             if (accountType == "candidate") {
                 store.exec(
@@ -85,19 +88,22 @@ class IdentityService(
                     mapOf("id" to store.id(), "userId" to userId, "companyId" to companyId),
                 )
             }
-            val verificationId = store.id()
-            val token = verificationToken(verificationId)
-            store.exec(
-                "INSERT INTO email_verification(id, user_id, email, token_hash, expires_at) VALUES (:id, :user, :email, :hash, :expires)",
-                mapOf("id" to verificationId, "user" to userId, "email" to email,
-                    "hash" to SessionSupport.digest(token), "expires" to store.now().plus(VERIFICATION_TTL)),
-            )
-            store.exec(
-                "INSERT INTO outbox_events(id, type, payload) VALUES (:id, 'email_verification', :payload)",
-                mapOf("id" to store.id(), "payload" to store.json(mapOf("verification_id" to verificationId))),
-            )
+            if (emailVerificationRequired) {
+                val verificationId = store.id()
+                val token = verificationToken(verificationId)
+                store.exec(
+                    "INSERT INTO email_verification(id, user_id, email, token_hash, expires_at) VALUES (:id, :user, :email, :hash, :expires)",
+                    mapOf("id" to verificationId, "user" to userId, "email" to email,
+                        "hash" to SessionSupport.digest(token), "expires" to store.now().plus(VERIFICATION_TTL)),
+                )
+                store.exec(
+                    "INSERT INTO outbox_events(id, type, payload) VALUES (:id, 'email_verification', :payload)",
+                    mapOf("id" to store.id(), "payload" to store.json(mapOf("verification_id" to verificationId))),
+                )
+            }
             val issued = sessions.rotate(request, userId, response)
-            AuthReplay.Created(mapOf("user_id" to userId, "account_type" to accountType, "email_verification_required" to true), issued.id)
+            AuthReplay.Created(mapOf("user_id" to userId, "account_type" to accountType,
+                "email_verification_required" to emailVerificationRequired), issued.id)
         }
     }
 
@@ -177,6 +183,10 @@ class IdentityService(
         }
         val userId = user.getValue("id").toString()
         return replay.execute(request, response, scope, body, status = 200) {
+            if (!emailVerificationRequired) {
+                // Accounts created while verification was required would otherwise stay stuck on the verify page.
+                store.exec("UPDATE users SET email_verified_at = now() WHERE id = :id AND email_verified_at IS NULL", mapOf("id" to userId))
+            }
             val issued = sessions.rotate(request, userId, response)
             AuthReplay.Created(currentUser(userId), issued.id)
         }

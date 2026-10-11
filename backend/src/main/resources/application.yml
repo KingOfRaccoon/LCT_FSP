@@ -41,6 +41,8 @@ fsp:
   session-secret: ${SESSION_SECRET:local-demo-session-secret-change-before-deploy-2026}
   public-origin: ${PUBLIC_ORIGIN:http://localhost:5173}
   session-cookie-secure: ${SESSION_COOKIE_SECURE:false}
+  # No real SMTP relay is configured, so accounts are auto-verified unless this is enabled.
+  email-verification-required: ${FSP_EMAIL_VERIFICATION_REQUIRED:false}
   company-verification:
     registry-mode: ${COMPANY_VERIFICATION_PROVIDER:manual}
     dadata-token: ${DADATA_TOKEN:}

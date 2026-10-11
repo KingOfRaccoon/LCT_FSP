@@ -8,3 +8,4 @@ spring:
 
 fsp:
   public-origin: http://testserver
+  email-verification-required: true
