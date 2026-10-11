@@ -27,6 +27,6 @@ class OperationsAccess(private val auth: AuthAccess, private val store: Store) {
     ).mapNotNull { it["permission"]?.toString()?.takeIf(PERMISSIONS::contains) }
 
     companion object {
-        val PERMISSIONS = setOf("company_review", "monitor_read")
+        val PERMISSIONS = setOf("company_review", "monitor_read", "proctoring_review")
     }
 }

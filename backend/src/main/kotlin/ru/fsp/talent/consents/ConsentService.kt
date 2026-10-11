@@ -3,9 +3,11 @@ package ru.fsp.talent.consents
 import org.springframework.stereotype.Service
 import ru.fsp.talent.core.ApiException
 import ru.fsp.talent.core.Store
+import ru.fsp.talent.proctoring.ProctoringConsentRevoker
 
 @Service
-class ConsentService(private val store: Store) {
+class ConsentService(private val store: Store, private val proctoringRevoker: ProctoringConsentRevoker) {
+    fun currentVersion(scope: String): String = SCOPES[scope]?.version ?: throw IllegalArgumentException("Unknown consent scope")
     /** Returns true only when the latest current-version event for both scopes is acceptance. */
     fun publicationAllowed(userId: String): Boolean {
         val processingVersion = SCOPES.getValue("processing").version
@@ -72,6 +74,7 @@ class ConsentService(private val store: Store) {
                VALUES (:id, :user, :scope, :version, :action)""".trimIndent(),
             mapOf("id" to store.id(), "user" to userId, "scope" to scope, "version" to version, "action" to action),
         )
+        if (scope == "processing" && action == "revoke") proctoringRevoker.revoke(userId)
         if (action == "revoke" && role == "candidate") {
             store.exec(
                 """UPDATE candidate_profiles SET visibility = 'hidden', version = version + 1, updated_at = now()

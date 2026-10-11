@@ -1,7 +1,7 @@
 import Brand from './Brand';
 import NavIcon from './NavIcon';
 import * as React from 'react';
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, buildVacancyPublishPayload, claimVacancyPublish, clearVacancyPublishIntent, errorMessage, generateUUID, nextVacancyPublishIdempotencyKey, RequestError, releaseVacancyPublish, rotateCsrf, skillLabels, type Attempt, type Candidate, type CandidateProfile, type Company, type ContactBundle, type Grade, type Invitation, type MatchCandidate, type Need, type OwnContacts, type Schemas, type Shortlist, type SkillId, type Taxonomy, type User } from './api';
@@ -40,6 +40,25 @@ import { SalaryPreferenceEditor } from './features/adoption/SalaryPreferenceEdit
 import { NeedInsightsPanel } from './features/adoption/NeedInsightsPanel';
 import { CompanyVerificationPanel, CompanyVerificationBadge, OperationsWorkspace } from './features/company-ops';
 import { MethodistWorkspace } from './features/methodist/MethodistWorkspace';
+import { OperationsProctoringPage } from './features/proctoring/OperationsProctoringPage';
+import { ServerProctoringSetupModal } from './features/proctoring/ServerProctoringSetupModal';
+import { ProctoringCandidateStatus } from './features/proctoring/ProctoringCandidateStatus';
+import {
+  createProctoringCapture,
+  getProctoringSession,
+  getServerProctoringConfig,
+  revokeProctoringSessionFresh,
+  refreshOwnedProctoringSession,
+  sealProctoringSession,
+  startProctoringSession,
+  appendAllProctoringEvents,
+  toServerProctoringEvents,
+  uploadProctoringChunk,
+  type SessionDTO as ServerProctoringSession,
+} from './features/proctoring/server-proctoring-client.ts';
+import { assertServerCaptureReceiptsComplete, canStartServerCapture as canStartServerProctoring, canStartServerSession } from './features/proctoring/server-proctoring-policy.ts';
+import { SerialChunkUploadQueue } from './features/proctoring/proctoring-upload-queue.ts';
+import { useServerProctoringEvents } from './features/proctoring/useServerProctoringEvents.ts';
 
 type Group<T> = { items: T[]; page?: { next_cursor: string | null; limit: number } };
 type MatchResult = Schemas['MatchResults'];
@@ -92,12 +111,16 @@ function Empty({ title, detail, action }: { title: string; detail: string; actio
 
 function App() {
   useEffect(() => installPressMotion(document), []);
+  const queryClient = useQueryClient();
   const location = useLocation();
   const isPractice = location.pathname === '/practice';
   const me = useQuery({ queryKey: ['me'], queryFn: async () => {
     const user = await api.get<User>('/auth/me');
     const identity = demoDataIdentityFor(user);
-    if (currentDemoDataIdentity && currentDemoDataIdentity !== identity) clearDemoProctoringData();
+    if (currentDemoDataIdentity && currentDemoDataIdentity !== identity) {
+      clearDemoProctoringData();
+      void queryClient.removeQueries({ queryKey: ['proctoring'] });
+    }
     currentDemoDataIdentity = identity;
     return user;
   }, enabled: !isPractice });
@@ -106,8 +129,9 @@ function App() {
   useEffect(() => {
     if (!demoDataIdentity || demoDataIdentity === clearedDemoDataIdentity) return;
     clearDemoProctoringData();
+    void queryClient.removeQueries({ queryKey: ['proctoring'] });
     setClearedDemoDataIdentity(demoDataIdentity);
-  }, [demoDataIdentity, clearedDemoDataIdentity]);
+  }, [demoDataIdentity, clearedDemoDataIdentity, queryClient]);
   const waitingForDemoIdentityCleanup = Boolean(demoDataIdentity && demoDataIdentity !== clearedDemoDataIdentity);
   const body = (() => {
     if (isPractice) return <PracticePage />;
@@ -122,7 +146,7 @@ function App() {
       return <AuthPage />;
     }
     if (!me.data.email_verified) return <VerifyPage user={me.data} />;
-    return <Workspace user={me.data} />;
+    return <Workspace key={demoDataIdentityFor(me.data)} user={me.data} />;
   })();
   return body;
 }
@@ -217,9 +241,15 @@ function ConfirmTokenPage({ authenticated }: { authenticated: boolean }) {
 
 function VerifyPage({ user }: { user: User }) {
   const query = useQueryClient(); const navigate = useNavigate(); const [notice, setNotice] = useState(''); const [error, setError] = useState('');
+  const logout = async () => {
+    clearDemoProctoringData(); currentDemoDataIdentity = null;
+    try { await api.post('/auth/logout'); }
+    catch (reason) { setError(errorMessage(reason)); }
+    finally { rotateCsrf(); await query.clear(); navigate('/login'); }
+  };
   const resend = async () => { setError(''); try { await api.post('/auth/resend-confirmation', { email: user.email }); setNotice('Если адрес зарегистрирован, письмо отправлено.'); } catch (e) { setError(errorMessage(e)); } };
   const confirm = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const token = String(new FormData(event.currentTarget).get('token')); try { await api.post('/auth/confirm-email', { token }); rotateCsrf(); await query.invalidateQueries({ queryKey: ['me'] }); navigate('/'); } catch (e) { setError(errorMessage(e)); } };
-  return <main className="auth-page verify-layout"><ThemeToggle /><section className="verify-card"><Brand /><div className="auth-card-top"><span className="eyebrow">ПОДТВЕРЖДЕНИЕ EMAIL</span><h1>Проверьте почту</h1><p>Для {user.email} ещё не подтверждён адрес. Откройте ссылку из письма или введите токен.</p></div>{error && <ErrorBlock error={error} />}{notice && <Notice tone="success">{notice}</Notice>}<form className="form-stack" onSubmit={confirm}><Field label="Токен подтверждения" name="token" required maxLength={256} /><button className="button button-primary">Подтвердить email</button></form><button className="text-button resend" onClick={resend}>Отправить письмо ещё раз</button><button className="text-button resend" onClick={async () => { await api.post('/auth/logout'); rotateCsrf(); await query.invalidateQueries({ queryKey: ['me'] }); }}>Выйти</button></section></main>;
+  return <main className="auth-page verify-layout"><ThemeToggle /><section className="verify-card"><Brand /><div className="auth-card-top"><span className="eyebrow">ПОДТВЕРЖДЕНИЕ EMAIL</span><h1>Проверьте почту</h1><p>Для {user.email} ещё не подтверждён адрес. Откройте ссылку из письма или введите токен.</p></div>{error && <ErrorBlock error={error} />}{notice && <Notice tone="success">{notice}</Notice>}<form className="form-stack" onSubmit={confirm}><Field label="Токен подтверждения" name="token" required maxLength={256} /><button className="button button-primary">Подтвердить email</button></form><button className="text-button resend" onClick={resend}>Отправить письмо ещё раз</button><button className="text-button resend" onClick={() => void logout()}>Выйти</button></section></main>;
 }
 
 function Field({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
@@ -243,12 +273,14 @@ function Workspace({ user }: { user: User }) {
   const candidate = user.account_type === 'candidate';
   const demoProctoringEnabled = isDemoProctoringEnabled();
   const operationsPermissions = user.operations_permissions ?? [];
+  const canReviewProctoring = (operationsPermissions as string[]).includes('proctoring_review');
   const links: WorkspaceLink[] = candidate ? [
     { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/profile', label: 'Профиль', icon: 'profile' }, { to: '/vacancies', label: 'Вакансии и отклики', icon: 'matches' }, { to: '/consents', label: 'Согласия и видимость', icon: 'visibility' }, { to: '/assessment', label: 'Оценка', icon: 'assessment' }, { to: '/sandbox', label: 'Песочница Python', icon: 'tasks' }, { to: '/qualifications', label: 'Подтверждения', icon: 'credentials' }, { to: '/short-tasks', label: 'Задачи компаний', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' }, { to: '/contacts', label: 'Доступ к контактам', icon: 'contacts' },
   ] : [
     { to: '/', label: 'Обзор', icon: 'overview' }, { to: '/company', label: 'Компания', icon: 'company' }, { to: '/needs', label: 'Потребности', icon: 'needs' }, { to: '/employer-vacancies', label: 'Отклики на вакансии', icon: 'tasks' }, { to: '/matches', label: 'Подборка', icon: 'matches' }, { to: '/bank', label: 'Банк кандидатов', icon: 'bank' }, { to: '/shortlists', label: 'Шорт-листы', icon: 'shortlists' }, { to: '/recruiting', label: 'Работа с кандидатами', icon: 'recruiting' }, { to: '/short-tasks', label: 'Адресные задачи', icon: 'tasks' }, { to: '/invitations', label: 'Приглашения', icon: 'invitations' },
   ];
   if (!candidate && demoProctoringEnabled) links.splice(8, 0, { to: '/proctoring', label: 'Демо-журнал наблюдений', icon: 'assessment' });
+  if (canReviewProctoring) links.push({ to: '/operations/proctoring', label: 'Проверка попыток', icon: 'assessment' });
   if (user.methodist_access) links.push({ to: '/methodist', label: 'Мастерская методиста', icon: 'assessment' });
   const query = useQueryClient(); const navigate = useNavigate();
   if (operationsPermissions.length) links.push({ to: '/operations', label: 'Операции', icon: 'company' });
@@ -287,6 +319,7 @@ function Workspace({ user }: { user: User }) {
         <Route path="/short-tasks" element={<AddressTasksPage role="employer" />} />
       </>}
       {operationsPermissions.length > 0 && <Route path="/operations" element={<OperationsWorkspace permissions={operationsPermissions} />} />}
+      {canReviewProctoring && <Route path="/operations/proctoring" element={<OperationsProctoringPage />} />}
       {user.methodist_access && <Route path="/methodist" element={<MethodistWorkspace />} />}
       <Route path="/messages/:invitationId" element={<ConversationPage role={user.account_type} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -478,27 +511,135 @@ function AssessmentRun() {
   const meQuery = useQuery({ queryKey: ['me'], queryFn: () => api.get<User>('/auth/me') });
   const processingAccepted = consentsQuery.data?.states.some((consent) => consent.scope === 'processing' && consent.accepted) ?? false;
   const [attempt, setAttempt] = useState<Attempt | undefined>(); const [answers, setAnswers] = useState<Record<string, string>>({});
+  const proctoringConfigQuery = useQuery({
+    queryKey: ['proctoring', 'config'],
+    queryFn: getServerProctoringConfig,
+    enabled: Boolean(attempt?.status === 'in_progress' && processingAccepted),
+    staleTime: 30_000,
+    retry: false,
+  });
+  const [serverSession, setServerSession] = useState<ServerProctoringSession | null>(null);
+  const serverSessionRef = useRef<ServerProctoringSession | null>(null);
+  const [serverSessionLoading, setServerSessionLoading] = useState(false);
+  const [serverSessionError, setServerSessionError] = useState('');
+  const [serverCaptureError, setServerCaptureError] = useState('');
+  const [serverConsentGiven, setServerConsentGiven] = useState(false);
+  const [showServerSetup, setShowServerSetup] = useState(false);
+  const [proctoringActive, setProctoringActive] = useState(false);
+  const [showProctoringModal, setShowProctoringModal] = useState(false);
+  const [proctoringSessionId] = useState(() => `proc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`);
+  const sessionStartTimeRef = useRef(new Date().toISOString());
+  const uploadQueueRef = useRef<SerialChunkUploadQueue | null>(null);
+  const lastSequencesRef = useRef<Record<'camera' | 'screen', number>>({ camera: -1, screen: -1 });
+  const serverEventProgressRef = useRef(0);
+  const stopRecordingRef = useRef<() => Promise<{ cameraBlob: Blob | null; screenBlob: Blob | null }>>(() => Promise.resolve({ cameraBlob: null, screenBlob: null }));
+  const preparedCaptureRef = useRef('');
+  const pendingServerIdempotency = useRef(new Map<string, { fingerprint: string; key: string }>());
+  const proctoringAccessGeneration = useRef(0);
+  const adoptServerSession = useCallback((next: ServerProctoringSession | null) => {
+    if (serverSessionRef.current?.session_id !== next?.session_id) {
+      serverEventProgressRef.current = 0;
+      preparedCaptureRef.current = '';
+    }
+    serverSessionRef.current = next;
+    setServerSession(next);
+  }, []);
+  const clearServerProctoringState = useCallback((message: string) => {
+    proctoringAccessGeneration.current++;
+    uploadQueueRef.current?.abort(); uploadQueueRef.current = null;
+    preparedCaptureRef.current = '';
+    serverSessionRef.current = null; setServerSession(null);
+    setServerConsentGiven(false); setShowServerSetup(false); setProctoringActive(false);
+    setServerCaptureError(''); setServerSessionError(message);
+    void stopRecordingRef.current();
+    void query.removeQueries({ queryKey: ['proctoring'] });
+  }, [query]);
+  useEffect(() => {
+    if (!processingAccepted) {
+      clearServerProctoringState('Текущего согласия на обработку нет. Сведения серверной записи очищены.');
+      setServerSessionLoading(false);
+      return;
+    }
+    if (!attempt || !processingAccepted) {
+      setServerSessionLoading(false);
+      return;
+    }
+    let active = true;
+    const generation = ++proctoringAccessGeneration.current;
+    setServerSessionLoading(true); setServerSessionError('');
+    getProctoringSession(attemptId).then((session) => {
+      if (active && generation === proctoringAccessGeneration.current) adoptServerSession(session);
+    }).catch((reason) => {
+      if (!active || generation !== proctoringAccessGeneration.current) return;
+      if (reason instanceof RequestError && reason.status === 404) { adoptServerSession(null); return; }
+      if (reason instanceof RequestError && [401, 403].includes(reason.status)) {
+        clearServerProctoringState('Доступ к серверной записи закрыт. Защищённые сведения очищены.');
+      } else setServerSessionError(errorMessage(reason));
+    }).finally(() => {
+      if (active && generation === proctoringAccessGeneration.current) setServerSessionLoading(false);
+    });
+    return () => {
+      active = false;
+      if (generation === proctoringAccessGeneration.current) proctoringAccessGeneration.current++;
+      uploadQueueRef.current?.abort(); uploadQueueRef.current = null;
+    };
+  }, [attemptId, attempt?.status, processingAccepted, adoptServerSession, clearServerProctoringState]);
+  const webmRecorderAvailable = typeof MediaRecorder !== 'undefined' && (() => {
+    try { return ['video/webm;codecs=vp8,opus', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8', 'video/webm;codecs=vp9', 'video/webm'].some((mime) => MediaRecorder.isTypeSupported(mime)); }
+    catch { return false; }
+  })();
   const mediaApisAvailable = typeof navigator !== 'undefined' &&
     typeof navigator.mediaDevices?.getUserMedia === 'function' &&
     typeof navigator.mediaDevices?.getDisplayMedia === 'function' &&
     typeof MediaRecorder !== 'undefined';
-  const demoCaptureAllowed = canOfferDemoCapture({
+  const serverMediaApisAvailable = mediaApisAvailable && webmRecorderAvailable && typeof crypto !== 'undefined' && typeof crypto.subtle?.digest === 'function';
+  const serverCaptureAllowed = canStartServerProctoring({
+    available: canStartServerSession(proctoringConfigQuery.data),
+    secureContext: typeof window !== 'undefined' && window.isSecureContext,
+    mediaApisAvailable: serverMediaApisAvailable,
+  });
+  const demoCaptureAllowed = !serverCaptureAllowed && canOfferDemoCapture({
     isDemoAttempt: attempt?.demo === true,
     processingAccepted,
     secureContext: typeof window !== 'undefined' && window.isSecureContext,
     mediaApisAvailable,
   });
   const demoCaptureConsent = demoCaptureAllowed && attempt?.status === 'in_progress';
+  const serverCaptureConsent = serverCaptureAllowed && serverConsentGiven && processingAccepted && attempt?.status === 'in_progress';
+  const captureMode = serverCaptureConsent ? 'server' : 'demo';
+  serverSessionRef.current = serverSession;
+  const stableServerKey = useCallback((scope: string, fingerprint: string) => {
+    const current = pendingServerIdempotency.current.get(scope);
+    if (current?.fingerprint === fingerprint) return current.key;
+    const key = generateUUID();
+    pendingServerIdempotency.current.set(scope, { fingerprint, key });
+    return key;
+  }, []);
+  const finishServerKey = useCallback((scope: string) => { pendingServerIdempotency.current.delete(scope); }, []);
+  const handleServerChunk = useCallback((channel: 'camera' | 'screen', blob: Blob, sequence: number) => {
+    const queue = uploadQueueRef.current;
+    const session = serverSessionRef.current;
+    if (!queue || !session?.active_capture_id) {
+      setServerCaptureError('Фрагмент записи не отправлен: серверная сессия недоступна.');
+      void stopRecordingRef.current();
+      return;
+    }
+    void queue.enqueue({ captureId: session.active_capture_id, channel, sequence, blob }).then((receipt) => {
+      lastSequencesRef.current[channel] = Math.max(lastSequencesRef.current[channel], receipt.sequence);
+    }).catch((reason) => {
+      setServerCaptureError(`Загрузка записи остановлена: ${errorMessage(reason)}`);
+      queue.abort();
+      preparedCaptureRef.current = '';
+      void stopRecordingRef.current();
+      setProctoringActive(false);
+    });
+  }, []);
   const resultProfileQuery = useQuery({ queryKey: ['profile'], queryFn: () => api.get<CandidateProfile>('/me/profile'), enabled: Boolean(attempt && attempt.status !== 'in_progress') });
   const [saveStatus, setSaveStatus] = useState<'saved' | 'dirty' | 'saving' | 'error'>('saved'); const [saveError, setSaveError] = useState(''); const [saveConflict, setSaveConflict] = useState(false); const [submitError, setSubmitError] = useState(''); const [submitting, setSubmitting] = useState(false);
   const [savedAck, setSavedAck] = useState<{ count: number; savedAt: string | null }>({ count: 0, savedAt: null });
   const version = useRef(0); const savedSnapshot = useRef(''); const failedSnapshot = useRef(''); const hydratedAttemptId = useRef(''); const savePromise = useRef<Promise<Attempt | null> | null>(null); const submittingRef = useRef(false); const attemptIdRef = useRef(attemptId); const mountedRef = useRef(true);
 
-  // Proctoring session state
-  const [proctoringActive, setProctoringActive] = useState(false);
-  const [showProctoringModal, setShowProctoringModal] = useState(false);
-  const [proctoringSessionId] = useState(() => `proc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`);
-  const sessionStartTimeRef = useRef(new Date().toISOString());
+  const serverObservations = useServerProctoringEvents(Boolean(serverCaptureConsent && proctoringActive), serverSession?.session_id ?? null);
 
   const {
     cameraStream,
@@ -507,13 +648,27 @@ function AssessmentRun() {
     isRecording,
     startRecording,
     stopRecording,
-  } = useProctoringMedia({ attemptId, consentGranted: demoCaptureConsent });
+  } = useProctoringMedia({
+    attemptId,
+    consentGranted: demoCaptureConsent || serverCaptureConsent,
+    captureMode,
+    onChunk: serverCaptureConsent ? handleServerChunk : undefined,
+    onEvent: serverCaptureConsent ? (type) => {
+      if (type === 'camera_disabled' || type === 'screen_share_stopped') serverObservations.emitEvent(type);
+    } : undefined,
+    onCaptureError: serverCaptureConsent ? (message) => {
+      setServerCaptureError(message);
+      uploadQueueRef.current?.abort(); uploadQueueRef.current = null;
+      preparedCaptureRef.current = '';
+      setProctoringActive(false);
+    } : undefined,
+  });
+  stopRecordingRef.current = stopRecording;
 
   const { events, emitEvent, lastWarning: eventWarning } = useEventMonitor({
     active: demoCaptureConsent && proctoringActive,
     sessionId: proctoringSessionId,
   });
-
   const { faceWarning } = useFaceTracker({
     stream: cameraStream,
     enabled: demoCaptureConsent && proctoringActive,
@@ -533,6 +688,83 @@ function AssessmentRun() {
     sessionStartTimeRef.current = new Date().toISOString();
     // Start recording immediately with the fresh active streams
     startRecording(cam, scr);
+  };
+  const prepareServerProctoringCapture = async (): Promise<ServerProctoringSession> => {
+    const config = proctoringConfigQuery.data;
+    if (!attempt || !config || !canStartServerSession(config) || !serverCaptureAllowed || !serverConsentGiven || !processingAccepted || attempt.status !== 'in_progress') {
+      throw new Error('Серверная запись недоступна. Обычную оценку можно продолжить без неё.');
+    }
+    const current = serverSessionRef.current;
+    const alreadyPrepared = current && preparedCaptureRef.current === `${current.session_id}:${current.active_capture_id}`;
+    if (alreadyPrepared && current.active_capture_id) return current;
+
+    const previousBytes = (current?.captures ?? []).reduce((sum, capture) => sum + capture.media.camera.bytes + capture.media.screen.bytes, 0);
+    if (previousBytes >= config.max_session_bytes) throw new Error('Достигнут лимит объёма серверной записи.');
+    let next: ServerProctoringSession;
+    if (!current) {
+      const fingerprint = JSON.stringify([attempt.id, config.consent_version, config.consent_document_sha256]);
+      const scope = `session:${attempt.id}`;
+      proctoringAccessGeneration.current++;
+      next = await startProctoringSession(attempt.id, config, stableServerKey(scope, fingerprint));
+      finishServerKey(scope);
+    } else {
+      if (!['recording', 'sealed'].includes(current.status)) throw new Error('Эту запись нельзя продолжить. Обратитесь к оператору.');
+      const fingerprint = JSON.stringify([current.session_id, current.version]);
+      const scope = `capture:${current.session_id}`;
+      proctoringAccessGeneration.current++;
+      next = await createProctoringCapture(current, stableServerKey(scope, fingerprint));
+      finishServerKey(scope);
+    }
+
+    const captureId = next.active_capture_id;
+    if (!captureId) throw new Error('Сервер не создал активный фрагмент записи.');
+    const usedBytes = next.captures.reduce((sum, capture) => sum + capture.media.camera.bytes + capture.media.screen.bytes, 0);
+    const remainingBytes = Math.max(0, config.max_session_bytes - usedBytes);
+    if (!remainingBytes) throw new Error('Достигнут лимит объёма серверной записи.');
+    uploadQueueRef.current?.abort();
+    uploadQueueRef.current = new SerialChunkUploadQueue({
+      maxChunkBytes: config.max_chunk_bytes,
+      maxSessionBytes: remainingBytes,
+      upload: (chunk, options) => uploadProctoringChunk(next.session_id, chunk, options.idempotencyKey, options.signal),
+    });
+    lastSequencesRef.current = { camera: -1, screen: -1 };
+    preparedCaptureRef.current = `${next.session_id}:${captureId}`;
+    setServerCaptureError('');
+    adoptServerSession(next);
+    return next;
+  };
+  const handleServerProctoringReady = (session: { session_id: string; active_capture_id: string | null }, media: { cameraStream: MediaStream; screenStream: MediaStream }) => {
+    const current = serverSessionRef.current;
+    if (!serverCaptureConsent || !current || current.session_id !== session.session_id || !session.active_capture_id) {
+      [...media.cameraStream.getTracks(), ...media.screenStream.getTracks()].forEach((track) => track.stop());
+      setServerCaptureError('Согласие или активная серверная сессия изменились; запись не началась.');
+      return;
+    }
+    setCameraStream(media.cameraStream); setScreenStream(media.screenStream);
+    setProctoringActive(true); setShowServerSetup(false);
+    startRecording(media.cameraStream, media.screenStream);
+  };
+  const cancelServerSetup = () => { setShowServerSetup(false); setServerConsentGiven(false); };
+  const revokeServerProctoring = async () => {
+    const current = serverSessionRef.current;
+    if (!current) return;
+    const confirmation = attempt?.result?.grade_awarded
+      ? `Удалить серверную запись и закрыть доступ к медиа? Уже опубликованный грейд ${gradeName(attempt.result.grade_awarded)} останется без изменений.`
+      : 'Отозвать согласие и удалить серверную запись? Текущая проверка будет закрыта сервером, эта попытка может быть аннулирована.';
+    if (!window.confirm(confirmation)) return;
+    uploadQueueRef.current?.abort(); uploadQueueRef.current = null;
+    await stopRecording(); setProctoringActive(false);
+    const scope = `revoke:${current.session_id}`;
+    try {
+      const revoked = await revokeProctoringSessionFresh(attemptId, current, (latest) => stableServerKey(scope, JSON.stringify([latest.session_id, latest.version])));
+      finishServerKey(scope); adoptServerSession(revoked);
+      await query.invalidateQueries({ queryKey: ['attempt', attemptId] });
+      await query.invalidateQueries({ queryKey: ['attempts'] });
+      setServerConsentGiven(false); setServerCaptureError(''); setServerSessionError('Согласие отозвано. Сервер удаляет запись.');
+    } catch (reason) {
+      if (reason instanceof RequestError && [401, 403, 404].includes(reason.status)) clearServerProctoringState('Доступ к записи закрыт. Данные проверки очищены.');
+      else setServerCaptureError(errorMessage(reason));
+    }
   };
   attemptIdRef.current = attemptId;
   useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
@@ -624,6 +856,54 @@ function AssessmentRun() {
   const [remaining, setRemaining] = useState<number | undefined>();
   useEffect(() => { if (!attempt) return; setRemaining(attempt.remaining_seconds); if (attempt.status !== 'in_progress') return; const end = Date.now() + attempt.remaining_seconds * 1000; const timer = window.setInterval(() => setRemaining(Math.max(0, Math.ceil((end - Date.now()) / 1000))), 1000); return () => window.clearInterval(timer); }, [attempt?.id, attempt?.version]);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const sealServerCaptureBeforeSubmit = async () => {
+    if (!attempt) throw new Error('Попытка не загружена. Обновите страницу перед отправкой.');
+    let session = serverSessionRef.current;
+    if (!session) return;
+    if (session.status === 'sealed') return;
+    if (session.status !== 'recording') throw new Error('Серверная сессия не готова к отправке. Обновите состояние или отзовите согласие.');
+    if (!uploadQueueRef.current || preparedCaptureRef.current !== `${session.session_id}:${session.active_capture_id}` || !session.active_capture_id) {
+      throw new Error('Серверная запись была прервана. Возобновите запись новым фрагментом перед отправкой.');
+    }
+    const uploadQueue = uploadQueueRef.current;
+    if (proctoringActive) {
+      await stopRecording();
+      setProctoringActive(false);
+    }
+    await uploadQueue.drain();
+    lastSequencesRef.current = uploadQueue.lastAcceptedSequences;
+    assertServerCaptureReceiptsComplete(lastSequencesRef.current);
+    session = serverSessionRef.current ?? session;
+    const captureId = session.active_capture_id;
+    if (!captureId) throw new Error('У сессии нет активного фрагмента для завершения.');
+    session = await refreshOwnedProctoringSession(attempt.id, session.session_id);
+    if (session.status !== 'recording' || session.active_capture_id !== captureId) {
+      throw new Error('Активный фрагмент записи изменился. Возобновите запись перед отправкой.');
+    }
+    adoptServerSession(session);
+    const minimalEvents = toServerProctoringEvents(serverObservations.events);
+    const pendingEvents = minimalEvents.slice(serverEventProgressRef.current);
+    if (pendingEvents.length) {
+      const progressAtStart = serverEventProgressRef.current;
+      let batchOffset = 0;
+      const keyForBatch = () => {
+        const batch = pendingEvents.slice(batchOffset, batchOffset + 100);
+        batchOffset += batch.length;
+        const scope = `events:${session!.session_id}:${batch[0]?.event_id ?? 'empty'}:${batch.at(-1)?.event_id ?? 'empty'}`;
+        return stableServerKey(scope, JSON.stringify([session!.version, batch]));
+      };
+      session = await appendAllProctoringEvents(session, pendingEvents, keyForBatch, (updated, acceptedCount) => {
+        serverEventProgressRef.current = progressAtStart + acceptedCount;
+        adoptServerSession(updated);
+      });
+      adoptServerSession(session);
+    }
+    const lastSequences = { ...lastSequencesRef.current };
+    const scope = `seal:${session.session_id}:${captureId}`;
+    const key = stableServerKey(scope, JSON.stringify([session.version, captureId, lastSequences]));
+    const sealed = await sealProctoringSession(session, captureId, lastSequences, key);
+    finishServerKey(scope); adoptServerSession(sealed); uploadQueueRef.current = null;
+  };
   const submit = async () => {
     if (!processingAccepted || !attempt || submittingRef.current || attempt.status !== 'in_progress') return;
     submittingRef.current = true; setSubmitting(true); setSubmitError('');
@@ -647,7 +927,9 @@ function AssessmentRun() {
       }
       savedSnapshot.current = serializeAnswers(answerMap(current));
 
-      if (demoCaptureConsent && proctoringActive) {
+      if (serverSessionRef.current) {
+        await sealServerCaptureBeforeSubmit();
+      } else if (demoCaptureConsent && proctoringActive) {
         try {
           const { cameraBlob, screenBlob } = await stopRecording();
           setProctoringActive(false);
@@ -700,6 +982,7 @@ function AssessmentRun() {
   const minutes = Math.floor((remaining ?? attempt.remaining_seconds) / 60); const seconds = (remaining ?? attempt.remaining_seconds) % 60;
   if (attempt.status !== 'in_progress') {
     const demoReport = isDemoProctoringEnabled() && attempt.demo ? loadStoredProctoringReport(attempt.id) : null;
+    const terminalSessionCanRevoke = Boolean(serverSession && !['revoked', 'expired'].includes(serverSession.status));
     const headerTitle = attempt.result?.grade_awarded
       ? `Уровень ${gradeName(attempt.result.grade_awarded)}`
       : attempt.status === 'invalidated'
@@ -707,12 +990,42 @@ function AssessmentRun() {
       : attempt.result
       ? 'Оценка завершена'
       : 'Оценка ожидает результата';
-    return <><PageHeader eyebrow="РЕЗУЛЬТАТ ОЦЕНКИ" title={headerTitle} description={`Данные этой попытки · ${date(attempt.evaluated_at)}`} />{attempt.demo && <div className="demo-attempt-marker"><Badge tone="warm">DEMO · результат на тестовых данных</Badge></div>}<AssessmentResultPanel attempt={attempt} eligibility={resultProfileQuery.data?.assessment_eligibility} demoObservationCount={demoReport?.events.length} /><Link className="button button-primary" to="/assessment">История оценок →</Link></>;
+    return <><PageHeader eyebrow="РЕЗУЛЬТАТ ОЦЕНКИ" title={serverSession?.status === 'review_pending' ? 'Попытка ожидает проверки оператором' : headerTitle} description={serverSession?.status === 'review_pending' ? 'Сервер хранит результат как предварительный. Оценка и грейд появятся после решения уполномоченного оператора.' : `Данные этой попытки · ${date(attempt.evaluated_at)}`} />{attempt.demo && <div className="demo-attempt-marker"><Badge tone="warm">DEMO · результат на тестовых данных</Badge></div>}<ProctoringCandidateStatus status={serverSession?.status} publishedGrade={attempt.result?.grade_awarded ? gradeName(attempt.result.grade_awarded) : null} onRevoke={terminalSessionCanRevoke ? () => void revokeServerProctoring() : undefined} /><AssessmentResultPanel attempt={attempt} eligibility={resultProfileQuery.data?.assessment_eligibility} demoObservationCount={demoReport?.events.length} /><Link className="button button-primary" to="/assessment">История оценок →</Link></>;
   }
 
   const candidateWatermark = `${meQuery.data?.candidate_profile?.display_name || meQuery.data?.email || 'ID: ' + attempt.id.slice(0, 8)} · ${attempt.id.slice(0, 8)}`;
 
   return <div className="assessment-run" style={{ position: 'relative' }}>
+    {proctoringConfigQuery.isError && <div className="notice notice-warm" role="status">Невозможно проверить доступность необязательной серверной записи. Обычную оценку можно продолжить без камеры и экрана.</div>}
+    {proctoringConfigQuery.data && !proctoringConfigQuery.data.available && <div className="notice notice-warm" role="status">Серверная запись недоступна: {proctoringConfigQuery.data.reason || 'хранилище не готово'}. Обычная оценка не требует записи.</div>}
+    {serverSessionLoading && <p className="field-hint" role="status">Проверяем состояние серверной записи…</p>}
+    {serverSessionError && <div className="notice notice-warm" role="status">{serverSessionError} Обычная оценка остаётся доступна.</div>}
+    {serverCaptureError && <div className="notice notice-danger" role="alert">{serverCaptureError}</div>}
+    {serverCaptureAllowed && !serverSession && !serverSessionLoading && <section className="card" aria-label="Необязательная серверная запись" style={{ marginBottom: '1rem' }}>
+      <span className="candidate-eyebrow">НЕОБЯЗАТЕЛЬНАЯ СЕРВЕРНАЯ ЗАПИСЬ</span>
+      <p>Можно добровольно записать камеру и выбранную вкладку браузера или окно приложения без микрофона и системного аудио для проверки оператором. Без записи попытка проходит обычным способом.</p>
+      <p className="field-hint">Согласие появится в следующем окне вместе с точной версией документа и его SHA-256.</p>
+      <button type="button" className="button button-secondary" onClick={() => { setServerConsentGiven(false); setShowServerSetup(true); }}>Настроить серверную запись</button>
+    </section>}
+    {serverSession && <section className="card" aria-label="Состояние серверной записи" style={{ marginBottom: '1rem' }}>
+      <div className="card-head"><div><span className="candidate-eyebrow">СЕРВЕРНАЯ ЗАПИСЬ</span><h2>{serverSession.status === 'recording' ? 'Запись готова к продолжению' : serverSession.status === 'sealed' ? 'Фрагменты сохранены' : serverSession.status === 'review_pending' ? 'Ожидает проверки оператора' : serverSession.status === 'approved' ? 'Проверка завершена' : serverSession.status === 'invalidated' ? 'Попытка аннулирована сервером' : serverSession.status === 'technical_failure' ? 'Техническая ошибка записи' : serverSession.status}</h2></div><Badge tone={serverSession.status === 'review_pending' ? 'warm' : serverSession.status === 'approved' ? 'good' : 'neutral'}>{serverSession.status}</Badge></div>
+      {serverSession.status === 'recording' && <p>Для отправки этой попытки завершите запись камеры и выбранной вкладки или окна; балл и грейд останутся скрыты до решения оператора. Если запись невозможна, явно отзовите согласие — текущая попытка будет аннулирована.</p>}
+      {serverSession.status === 'review_pending' && <p>Результат остаётся предварительным до решения уполномоченного оператора.</p>}
+      {serverCaptureAllowed && serverSession.status === 'recording' && <button type="button" className="button button-secondary" onClick={() => { setServerConsentGiven(false); setShowServerSetup(true); }}>Повторить настройку записи</button>}
+      {['recording', 'sealed', 'review_pending'].includes(serverSession.status) && <button type="button" className="button button-secondary button-small" onClick={() => void revokeServerProctoring()}>Отозвать согласие и удалить запись</button>}
+    </section>}
+    {showServerSetup && serverCaptureAllowed && proctoringConfigQuery.data && <ServerProctoringSetupModal
+      open={showServerSetup}
+      captureAllowed={serverCaptureAllowed}
+      preparedSessionExists={Boolean(serverSession)}
+      consent={proctoringConfigQuery.data}
+      consentGiven={serverConsentGiven}
+      onConsentChange={setServerConsentGiven}
+      prepareSession={prepareServerProctoringCapture}
+      onReady={handleServerProctoringReady}
+      onCancel={cancelServerSetup}
+    />}
+    {serverCaptureConsent && proctoringActive && <aside className="card" role="status" aria-live="polite"><strong>Запись отправляется на сервер</strong><p>Камера и экран записываются отдельно; решение об оценке принимает оператор.</p><small>{isRecording ? 'MediaRecorder активен' : 'Ожидаем данные записи'} · очередь загрузки: {uploadQueueRef.current?.queuedBytes ?? 0} байт</small></aside>}
     {demoCaptureAllowed && !proctoringActive && <section className="card" aria-label="Необязательная демонстрационная запись" style={{ marginBottom: '1rem' }}>
       <span className="candidate-eyebrow">НЕОБЯЗАТЕЛЬНАЯ ДЕМО-ФУНКЦИЯ</span>
       <p>Можно включить локальную запись для демонстрации интерфейса. Она не подтверждает честность, не оценивает ответы и не влияет на результат. Продолжить можно без камеры и экрана.</p>

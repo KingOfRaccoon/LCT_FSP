@@ -4,6 +4,9 @@ import { isDemoProctoringEnabled } from './proctoring-policy.ts';
 
 interface UseProctoringMediaOptions {
   onEvent?: (type: ProctoringEventType, meta?: Record<string, string | number | boolean>) => void;
+  onChunk?: (channel: 'camera' | 'screen', chunk: Blob, sequence: number) => void;
+  onCaptureError?: (message: string) => void;
+  captureMode?: 'demo' | 'server';
   chunkIntervalMs?: number;
   attemptId?: string;
   consentGranted?: boolean;
@@ -23,33 +26,50 @@ function stopTracks(streams: Array<MediaStream | null>): void {
   }));
 }
 
-function startStreamRecorder(stream: MediaStream, chunksRef: { current: Blob[] }, intervalMs: number): MediaRecorder | null {
+function startStreamRecorder(
+  stream: MediaStream,
+  chunksRef: { current: Blob[] },
+  intervalMs: number,
+  channel: 'camera' | 'screen',
+  captureMode: 'demo' | 'server',
+  onChunk?: (channel: 'camera' | 'screen', chunk: Blob, sequence: number) => void,
+): MediaRecorder | null {
   chunksRef.current = [];
   if (typeof MediaRecorder === 'undefined') return null;
-  const candidates = [
+  const webmCandidates = [
     'video/webm;codecs=vp8,opus',
     'video/webm;codecs=vp9,opus',
     'video/webm;codecs=vp8',
     'video/webm;codecs=vp9',
     'video/webm',
-    'video/mp4',
   ];
+  const candidates = captureMode === 'server' ? webmCandidates : [...webmCandidates, 'video/mp4'];
   let recorder: MediaRecorder | null = null;
   for (const mime of candidates) {
     if (!MediaRecorder.isTypeSupported(mime)) continue;
     try {
-      recorder = new MediaRecorder(stream, { mimeType: mime });
+      const options: MediaRecorderOptions = captureMode === 'server'
+        ? { mimeType: mime, videoBitsPerSecond: channel === 'camera' ? 320_000 : 500_000 }
+        : { mimeType: mime };
+      recorder = new MediaRecorder(stream, options);
       break;
     } catch { /* try the next supported container */ }
   }
   if (!recorder) {
+    if (captureMode === 'server') return null;
     try { recorder = new MediaRecorder(stream); } catch (error) {
       console.error('Could not create the local demo recorder:', error);
       return null;
     }
   }
+  let sequence = 0;
   recorder.ondataavailable = (event) => {
-    if (event.data?.size) chunksRef.current.push(event.data);
+    if (!event.data?.size) return;
+    if (captureMode === 'server' && onChunk) {
+      onChunk(channel, event.data, sequence++);
+    } else if (captureMode === 'demo') {
+      chunksRef.current.push(event.data);
+    }
   };
   try {
     recorder.start(intervalMs);
@@ -62,6 +82,9 @@ function startStreamRecorder(stream: MediaStream, chunksRef: { current: Blob[] }
 
 export function useProctoringMedia({
   onEvent,
+  onChunk,
+  onCaptureError,
+  captureMode = 'demo',
   chunkIntervalMs = 2000,
   attemptId,
   consentGranted = false,
@@ -80,9 +103,15 @@ export function useProctoringMedia({
   const cameraChunksRef = useRef<Blob[]>([]);
   const screenChunksRef = useRef<Blob[]>([]);
   const onEventRef = useRef(onEvent);
+  const onChunkRef = useRef(onChunk);
+  const onCaptureErrorRef = useRef(onCaptureError);
+  const captureModeRef = useRef(captureMode);
   const consentRef = useRef(consentGranted);
   const attemptIdRef = useRef(attemptId);
   onEventRef.current = onEvent;
+  onChunkRef.current = onChunk;
+  onCaptureErrorRef.current = onCaptureError;
+  captureModeRef.current = captureMode;
   consentRef.current = consentGranted;
 
   const setCameraStream = useCallback((stream: MediaStream | null) => {
@@ -152,7 +181,7 @@ export function useProctoringMedia({
   }), []);
 
   const requestCamera = useCallback(async (): Promise<boolean> => {
-    if (!isDemoProctoringEnabled() || !consentRef.current) return false;
+    if ((captureMode === 'demo' && !isDemoProctoringEnabled()) || !consentRef.current) return false;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
@@ -171,10 +200,10 @@ export function useProctoringMedia({
       setRecordingError('Не удалось открыть камеру для локальной демонстрации.');
       return false;
     }
-  }, [setCameraStream]);
+  }, [captureMode, setCameraStream]);
 
   const requestScreen = useCallback(async (): Promise<boolean> => {
-    if (!isDemoProctoringEnabled() || !consentRef.current) return false;
+    if ((captureMode === 'demo' && !isDemoProctoringEnabled()) || !consentRef.current) return false;
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { displaySurface: 'monitor' } as MediaTrackConstraints,
@@ -193,11 +222,14 @@ export function useProctoringMedia({
       setRecordingError('Не удалось открыть захват экрана для локальной демонстрации.');
       return false;
     }
-  }, [setScreenStream]);
+  }, [captureMode, setScreenStream]);
 
   const startRecording = useCallback((activeCamera?: MediaStream | null, activeScreen?: MediaStream | null) => {
-    if (!isDemoProctoringEnabled() || !consentRef.current) {
-      setRecordingError('Локальная demo-съёмка отключена или согласие отозвано.');
+    const mode = captureModeRef.current;
+    if ((mode === 'demo' && !isDemoProctoringEnabled()) || !consentRef.current || (mode === 'server' && !onChunkRef.current)) {
+      const message = mode === 'demo' ? 'Локальная demo-съёмка отключена или согласие отозвано.' : 'Серверный захват недоступен или согласие отозвано.';
+      setRecordingError(message);
+      if (mode === 'server') onCaptureErrorRef.current?.(`Запись не началась: ${message}`);
       return;
     }
     const camera = activeCamera || cameraStreamRef.current;
@@ -206,24 +238,48 @@ export function useProctoringMedia({
     if (activeScreen) setScreenStream(activeScreen);
     setRecordedVideoBlob(null);
     setRecordedScreenBlob(null);
-    const cameraRecorder = camera?.active ? startStreamRecorder(camera, cameraChunksRef, chunkIntervalMs) : null;
-    const screenRecorder = screen?.active ? startStreamRecorder(screen, screenChunksRef, chunkIntervalMs) : null;
+    cameraChunksRef.current = [];
+    screenChunksRef.current = [];
+    const cameraRecorder = camera?.active ? startStreamRecorder(camera, cameraChunksRef, chunkIntervalMs, 'camera', mode, onChunkRef.current) : null;
+    const screenRecorder = screen?.active ? startStreamRecorder(screen, screenChunksRef, chunkIntervalMs, 'screen', mode, onChunkRef.current) : null;
     cameraRecorderRef.current = cameraRecorder;
     screenRecorderRef.current = screenRecorder;
-    if (cameraRecorder || screenRecorder) {
+    const recorderReady = mode === 'server' ? Boolean(cameraRecorder && screenRecorder) : Boolean(cameraRecorder || screenRecorder);
+    if (recorderReady) {
       setIsRecording(true);
       setRecordingError(null);
+      if (mode === 'server') {
+        let interruptionReported = false;
+        const interrupt = (message: string, eventType?: 'camera_disabled' | 'screen_share_stopped') => {
+          if (interruptionReported) return;
+          interruptionReported = true;
+          if (eventType) onEventRef.current?.(eventType);
+          setRecordingError(message);
+          onCaptureErrorRef.current?.(`Запись прервана: ${message}`);
+          void stopRecording();
+        };
+        camera?.getVideoTracks().forEach((track) => track.addEventListener('ended', () => {
+          interrupt('Захват камеры прерван.', 'camera_disabled');
+        }, { once: true }));
+        screen?.getVideoTracks().forEach((track) => track.addEventListener('ended', () => {
+          interrupt('Захват экрана прерван.', 'screen_share_stopped');
+        }, { once: true }));
+        cameraRecorder?.addEventListener('error', () => interrupt('Ошибка записи видео с камеры.'));
+        screenRecorder?.addEventListener('error', () => interrupt('Ошибка записи видео с экрана.'));
+      }
     } else {
-      setRecordingError('Активные потоки локальной demo-съёмки недоступны.');
+      const message = mode === 'demo' ? 'Активные потоки локальной demo-съёмки недоступны.' : 'Активные потоки серверного захвата недоступны.';
+      setRecordingError(message);
       void stopRecording();
+      if (mode === 'server') onCaptureErrorRef.current?.(`Запись не началась: ${message}`);
     }
-  }, [chunkIntervalMs, setCameraStream, setScreenStream, stopRecording]);
+  }, [captureMode, chunkIntervalMs, setCameraStream, setScreenStream, stopRecording]);
 
   useEffect(() => {
     const attemptChanged = attemptIdRef.current !== attemptId;
     attemptIdRef.current = attemptId;
-    if (attemptChanged || !consentGranted || !isDemoProctoringEnabled()) void stopRecording();
-  }, [attemptId, consentGranted, stopRecording]);
+    if (attemptChanged || !consentGranted || (captureMode === 'demo' && !isDemoProctoringEnabled())) void stopRecording();
+  }, [attemptId, captureMode, consentGranted, stopRecording]);
 
   useEffect(() => () => { void stopRecording(); }, [stopRecording]);
 

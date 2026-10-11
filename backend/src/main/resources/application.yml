@@ -47,3 +47,9 @@ fsp:
   monitoring:
     scrape-token: ${FSP_METRICS_TOKEN:}
     scrape-token-file: ${FSP_METRICS_TOKEN_FILE:}
+  proctoring:
+    enabled: ${FSP_PROCTORING_ENABLED:false}
+    media-root: ${FSP_PROCTORING_MEDIA_ROOT:/var/lib/fsp/proctoring}
+    retention-days: ${FSP_PROCTORING_RETENTION_DAYS:7}
+    max-chunk-bytes: ${FSP_PROCTORING_MAX_CHUNK_BYTES:4194304}
+    max-session-bytes: ${FSP_PROCTORING_MAX_SESSION_BYTES:268435456}

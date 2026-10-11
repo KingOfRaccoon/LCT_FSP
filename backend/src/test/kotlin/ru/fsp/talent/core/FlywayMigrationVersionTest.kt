@@ -16,8 +16,8 @@ class FlywayMigrationVersionTest {
                 match.groupValues[1].toInt() to filename
             }
 
-        assertEquals((1..13).toList(), migrations.map { it.first }.sorted())
-        assertEquals(13, migrations.map { it.first }.toSet().size)
+        assertEquals((1..14).toList(), migrations.map { it.first }.sorted())
+        assertEquals(14, migrations.map { it.first }.toSet().size)
         assertEquals(
             "V9__assessment_workbench.sql",
             migrations.single { it.first == 9 }.second,

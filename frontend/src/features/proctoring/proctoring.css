@@ -397,3 +397,12 @@
   color: #000000;
   white-space: nowrap;
 }
+.proctoring-server-review-layout { display: grid; grid-template-columns: minmax(250px, 0.7fr) minmax(0, 1.5fr); gap: 1rem; align-items: start; }
+.proctoring-server-review-list { display: grid; gap: 0.5rem; padding: 0; list-style: none; }
+.proctoring-server-review-list button { width: 100%; display: grid; gap: 0.25rem; text-align: left; }
+.proctoring-server-review-list button[aria-current="true"] { outline: 2px solid var(--color-primary, #402fff); }
+.proctoring-server-review-detail { display: grid; gap: 1rem; min-width: 0; }
+.proctoring-server-review-detail video { background: #111827; }
+.proctoring-server-review-detail article.card { margin: 0.75rem 0; }
+.proctoring-server-review-detail code { overflow-wrap: anywhere; }
+@media (max-width: 800px) { .proctoring-server-review-layout { grid-template-columns: 1fr; } }

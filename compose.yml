@@ -23,6 +23,11 @@ services:
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8080}
       SESSION_SECRET: ${SESSION_SECRET:-local-demo-session-secret-change-before-deploy-2026}
       FSP_DEMO_MODE: "true"
+      FSP_PROCTORING_ENABLED: ${FSP_PROCTORING_ENABLED:-false}
+      FSP_PROCTORING_MEDIA_ROOT: /var/lib/fsp/proctoring
+      FSP_PROCTORING_RETENTION_DAYS: ${FSP_PROCTORING_RETENTION_DAYS:-7}
+      FSP_PROCTORING_MAX_CHUNK_BYTES: ${FSP_PROCTORING_MAX_CHUNK_BYTES:-4194304}
+      FSP_PROCTORING_MAX_SESSION_BYTES: ${FSP_PROCTORING_MAX_SESSION_BYTES:-268435456}
       COMPANY_VERIFICATION_PROVIDER: ${COMPANY_VERIFICATION_PROVIDER:-manual}
       DADATA_TOKEN: ${DADATA_TOKEN:-}
       SMTP_HOST: mailpit
@@ -31,6 +36,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - proctoring-media:/var/lib/fsp/proctoring
   worker:
     build:
       context: .
@@ -61,3 +68,4 @@ services:
       - "127.0.0.1:8025:8025"
 volumes:
   postgres-data:
+  proctoring-media:
