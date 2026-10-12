@@ -1,0 +1,34 @@
+.hiring-plan-editor, .hiring-plan-view, .hiring-next-step { margin-block: 18px; padding: 16px; border: 1px solid var(--line, #dcdde5); border-radius: 12px; min-width: 0; }
+.hiring-plan-view h3, .hiring-next-step h2 { margin: 0 0 10px; font-size: 17px; }
+.hiring-plan-view p, .hiring-next-step p { overflow-wrap: anywhere; }
+.hiring-plan-view ol { margin: 12px 0; padding-left: 22px; }
+.hiring-plan-view li + li { margin-top: 12px; }
+.hiring-plan-view li p { margin: 4px 0; white-space: pre-wrap; }
+.hiring-stage-effort { margin-left: 10px; color: var(--muted, #55566c); white-space: nowrap; }
+.hiring-checkbox { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; }
+.hiring-checkbox input { width: 18px; height: 18px; flex-shrink: 0; }
+.hiring-stage-editor { padding: 12px; margin: 14px 0; min-width: 0; border: 1px solid var(--line, #dcdde5); border-radius: 8px; }
+.hiring-stage-editor legend { padding-inline: 4px; font-size: 14px; }
+.hiring-stage-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.hiring-response-field { margin-top: 14px; max-width: 420px; }
+.hiring-next-step dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.hiring-next-step dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+.hiring-next-step dt { font-size: 12px; color: var(--muted, #55566c); }
+.hiring-next-step form { display: grid; gap: 14px; margin-top: 14px; }
+.hiring-overdue { color: #a62134; }
+.hiring-plan-details { margin: 14px 0; }
+.hiring-plan-details summary { cursor: pointer; font-size: 14px; }
+.hiring-plan-details .hiring-plan-view { padding: 12px 0 0; margin: 0; border: 0; }
+@media (max-width: 650px) { .hiring-plan-editor, .hiring-plan-view, .hiring-next-step { padding: 12px; } .hiring-next-step dl { grid-template-columns: 1fr; } }
+.hiring-action-queue { grid-column: 1 / -1; min-width: 0; }
+.hiring-action-queue-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.hiring-action-queue-heading h2 { margin: 0 0 12px; font-size: 17px; }
+.hiring-action-queue-heading > span { color: var(--muted, #626575); font-size: 13px; }
+.hiring-action-queue-list { list-style: none; padding: 0; margin: 0; }
+.hiring-action-queue-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 16px; padding: 14px 0; border-top: 1px solid var(--line, #ececf2); }
+.hiring-action-queue-list li p { margin: 5px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.hiring-action-queue-list small { color: var(--muted, #626575); }
+.hiring-action-queue-deadline { display: grid; justify-items: end; gap: 8px; text-align: right; }
+.hiring-action-queue-deadline a { color: var(--brand, #402fff); font-size: 13px; font-weight: 650; }
+.hiring-action-queue-note { margin: 12px 0 0; color: var(--muted, #626575); font-size: 12px; }
+@media (max-width: 650px) { .hiring-action-queue-list li { grid-template-columns: 1fr; } .hiring-action-queue-deadline { justify-items: start; text-align: left; } }

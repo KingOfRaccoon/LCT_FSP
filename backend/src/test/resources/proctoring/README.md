@@ -1,0 +1,1 @@
+`mediarecorder-native.webm` is a synthetic browser fixture: Chromium `MediaRecorder.start(2000)`, 160×120 canvas at 10 fps, VP8, no audio, about 4.4 seconds. The captured timeslice blobs were 19,076, 24,619, and 4,597 bytes and are concatenated here in receipt order. No human participant or production recording is included.

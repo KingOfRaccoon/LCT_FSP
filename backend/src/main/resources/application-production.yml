@@ -1,0 +1,19 @@
+server:
+  # The deployment overlay enables framework mode only behind the trusted TLS ingress.
+  forward-headers-strategy: ${SERVER_FORWARD_HEADERS_STRATEGY:none}
+
+spring:
+  datasource:
+    url: ${DATABASE_URL:}
+    username: ${DATABASE_USERNAME:}
+    password: ${DATABASE_PASSWORD:}
+  flyway:
+    # Apply migrations with the deployment migrator before starting runtime instances.
+    enabled: false
+
+fsp:
+  demo-mode: ${FSP_DEMO_MODE:false}
+  seed-demo: ${FSP_SEED_DEMO:false}
+  session-secret: ${SESSION_SECRET:}
+  public-origin: ${PUBLIC_ORIGIN:}
+  session-cookie-secure: ${SESSION_COOKIE_SECURE:true}

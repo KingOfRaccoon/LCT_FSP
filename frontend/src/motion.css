@@ -1,0 +1,170 @@
+:root {
+  --motion-short: 180ms;
+  --motion-standard: 220ms;
+  --motion-ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+button[data-motion-press],
+a[href][data-motion-press] {
+  position: relative;
+  scale: var(--motion-press-scale, 1);
+}
+
+button[data-motion-press]::after,
+a[href][data-motion-press]::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: transparent;
+  scale: calc(1 / var(--motion-press-scale, 1));
+  transform-origin: center;
+  pointer-events: auto;
+}
+
+button[data-motion-press]:not(:disabled):not([aria-disabled='true']):active,
+a[href][data-motion-press]:not([aria-disabled='true']):active {
+  opacity: .94;
+}
+
+.page-header > div:first-child,
+.auth-card-top {
+  animation: motion-heading-enter var(--motion-standard) var(--motion-ease);
+}
+
+.candidate-dialog-backdrop,
+.employer-modal-backdrop {
+  animation: motion-backdrop-enter var(--motion-short) var(--motion-ease);
+}
+
+.candidate-review-dialog,
+.employer-record-editor {
+  animation: motion-dialog-enter var(--motion-standard) var(--motion-ease);
+}
+
+.notice,
+.error-box {
+  animation: motion-notice-enter var(--motion-short) var(--motion-ease);
+}
+
+@media (max-width: 650px) {
+  .mobile-navigation > summary::after {
+    transition: transform var(--motion-short) var(--motion-ease);
+  }
+}
+
+@keyframes motion-heading-enter {
+  from { opacity: .75; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes motion-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes motion-dialog-enter {
+  from { opacity: .85; transform: translateY(5px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes motion-notice-enter {
+  from { opacity: .85; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  :root[data-motion-reduced='true'] {
+    --motion-short: 0ms;
+    --motion-standard: 0ms;
+  }
+
+  button[data-motion-press],
+  a[href][data-motion-press] {
+    scale: 1;
+  }
+
+  button[data-motion-press]::after,
+  a[href][data-motion-press]::after {
+    scale: 1;
+  }
+
+  .page-header > div:first-child,
+  .candidate-feature-heading,
+  .extension-header,
+  .auth-card-top,
+  .candidate-dialog-backdrop,
+  .candidate-review-dialog,
+  .employer-modal-backdrop,
+  .employer-record-editor,
+  .notice,
+  .error-box {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .mobile-navigation > summary::after {
+    transition: none;
+  }
+}
+
+:root[data-motion-reduced='true'] {
+  --motion-short: 0ms;
+  --motion-standard: 0ms;
+}
+
+:root[data-motion-reduced='true'] button[data-motion-press],
+:root[data-motion-reduced='true'] a[href][data-motion-press] {
+  scale: 1;
+}
+
+:root[data-motion-reduced='true'] button[data-motion-press]::after,
+:root[data-motion-reduced='true'] a[href][data-motion-press]::after {
+  scale: 1;
+}
+
+:root[data-motion-reduced='true'] .page-header > div:first-child,
+:root[data-motion-reduced='true'] .candidate-feature-heading,
+:root[data-motion-reduced='true'] .extension-header,
+:root[data-motion-reduced='true'] .auth-card-top,
+:root[data-motion-reduced='true'] .candidate-dialog-backdrop,
+:root[data-motion-reduced='true'] .candidate-review-dialog,
+:root[data-motion-reduced='true'] .employer-modal-backdrop,
+:root[data-motion-reduced='true'] .employer-record-editor,
+:root[data-motion-reduced='true'] .notice,
+:root[data-motion-reduced='true'] .error-box {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+:root[data-motion-reduced='true'] .mobile-navigation > summary::after {
+  transition: none;
+}
+
+:root[data-motion-reduced='true'] .spinner {
+  animation: none;
+}
+
+@media (prefers-contrast: more), (forced-colors: active) {
+  button[data-motion-press]:not(:disabled):not([aria-disabled='true']):active,
+  a[href][data-motion-press]:not([aria-disabled='true']):active {
+    opacity: 1;
+  }
+
+  .page-header > div:first-child,
+  .candidate-feature-heading,
+  .extension-header,
+  .auth-card-top,
+  .candidate-dialog-backdrop,
+  .candidate-review-dialog,
+  .employer-modal-backdrop,
+  .employer-record-editor,
+  .notice,
+  .error-box {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

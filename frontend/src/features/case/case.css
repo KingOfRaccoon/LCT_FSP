@@ -1,0 +1,262 @@
+.case-bank-filters {
+  margin-bottom: 22px;
+}
+
+.case-bank-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.case-bank-skills {
+  min-width: 0;
+  margin: 20px 0 0;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line, rgba(45, 65, 100, .12));
+}
+
+.case-bank-skills legend {
+  padding: 0 8px 0 0;
+  font-weight: 700;
+}
+
+.case-bank-skills small {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted, #69758a);
+}
+
+.case-bank-search-row,
+.case-bank-results-head,
+.case-bank-actions,
+.case-bank-card-actions,
+.case-consent-heading,
+.case-consent-actions,
+.case-profile-save {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.case-bank-search-row {
+  margin-top: 18px;
+}
+
+.case-bank-search-row .field-hint {
+  margin: 0;
+}
+
+.case-bank-results-head {
+  margin: 26px 0 14px;
+}
+
+.case-bank-results-head p {
+  margin: 5px 0 0;
+  color: var(--muted, #69758a);
+}
+
+.case-bank-actions {
+  justify-content: flex-end;
+}
+
+.case-bank-list {
+  display: grid;
+  gap: 14px;
+}
+
+.case-bank-candidate {
+  display: grid;
+  gap: 14px;
+}
+
+.case-bank-candidate-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.case-bank-candidate-head .candidate-identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.case-bank-candidate-head .candidate-identity h3,
+.case-bank-candidate-head .candidate-identity p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.case-bank-badges {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.case-bank-extra {
+  margin: 0;
+  color: var(--muted, #69758a);
+}
+
+.case-bank-fsp-records {
+  padding: 12px 14px;
+  border: 1px solid var(--line, rgba(45, 65, 100, .12));
+  border-radius: 12px;
+  background: rgba(245, 248, 253, .7);
+}
+
+.case-bank-fsp-records p,
+.case-bank-fsp-records small {
+  display: block;
+  margin: 8px 0 0;
+  color: var(--muted, #69758a);
+}
+
+.invitation-company-snapshot {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line, rgba(45, 65, 100, .12));
+  border-radius: 12px;
+  background: rgba(245, 248, 253, .7);
+}
+
+.invitation-company-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+}
+
+.invitation-company-fields > div {
+  display: grid;
+  gap: 3px;
+}
+
+.invitation-company-fields small {
+  color: var(--muted, #69758a);
+}
+
+.invitation-company-fields span,
+.invitation-company-fields a {
+  color: inherit;
+  font-weight: 600;
+}
+
+.invitation-company-snapshot > .field-hint {
+  margin: 0;
+}
+
+.case-bank-reasons {
+  margin-top: 0;
+}
+
+.case-bank-card-actions {
+  justify-content: flex-end;
+}
+
+.case-consent-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.case-consent-document {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line, rgba(45, 65, 100, .12));
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .48);
+}
+
+.case-consent-heading h3,
+.case-consent-history h3 {
+  margin: 5px 0 0;
+}
+
+.case-consent-text {
+  max-height: 220px;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(245, 248, 253, .78);
+  color: var(--muted, #45536a);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.case-consent-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-weight: 600;
+}
+
+.case-consent-check input {
+  margin-top: 4px;
+}
+
+.case-consent-actions {
+  justify-content: flex-start;
+}
+
+.case-consent-history {
+  padding-top: 8px;
+}
+
+.case-consent-history p {
+  margin: 9px 0 0;
+  color: var(--muted, #69758a);
+}
+
+.case-gated-fields {
+  display: contents;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.case-profile-save {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.case-profile-save .field-hint {
+  margin: 0;
+}
+
+@media (max-width: 1000px) {
+  .case-bank-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .case-bank-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .case-bank-search-row,
+  .case-bank-results-head,
+  .case-bank-candidate-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .case-bank-actions,
+  .case-bank-card-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .case-bank-candidate-head .candidate-identity {
+    flex: auto;
+  }
+
+  .case-bank-badges {
+    justify-content: flex-start;
+  }
+}

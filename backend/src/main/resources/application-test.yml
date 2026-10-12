@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:55432/fsp_test
+    username: fsp
+    password: fsp_demo
+  flyway:
+    clean-disabled: true
+
+fsp:
+  public-origin: http://testserver
+  email-verification-required: true

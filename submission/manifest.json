@@ -1,0 +1,101 @@
+{
+  "release": "FSP-MVP-1.3",
+  "date": "2026-10-11",
+  "files": [
+    {
+      "name": "FSP_Pitch.pptx",
+      "bytes": 469047,
+      "sha256": "655c3e4478521b81cc23fdbcd93aaeddea838b432aae53a122f5bd1bed3382fb"
+    },
+    {
+      "name": "FSP_Companion_Documentation.pdf",
+      "bytes": 129999,
+      "sha256": "de369f74142a9dc48ec7411e418f9cb9c0fcffc7847f9ea5c38114d604e5b352"
+    },
+    {
+      "name": "FSP_Demo.mp4",
+      "bytes": 22476408,
+      "sha256": "3de5ee4c2c5dee06065e9c1400cf2d889f21a0e84ab8bf854ba9dfa23c13f918"
+    },
+    {
+      "name": "FSP_Companion_Documentation.md",
+      "bytes": 56884,
+      "sha256": "eeeed7c9038de48d34ee2af7fe4e17c32f39da0483112c7e56bd5ce8276923ac"
+    },
+    {
+      "name": "dependency-versions.txt",
+      "bytes": 2104,
+      "sha256": "8e25a55c136c6a5326af76266f5168aae4bb9704635a71a390ddf140db07d1fd"
+    },
+    {
+      "name": "README.md",
+      "bytes": 2199,
+      "sha256": "105930f621cf1ff2ee8aad3e61d5442fbbad6760afd0a1cc4eed586a5bc834fc"
+    }
+  ],
+  "verification": {
+    "backend": {
+      "tests": 224,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "frontend": {
+      "tests": 193,
+      "failures": 0,
+      "typecheck": "passed",
+      "build": "passed"
+    },
+    "frontend_build": "passed",
+    "code_review": "COMMENT",
+    "architecture": "CLEAR",
+    "video": {
+      "seconds": 155.705,
+      "codec": "H264",
+      "width": 1600,
+      "height": 1000,
+      "seek_verified": true
+    },
+    "historical_runtime": {
+      "date": "2026-10-08",
+      "runtime_groups_passed": 13,
+      "current_pr_browser_run": false
+    },
+    "python": {
+      "tests": 41,
+      "failures": 0
+    },
+    "pdf_qr": {
+      "decoded": "passed",
+      "target": "/invitations?candidate_id={UUID}",
+      "claim": "current profile, requires authentication and visibility; no registry or document-signature claim"
+    },
+    "code_review_actionable_findings": 0,
+    "diagnostics": "TypeScript compiler and build passed; native LSP diagnostics tool unavailable"
+  },
+  "deferred_by_user": [],
+  "scope_limits": [
+    "Backend Python junior/middle only",
+    "synthetic validation, no human hiring-validity proof",
+    "draft consent text for operator review",
+    "no real FSP/ATS provider"
+  ],
+  "internal_materials": "Excluded from Git and stored in local/",
+  "repository": {
+    "url": "https://github.com/KingOfRaccoon/LCT_FSP",
+    "branch": "prototype"
+  },
+  "deployment": {
+    "public_url": "http://158.160.223.177",
+    "swagger_ui": "http://158.160.223.177/swagger-ui",
+    "auto_deploy": "cron every 10 min from branch prototype"
+  },
+  "artifact_scope": {
+    "FSP_Pitch.pptx": "historical presentation snapshot",
+    "FSP_Companion_Documentation.pdf": "historical documentation snapshot; current source is Markdown",
+    "FSP_Demo.mp4": "historical synthetic demo recording",
+    "FSP_Companion_Documentation.md": "current PR4 source documentation",
+    "dependency-versions.txt": "resolved current PR4 bootJar and package.json",
+    "README.md": "package scope and limitations"
+  }
+}

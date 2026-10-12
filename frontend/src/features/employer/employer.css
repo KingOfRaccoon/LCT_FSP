@@ -1,0 +1,142 @@
+.employer-page { min-width: 0; }
+.employer-page > .page-header { align-items: flex-start; }
+.employer-need-context { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(250px, .8fr); gap: 24px; align-items: start; }
+.employer-need-context h2 { margin: 6px 0 8px; font: 400 23px/1.25 'TDA Text', 'JetBrains Mono', monospace; }
+.employer-need-context p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.employer-need-context dl { display: grid; gap: 10px; margin: 0; }
+.employer-need-context dl > div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; font-size: 11px; }
+.employer-need-context dt { color: var(--muted); }
+.employer-need-context dd { margin: 0; text-align: right; font-weight: 600; }
+.employer-comparison-scroll { max-width: 100%; overflow: auto; border: 1px solid var(--border); background: #fff; }
+.employer-comparison-table { width: 100%; min-width: 760px; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
+.employer-comparison-table th, .employer-comparison-table td { width: 27%; padding: 13px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); text-align: left; vertical-align: top; }
+.employer-comparison-table th:first-child { width: 19%; background: #fafaff; }
+.employer-comparison-table thead th { background: #fff; }
+.employer-comparison-table td small, .employer-comparison-table th small { display: block; margin-top: 6px; color: var(--muted); line-height: 1.5; font-weight: 400; }
+.comparison-person { display: grid; gap: 7px; }
+.comparison-person strong { font-size: 13px; }
+.comparison-person > small { margin: 0 !important; }
+.employer-table-section th { width: auto; background: #f2f0ff !important; color: #3021d6; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+.employer-badge { font-size: 9px; line-height: 1.35; white-space: normal; }
+.employer-badge-good { background: #eaf6ef; color: #17633f; }
+.employer-badge-warm { background: #fff5df; color: #805300; }
+.employer-badge-danger { background: #fff0f1; color: #981a2a; }
+.employer-badge-muted { background: #f1f1f5; color: #626575; }
+.employer-candidate-review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 14px; margin-top: 18px; }
+.employer-review-panel { margin: 0; }
+.employer-review-panel .card-head { align-items: flex-start; }
+.employer-review-panel .card-head h2 { margin: 5px 0 0; font-size: 17px; }
+.employer-review-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 18px; background: #f7f6ff; border: 0; border-left: 3px solid var(--brand); border-radius: 0 8px 8px 0; }
+.employer-person-avatar { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 50%; background: #e8e5ff; color: var(--brand); font-size: 19px; font-weight: 500; }
+.employer-review-summary > strong { font-size: 17px; line-height: 1.35; margin-right: auto; }
+.employer-review-flags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.employer-review-summary p { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.employer-decision-brief { display: grid; gap: 13px; margin: 24px 0 20px; padding: 0; border: 0; background: transparent; }
+.employer-decision-brief > h3 { margin: 0; font: 700 16px/1.4 'JetBrains Mono', monospace; }
+.employer-brief-line { margin: 0; color: var(--text); font-size: 14px; line-height: 1.65; }
+.employer-brief-line small { color: var(--muted); font-size: 12px; }
+.employer-brief-group { padding-top: 7px; border-top: 1px solid var(--line); }
+.employer-brief-group h4 { margin: 0 0 9px; font-size: 13px; }
+.employer-brief-group ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.employer-brief-group li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 5px 8px; align-items: center; font-size: 13px; }
+.employer-brief-group li small { grid-column: 1/-1; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.employer-brief-group > .employer-muted { margin: 7px 0 0; }
+.employer-brief-group-danger h4 { color: #981a2a; }
+.employer-preferred-topics { padding-top: 7px; border-top: 1px solid var(--line); }
+.employer-preferred-topics > summary { color: #3021d6; cursor: pointer; font-size: 13px; font-weight: 600; }
+.employer-preferred-topics ul { display: grid; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
+.employer-preferred-topics li { display: grid; gap: 3px; font-size: 12px; }
+.employer-preferred-topics li small { color: var(--muted); font-size: 11px; }
+.employer-review-details { margin-top: 12px; border-top: 1px solid var(--line); }
+.employer-review-details > summary { padding: 14px 0; color: #3021d6; cursor: pointer; font-size: 13px; font-weight: 600; }
+.employer-review-details[open] > summary { margin-bottom: 8px; }
+.employer-invitation-blocked { margin: 14px 0 0; padding: 10px 12px; border-left: 2px solid #a1a1ad; background: #f7f7fa; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.employer-prepare-invitation { margin-top: 20px; }
+.employer-decision-brief > .employer-muted { margin: 3px 0 0; font-size: 12px; line-height: 1.6; }
+@media (max-width: 650px) {
+  .employer-review-summary { display: grid; grid-template-columns: 38px minmax(0, 1fr); padding: 16px; gap: 10px; }
+  .employer-review-summary > strong { min-width: 0; overflow-wrap: break-word; word-break: normal; margin-right: 0; }
+  .employer-review-flags, .employer-review-summary > p { grid-column: 1/-1; }
+  .employer-person-avatar { width: 38px; height: 38px; }
+  .employer-prepare-invitation { width: 100%; }
+}
+.employer-fit-list { display: grid; margin: 12px 0 16px; }
+.employer-fit-list > div { display: grid; grid-template-columns: minmax(110px, 1fr) auto; gap: 5px 9px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.employer-fit-list > div small { grid-column: 1/-1; color: var(--muted); line-height: 1.5; }
+.employer-interview-kit { margin-top: 14px; padding: 14px; border: 1px solid var(--line); background: #fcfcff; }
+.employer-kit-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.employer-kit-heading h3 { margin: 0; font: 400 16px/1.35 'TDA Text', 'JetBrains Mono', monospace; }
+.employer-kit-heading p { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.employer-kit-disclaimer { margin: 10px 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.employer-interview-kit h4 { margin: 15px 0 7px; font-size: 11px; }
+.employer-question-list, .employer-followup-list { margin: 0; padding-left: 22px; }
+.employer-question-list > li, .employer-followup-list > li { padding: 8px 0 8px 3px; border-top: 1px solid var(--line); font-size: 13px; line-height: 1.6; }
+.employer-question-list > li > div:first-child, .employer-followup-list > li { display: grid; gap: 5px; }
+.employer-question-list small, .employer-followup-list small { color: var(--muted); font-size: 12px; }
+.employer-question-list details { margin-top: 7px; }
+.employer-task-context { margin: 6px 0 0; padding: 7px; border-left: 2px solid #dad6ff; background: #f7f6ff; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.employer-question-list summary { color: #3021d6; cursor: pointer; font-size: 10px; }
+.employer-anchor-list p { display: flex; align-items: flex-start; gap: 7px; margin: 6px 0; color: var(--muted); }
+.employer-anchor-list .badge { flex: none; }
+.employer-muted { color: var(--muted); font-size: 10px; line-height: 1.55; }
+.employer-review-panel > .button { margin-top: 12px; }
+.employer-record-filters { display: grid; grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) auto auto; gap: 12px; align-items: end; }
+.employer-record-filters .field { margin: 0; }
+.employer-record-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 14px; }
+.employer-record-card { margin: 0; }
+.employer-record-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.employer-record-heading h2 { margin: 7px 0 4px; font: 400 18px/1.25 'TDA Text', 'JetBrains Mono', monospace; }
+.employer-record-heading code, .employer-shortlist-ids code { color: var(--muted); font-size: 9px; overflow-wrap: anywhere; }
+.employer-record-body { margin: 14px 0; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.employer-record-body p { margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; white-space: pre-wrap; }
+.employer-next-page { display: flex; margin: 16px auto; }
+.employer-modal-backdrop { position: fixed; z-index: 30; inset: 0; display: grid; place-items: center; padding: 18px; background: rgb(20 19 38 / 42%); backdrop-filter: blur(5px); }
+.employer-record-editor { width: min(620px, 100%); max-height: min(90vh, 900px); overflow-y: auto; margin: 0; box-shadow: 0 22px 70px rgb(22 20 55 / 25%); }
+.employer-record-editor .card-head h2 { margin: 5px 0 0; font-size: 18px; }
+.employer-record-editor .field > small { color: var(--muted); font-size: 9px; }
+.employer-editor-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.employer-role-tasks { margin-top: 18px; padding: 16px; border: 1px solid var(--border); background: rgb(255 255 255 / 72%); }
+.employer-role-task { margin-top: 12px; padding: 13px; border: 1px solid var(--line); background: #fff; }
+.employer-role-task-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 11px; }
+.employer-task-skills { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 10px 0 0; padding: 12px; border: 1px solid var(--line); }
+.employer-task-skills legend { padding: 0 5px; color: var(--muted); font-size: 10px; }
+.employer-task-skills label { display: flex; align-items: center; gap: 7px; font-size: 10px; }
+.employer-task-skills small { margin-left: auto; color: var(--muted); font-size: 8px; }
+.employer-task-skills input { accent-color: var(--brand); }
+.employer-shortlist-manager { margin-top: 14px; padding: 16px; border: 1px solid var(--border); background: #fff; }
+.employer-shortlist-actions { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+.employer-shortlist-select-heading { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 10px; }
+.employer-shortlist-select-heading span { color: var(--muted); }
+.employer-shortlist-select-heading .text-button { margin-left: auto; }
+.employer-need-select { max-width: 460px; margin: 12px 0; }
+.employer-shortlist-ids { display: grid; gap: 0; margin: 12px 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.employer-shortlist-ids li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.employer-shortlist-ids .employer-shortlist-candidate { align-items: center; }
+.employer-shortlist-choice { min-width: 0; display: flex; align-items: center; gap: 11px; flex: 1; cursor: pointer; }
+.employer-shortlist-choice input { width: 16px; height: 16px; flex: none; accent-color: var(--brand); }
+.employer-shortlist-copy { display: grid; min-width: 0; gap: 4px; }
+.employer-shortlist-copy strong { font-size: 11px; font-weight: 600; }
+.employer-shortlist-copy small { color: var(--muted); font-size: 9px; overflow-wrap: anywhere; }
+.employer-rename-form { display: flex; align-items: end; gap: 10px; margin: 12px 0; }
+.employer-rename-form .field { flex: 1; margin: 0; }
+
+@media (max-width: 900px) {
+  .employer-record-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .employer-need-context { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .employer-record-filters { grid-template-columns: 1fr; }
+  .employer-shortlist-actions { width: 100%; justify-content: stretch; }
+  .employer-shortlist-actions .button { flex: 1; }
+  .employer-shortlist-select-heading { align-items: flex-start; flex-wrap: wrap; }
+  .employer-shortlist-select-heading .text-button { margin-left: 0; }
+  .employer-rename-form { align-items: stretch; flex-direction: column; }
+  .employer-editor-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .employer-kit-heading { flex-direction: column; }
+  .employer-brief-group li { grid-template-columns: minmax(0, 1fr) auto; }
+  .employer-brief-group li .badge:nth-of-type(2) { grid-column: 2; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+  .employer-modal-backdrop { background: rgb(0 0 0 / 70%); backdrop-filter: none; }
+  .employer-role-tasks { background: #fff; }
+}

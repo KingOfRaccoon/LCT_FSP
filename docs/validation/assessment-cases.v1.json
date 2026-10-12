@@ -1,0 +1,300 @@
+{
+  "version": "1.0.0",
+  "status": "normative_examples_not_executed_application_tests",
+  "policy": "../assessment/assessment-policy.v1.json",
+  "scoring_cases": [
+    {
+      "id": "score-perfect",
+      "scores_by_competency": {
+        "python-basics": 6,
+        "http-api": 6,
+        "sql-transactions": 6,
+        "reliability": 6
+      },
+      "expected_pass": true,
+      "expected_confident": true
+    },
+    {
+      "id": "score-pass-boundary",
+      "scores_by_competency": {
+        "python-basics": 5,
+        "http-api": 5,
+        "sql-transactions": 4,
+        "reliability": 4
+      },
+      "expected_pass": true,
+      "expected_confident": false
+    },
+    {
+      "id": "score-total-below",
+      "scores_by_competency": {
+        "python-basics": 5,
+        "http-api": 4,
+        "sql-transactions": 4,
+        "reliability": 4
+      },
+      "expected_pass": false,
+      "expected_confident": false
+    },
+    {
+      "id": "score-critical-zero",
+      "scores_by_competency": {
+        "python-basics": 6,
+        "http-api": 6,
+        "sql-transactions": 6,
+        "reliability": 0
+      },
+      "expected_pass": false,
+      "expected_confident": false
+    },
+    {
+      "id": "score-critical-below",
+      "scores_by_competency": {
+        "python-basics": 6,
+        "http-api": 6,
+        "sql-transactions": 6,
+        "reliability": 2
+      },
+      "expected_pass": false,
+      "expected_confident": false
+    },
+    {
+      "id": "score-critical-boundary",
+      "scores_by_competency": {
+        "python-basics": 6,
+        "http-api": 6,
+        "sql-transactions": 3,
+        "reliability": 3
+      },
+      "expected_pass": true,
+      "expected_confident": false
+    },
+    {
+      "id": "score-confident-boundary",
+      "scores_by_competency": {
+        "python-basics": 6,
+        "http-api": 6,
+        "sql-transactions": 5,
+        "reliability": 5
+      },
+      "expected_pass": true,
+      "expected_confident": true
+    },
+    {
+      "id": "score-confident-block-boundary",
+      "scores_by_competency": {
+        "python-basics": 6,
+        "http-api": 6,
+        "sql-transactions": 6,
+        "reliability": 4
+      },
+      "expected_pass": true,
+      "expected_confident": true
+    },
+    {
+      "id": "score-below-confident",
+      "scores_by_competency": {
+        "python-basics": 6,
+        "http-api": 6,
+        "sql-transactions": 6,
+        "reliability": 3
+      },
+      "expected_pass": true,
+      "expected_confident": false
+    },
+    {
+      "id": "score-unanswered",
+      "scores_by_competency": {
+        "python-basics": 0,
+        "http-api": 0,
+        "sql-transactions": 0,
+        "reliability": 0
+      },
+      "expected_pass": false,
+      "expected_confident": false
+    }
+  ],
+  "state_cases": [
+    {
+      "id": "state-first-middle-pass",
+      "given": {
+        "confirmed_grade": null,
+        "target": "middle",
+        "pass": true
+      },
+      "expected": {
+        "confirmed_grade": "middle",
+        "starts_change_cooldown": false
+      }
+    },
+    {
+      "id": "state-first-middle-fail",
+      "given": {
+        "confirmed_grade": null,
+        "target": "middle",
+        "pass": false,
+        "previous_junior_attempt": null
+      },
+      "expected": {
+        "confirmed_grade": null,
+        "junior_allowed_immediately": true,
+        "middle_retake_wait_hours": 24
+      }
+    },
+    {
+      "id": "state-first-junior-pass",
+      "given": {
+        "confirmed_grade": null,
+        "target": "junior",
+        "pass": true
+      },
+      "expected": {
+        "confirmed_grade": "junior",
+        "starts_change_cooldown": false,
+        "middle_attempt_allowed": true
+      }
+    },
+    {
+      "id": "state-promote",
+      "given": {
+        "confirmed_grade": "junior",
+        "target": "middle",
+        "pass": true,
+        "change_cooldown_active": false
+      },
+      "expected": {
+        "confirmed_grade": "middle",
+        "starts_change_cooldown": true,
+        "change_cooldown_days": 30
+      }
+    },
+    {
+      "id": "state-failed-promotion",
+      "given": {
+        "confirmed_grade": "junior",
+        "target": "middle",
+        "pass": false
+      },
+      "expected": {
+        "confirmed_grade": "junior",
+        "starts_change_cooldown": false,
+        "middle_retake_wait_hours": 24
+      }
+    },
+    {
+      "id": "state-same-grade-pass",
+      "given": {
+        "confirmed_grade": "junior",
+        "target": "junior",
+        "pass": true,
+        "target_interval_elapsed": true
+      },
+      "expected": {
+        "confirmed_grade": "junior",
+        "refreshes_evidence": true,
+        "changes_grade_timestamp": false
+      }
+    },
+    {
+      "id": "state-same-grade-fail",
+      "given": {
+        "confirmed_grade": "middle",
+        "target": "middle",
+        "pass": false,
+        "target_interval_elapsed": true
+      },
+      "expected": {
+        "confirmed_grade": "middle",
+        "refreshes_evidence": false
+      }
+    },
+    {
+      "id": "state-lower-after-confirmed",
+      "given": {
+        "confirmed_grade": "middle",
+        "target": "junior"
+      },
+      "expected": {
+        "start": "POLICY_BLOCKED"
+      }
+    },
+    {
+      "id": "state-active-conflict",
+      "given": {
+        "active_attempts_for_specialization": 1
+      },
+      "expected": {
+        "start": "POLICY_BLOCKED"
+      }
+    },
+    {
+      "id": "state-reload",
+      "given": {
+        "started_at": "2026-10-07T10:00:00Z",
+        "reloaded_at": "2026-10-07T10:20:00Z"
+      },
+      "expected": {
+        "deadline": "2026-10-07T10:30:00Z",
+        "new_attempt": false
+      }
+    },
+    {
+      "id": "state-deadline",
+      "given": {
+        "deadline_elapsed": true,
+        "draft_scores": [
+          5,
+          5,
+          4,
+          0
+        ]
+      },
+      "expected": {
+        "state": "evaluated",
+        "pass": false,
+        "automatic_downgrade": false
+      }
+    },
+    {
+      "id": "state-technical-invalidated",
+      "given": {
+        "technical_failure_confirmed": true,
+        "existing_change_cooldown_until": "2026-10-20T10:00:00Z"
+      },
+      "expected": {
+        "state": "invalidated",
+        "new_retake_penalty": false,
+        "change_cooldown_until": "2026-10-20T10:00:00Z"
+      }
+    },
+    {
+      "id": "state-lower-exception-target-retry",
+      "given": {
+        "confirmed_grade": null,
+        "failed_middle_now": true,
+        "last_evaluated_junior_hours_ago": 3
+      },
+      "expected": {
+        "junior_allowed_immediately": false,
+        "junior_retry_after_hours": 21
+      }
+    },
+    {
+      "id": "state-confident-is-not-promotion",
+      "given": {
+        "confirmed_grade": null,
+        "target": "junior",
+        "scores": [
+          6,
+          6,
+          6,
+          6
+        ]
+      },
+      "expected": {
+        "confirmed_grade": "junior",
+        "auto_middle": false
+      }
+    }
+  ]
+}

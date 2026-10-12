@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-11",
+  "scope": "Corrected PR4 working tree after merging prototype b6deebd",
+  "backend": {
+    "tests": 224,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "backend_bootJar": "passed",
+  "frontend": {
+    "tests": 193,
+    "failures": 0,
+    "typecheck": "passed",
+    "build": "passed"
+  },
+  "python": {
+    "tests": 41,
+    "failures": 0
+  },
+  "pdf_qr": {
+    "decoded": "passed",
+    "target": "/invitations?candidate_id={UUID}",
+    "claim": "current profile, requires authentication and visibility; no registry or document-signature claim"
+  },
+  "submission_manifest": "6/6 bytes and SHA-256 verified by frontend regression",
+  "code_review": "COMMENT",
+  "architecture": "CLEAR",
+  "limits": [
+    "local synthetic test data",
+    "no current browser E2E run",
+    "historical presentation/documentation PDF/video preserved with explicit scope",
+    "no human psychometric validation"
+  ],
+  "code_review_actionable_findings": 0,
+  "diagnostics": "TypeScript compiler and build passed; native LSP diagnostics tool unavailable"
+}

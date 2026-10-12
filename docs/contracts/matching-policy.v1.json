@@ -1,0 +1,92 @@
+{
+  "policy_id": "matching-baseline-v1",
+  "version": "1.0.0",
+  "specialization_id": "backend-python-v1",
+  "category_match": "exact_verified_grade_and_specialization",
+  "grade_expansion": "explicit_need_edit_only",
+  "required_skill_match": "platform_test_evidence_only",
+  "candidate_declared_required_skill": "unknown_not_matched",
+  "hard_constraints": [
+    "visibility",
+    "email_confirmed",
+    "specialization",
+    "target_grade_when_verified",
+    "work_mode",
+    "city_for_nonremote",
+    "workload_hours_per_week"
+  ],
+  "explicit_hard_mismatch": "excluded",
+  "groups_in_display_order": [
+    "confirmed",
+    "needs_clarification",
+    "needs_confirmation"
+  ],
+  "classification": {
+    "confirmed": "exact_verified_category_and_all_hard_conditions_known_satisfied_and_all_required_skills_test_evidenced",
+    "needs_confirmation": "visible_no_verified_grade_and_no_explicit_hard_mismatch",
+    "needs_clarification": "exact_verified_category_but_unknown_hard_condition_or_required_skill_without_test_evidence",
+    "precedence": [
+      "exclude_not_visible_or_explicit_hard_mismatch",
+      "no_verified_grade_to_needs_confirmation",
+      "any_unknown_to_needs_clarification",
+      "otherwise_confirmed"
+    ]
+  },
+  "strict_confirmed_only": "returns_confirmed_group_only_other_group_counts_available_without_contacts",
+  "sort_confirmed": [
+    {
+      "key": "test_evidenced_preferred_skill_count",
+      "direction": "descending"
+    },
+    {
+      "key": "candidate_declared_only_preferred_skill_count",
+      "direction": "descending"
+    },
+    {
+      "key": "fsp_evidence_ordinal",
+      "direction": "descending"
+    },
+    {
+      "key": "candidate_id",
+      "direction": "ascending",
+      "meaning": "stable_order_not_professional_superiority"
+    }
+  ],
+  "sort_incomplete_groups": [
+    {
+      "key": "test_evidenced_required_skill_count",
+      "direction": "descending"
+    },
+    {
+      "key": "test_evidenced_preferred_skill_count",
+      "direction": "descending"
+    },
+    {
+      "key": "candidate_declared_only_preferred_skill_count",
+      "direction": "descending"
+    },
+    {
+      "key": "candidate_id",
+      "direction": "ascending"
+    }
+  ],
+  "fsp_evidence_ordinal": {
+    "valid_linked_deduplicated_prize_result": 2,
+    "valid_linked_deduplicated_participation": 1,
+    "no_confirmed_data": 0,
+    "aggregator": "maximum_not_sum",
+    "team_result_requires_confirmed_membership": true,
+    "team_result_proves_individual_contribution": false,
+    "event_prestige_weight": false,
+    "age_decay": false,
+    "registration_count_bonus": false,
+    "affects_grade": false,
+    "used_in_incomplete_groups": false,
+    "mock_evidence_allowed_only_with_explicit_demo_label": true
+  },
+  "score_display": "component_reasons_no_global_percentage_no_hire_probability",
+  "raw_test_score_cross_form_sorting": false,
+  "missing_evidence": "unknown_not_zero_ability",
+  "explanation_source": "same_policy_components_used_to_filter_and_sort",
+  "policy_is_official_fsp_formula": false
+}

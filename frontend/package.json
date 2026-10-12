@@ -1,0 +1,26 @@
+{
+  "name": "fsp-talent-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test src/features/*.test.ts src/features/*/*.test.ts src/features/*.test.mjs tests/*.test.mjs",
+    "types:api": "openapi-typescript ../docs/contracts/openapi.v1.yaml -o src/api/schema.d.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "5.90.5",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-router": "7.9.4"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "openapi-typescript": "7.10.1",
+    "typescript": "5.9.3",
+    "vite": "8.0.0"
+  }
+}

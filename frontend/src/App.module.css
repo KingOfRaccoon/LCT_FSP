@@ -1,0 +1,4 @@
+.shell {
+  min-height: 100vh;
+  isolation: isolate;
+}
